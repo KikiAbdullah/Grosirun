@@ -1,0 +1,46 @@
+name: Deploy Blue-Green Zero-Downtime
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Deploy via Blue-Green script
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          cd /var/www/grosirun
+          chmod +x deploy-blue-green.sh
+          ./deploy-blue-green.sh
+          EOF
+
+      - name: Health check prod 5x
+        run: |
+          for i in {1..5}; do
+            echo "Health check attempt $i"
+            curl -f https://api.grosirun.id/api/v1/health && break || sleep 10
+            if [ $i -eq 5 ]; then
+              echo "Health check failed after 5 attempts, triggering rollback"
+              ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd /var/www/grosirun && chmod +x rollback.sh && ./rollback.sh"
+              exit 1
+            fi
+          done
+
+      - name: Notify Slack success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()

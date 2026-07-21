@@ -1,0 +1,26 @@
+# CODEOWNERS - Grosirun V3.1 Enterprise
+
+* @backend-lead @mobile-lead
+
+# Backend Laravel 11
+/backend/ @backend-lead
+docker-compose.yml @backend-lead @infra
+/backend/Dockerfile @backend-lead @infra
+/backend/docker/ @backend-lead @infra
+/backend/load-test/ @backend-lead
+
+# Mobile Flutter
+/mobile/ @mobile-lead
+mobile/android/app/build.gradle @mobile-lead
+
+# Docs
+/docs/ @product-owner @backend-lead @mobile-lead
+*.md @product-owner
+
+# CI/CD Infra
+.github/workflows/ @infra @backend-lead
+.github/CODEOWNERS @infra @product-owner
+
+# Security
+/docs/SECURITY.md @backend-lead @security
+/docs/SECURITY_REVIEW.md @backend-lead @security

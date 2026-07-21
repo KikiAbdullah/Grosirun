@@ -1,0 +1,113 @@
+name: Test Gate
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-22.04
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: grosirun_testing
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: grosirun
+          MYSQL_PASSWORD: secret
+        ports: ["3306:3306"]
+        options: --health-cmd="mysqladmin ping -h localhost" --health-interval=10s --health-timeout=5s --health-retries=5
+      redis:
+        image: redis:7.2-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd="redis-cli ping" --health-interval=10s
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, redis, gd, imagick, zip, bcmath, exif, pcntl
+          coverage: xdebug
+
+      - name: Copy env
+        working-directory: backend
+        run: cp .env.example .env.testing && cp .env.example .env
+
+      - name: Install Composer deps
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate key
+        working-directory: backend
+        run: php artisan key:generate --env=testing
+
+      - name: Migrate
+        working-directory: backend
+        run: php artisan migrate --env=testing --force
+
+      - name: Pint check
+        working-directory: backend
+        run: ./vendor/bin/pint --test
+
+      - name: Pest test + coverage min 80%
+        working-directory: backend
+        run: php artisan test --parallel --coverage --min=80
+
+      - name: Race condition specific test
+        working-directory: backend
+        run: php artisan test --filter=RaceCondition --parallel
+
+  frontend-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter 3.22.3
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.3'
+          channel: 'stable'
+
+      - name: Pub get
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: mobile
+        run: flutter analyze
+
+      - name: Dart format check
+        working-directory: mobile
+        run: dart format --set-exit-if-changed lib/
+
+      - name: Flutter test + coverage
+        working-directory: mobile
+        run: flutter test --coverage
+
+      - name: Build APK arm64 check size <10MB
+        working-directory: mobile
+        run: |
+          flutter build apk --release --split-per-abi --obfuscate --split-debug-info=./build/debug-info --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+          ls -lh build/app/outputs/apk/release/*.apk
+          SIZE=$(stat -c%s build/app/outputs/apk/release/app-arm64-v8a-release.apk)
+          MAX=10485760
+          echo "APK size $SIZE bytes, max $MAX"
+          if [ $SIZE -gt $MAX ]; then echo "APK too large $SIZE > $MAX"; exit 1; fi
+
+  k6-smoke:
+    runs-on: ubuntu-22.04
+    needs: backend-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+      - name: Run k6 smoke 10 VU 10s (if backend running, otherwise skip)
+        run: |
+          echo "k6 smoke would run against staging API if TOKEN set, skipping in CI without real API"
+          # k6 run backend/load-test/k6-orders-race.js --vus 2 --iterations 2 --env API_URL=http://127.0.0.1:8000/api/v1 --env TOKEN=test
+        # For real CI, deploy staging and run k6 against staging
