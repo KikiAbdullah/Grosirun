@@ -1,8 +1,12 @@
-# BUSINESS ANALYSIS V2.2 - Grosirun - Final Clean
+# BUSINESS ANALYSIS V2.2 - Grosirun
 
 **Tanggal:** 20 Juli 2026  
-**Versi:** 2.2 Final Clean - Perbaikan 7 Gap Sisa dari V2.1  
-**Status:** Final untuk Legal & Finance Review
+**Versi:** 2.2
+**Owner:** Product, Finance & Legal
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -45,7 +49,7 @@
 | BUYERS_PER_CLUSTER_TOTAL                     | 50 KK                                               | 1 RT 50 KK                              |
 | ADOPTION_70                                  | 35 buyers (70% dari 50)                             | Pilot 35/50 =70%                        |
 | ACTUAL_KG_PER_PO_AT_70                       | 700 Kg (35×20)                                      | 70% dari target 1,000Kg                 |
-| TARGET_KG_PER_PO                             | 1,000 Kg                                            | 1 ton target                            |
+| TARGET_QUANTITY_PER_PO                             | 1,000 Kg                                            | 1 ton target                            |
 | GMV_PER_PO_AT_70_TIER1                       | Rp8,400,000 (700×12,000)                            | GMV aktual, bukan target                |
 | GMV_PER_PO_TARGET_100                        | Rp12,000,000 (1000×12,000)                          | Jika 100% adoption                      |
 | GMV_PER_MONTH_PER_CLUSTER_AT_70              | Rp16,800,000 (2 PO × 8.4M)                          | 2 PO/bulan                              |
@@ -90,7 +94,7 @@
 
 **Langkah 1 - Buyer Pesan**
 
-Bu Siti pesan 20Kg (1 varian 5Kg + 1 varian 10Kg + 1 varian 5Kg) di aplikasi, pilih Tunai, order created pending, total_price server hitung Rp240,000 (20Kg × Tier1 12,000). Current_kg +20 atomic lockForUpdate.
+Bu Siti pesan 20Kg (1 varian 5Kg + 1 varian 10Kg + 1 varian 5Kg) di aplikasi, pilih Tunai, order created pending, total_price server hitung Rp240,000 (20Kg × Tier1 12,000). current_quantity +20 atomic lockForUpdate.
 
 **Langkah 2 - Buyer Bayar ke Initiator (Rekening Pribadi Pak Agus, Bukan Grosirun)**
 
@@ -468,6 +472,19 @@ CAC = Rp12,000 (1Kg bonus). LTV base Rp4,455 → LTV/CAC = 0.37 <1 (FAIL)
 
 ---
 
+### 12.1 Operating Model Penawaran-ke-Campaign
+
+Penjual menjadi pengguna platform yang mewakili supplier terverifikasi. Penjual menerbitkan penawaran grosir; Inisiator mengubah penawaran aktif menjadi campaign komunitas. Pendapatan dan alur dana tetap non-escrow: Pembeli membayar Inisiator, Inisiator membayar supplier, dan Grosirun mencatat status serta dokumen.
+
+| Aktor | Nilai yang diterima | Aktivitas | Pendapatan/biaya |
+| --- | --- | --- | --- |
+| Penjual | Permintaan agregat dan kepastian kuantitas | Katalog, offer, acceptance, fulfillment | Harga supplier pada purchase order |
+| Inisiator | Harga terverifikasi dan alur fulfillment | Campaign, koleksi dana, PO, distribusi | Margin harga buyer-supplier setelah biaya |
+| Pembeli | Harga kolektif dan transparansi status | Order, bayar, ambil barang | Membayar harga campaign |
+| Admin | Supply terkurasi dan audit platform | Verifikasi, moderasi, suspend, dispute support | Platform fee sesuai model bisnis |
+
+KPI tambahan: supplier verified aktif, offer-to-campaign conversion, purchase-order acceptance rate, on-time shipment, fulfillment discrepancy rate, dan seller response time.
+
 ## 13. SWOT, Porter & PESTEL Update Legal Pajak
 
 ### 13.1 SWOT
@@ -522,7 +539,7 @@ CAC = Rp12,000 (1Kg bonus). LTV base Rp4,455 → LTV/CAC = 0.37 <1 (FAIL)
 | Offline-first  | ✅ Hive             | ❌             | ❌            |
 | FCM fallback   | ✅ DB polling       | ❌             | ❌            |
 | Multi-cluster  | ✅ clusters table   | ❌             | ❌            |
-| APK <10MB      | ✅ 7.8MB            | ❌             | -             |
+| APK <10MB      | Belum diukur (target <10MB)            | ❌             | -             |
 | Dispute SOP    | ✅ 2×24h refund     | ❌             | ❌            |
 | Feature flags  | ✅ Pennant          | ❌             | -             |
 | Rate limit     | ✅ Redis            | ❌             | -             |
@@ -673,19 +690,3 @@ Apr-Jun 2027: 100 RT, Escrow Xendit V1.1, 20 brands ads
 ```
 
 ---
-
-**BUSINESS_ANALYSIS V2.2 Final Clean**
-
-**Ringkasan Perbaikan 7 Gaps:**
-
-| #   | Gap                          | Solusi                                    |
-| --- | ---------------------------- | ----------------------------------------- |
-| 1   | Actually/Wait/Let's recalc   | Dihapus semua, final clean                |
-| 2   | Angka komisi tidak konsisten | Satu sumber Konstanta Section 1           |
-| 3   | Legal asersi tanpa validasi  | Ditandai [HIPOTESIS - PERLU VALIDASI]     |
-| 4   | LTV/CAC <1                   | Dihitung ulang → 6.07 >3                  |
-| 5   | Ads month 3 unrealistic      | Realistic month 6 (sales cycle 3-6 bulan) |
-| 6   | Cash flow timing             | Threshold 80% + extend + talangan         |
-| 7   | Sensitivity aritmatika       | Konsisten 20Kg avg, GMV verifiable        |
-
-**Status:** ✅ Final Clean - Siap Legal & Finance Review

@@ -1,8 +1,12 @@
 # ARSITEKTUR DECISION RECORDS (ADR) - Grosirun V3.1
 
 **Tanggal:** 20 Juli 2026  
-**Status:** 7 ADRs Final  
 **Tujuan:** Mendokumentasikan keputusan arsitektur penting agar pengembang baru dapat memahami mengapa memilih Laravel daripada Node, Cubit daripada Riverpod, dan keputusan strategis lainnya tanpa harus bertanya kepada tech lead.
+**Owner:** Architecture & Engineering
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -15,7 +19,26 @@
 - ADR-005: Hive + SQLite vs Drift vs Isar
 - ADR-006: Sanctum vs JWT vs Passport
 - ADR-007: Dio vs http
+- ADR-008: Penawaran Supplier, Campaign Inisiator, dan Multi-Role
 - Template ADR Baru
+
+---
+
+
+## Decision Index
+
+| ADR | Keputusan | Status | Changelog |
+| --- | --- | --- | --- |
+| [ADR-001](#adr-001-laravel-11-vs-nodejsnestjs-vs-golang) | Laravel 11 untuk backend | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+| [ADR-002](#adr-002-mysql-8-vs-postgresql-15) | MySQL 8 sebagai primary database | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+| [ADR-003](#adr-003-s3-primary-vs-local-storage) | S3 private sebagai storage produksi | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+| [ADR-004](#adr-004-cubit-vs-riverpod-vs-bloc-vs-provider) | Cubit untuk state management | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+| [ADR-005](#adr-005-hive--sqlite-vs-drift-vs-isar) | Hive dan SQLite untuk local/offline data | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+| [ADR-006](#adr-006-sanctum-vs-jwt-vs-passport) | Sanctum untuk API token | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+| [ADR-007](#adr-007-dio-vs-http-package) | Dio untuk HTTP client | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+| [ADR-008](#adr-008-penawaran-supplier-campaign-inisiator-dan-multi-role) | Penawaran Supplier, campaign Inisiator, dan multi-role | Accepted | [Decision Log](CHANGELOG.md#decision-log) |
+
+Perubahan keputusan accepted wajib memperbarui ADR, Decision Log di Changelog, traceability matrix, dan dokumen source of truth pada PR yang sama.
 
 ---
 
@@ -238,7 +261,7 @@ Menggunakan **Laravel Sanctum 4.0** dengan Personal Access Token.
 
 1. **Kesederhanaan**: Cukup dengan `$user->createToken('mobile', ['*'], now()->addDays(30))->plainTextToken`.
 2. **Revokasi Mudah**: Token di-hash dan disimpan di database. Saat logout: `$user->currentAccessToken()->delete()`. Saat hapus akun: semua token di-revoke.
-3. **Tanpa Scopes**: Aplikasi ini hanya memiliki 3 peran (buyer, initiator, admin) yang dihandle oleh middleware Role, tidak perlu OAuth scopes.
+3. **Tanpa Scopes**: Aplikasi memiliki 4 peran utama (buyer, initiator, seller, admin) yang dihandle oleh middleware Role, tidak perlu OAuth scopes.
 4. **Expiry 30 Hari**: Sesuai dengan kebutuhan keamanan, setelah 30 hari user harus login ulang via OTP.
 5. **Integrasi Native Laravel**: Tidak perlu package tambahan, mengurangi dependency.
 
@@ -291,12 +314,33 @@ Menggunakan **Dio 5.x** sebagai HTTP client, dikombinasikan dengan **Retrofit** 
 
 ---
 
+
+## ADR-008: Penawaran Supplier, Campaign Inisiator, dan Multi-Role
+
+**Konteks**
+
+Supplier perlu mengendalikan katalog, harga, kapasitas, dan fulfillment, sementara Inisiator harus tetap mengendalikan campaign komunitas dan hubungan pembayaran dengan Pembeli.
+
+**Keputusan**
+
+Gunakan arsitektur perdagangan berbasis penawaran: Seller membuat penawaran Supplier dan Inisiator membuat campaign dari penawaran aktif. Gunakan `roles` dan `user_roles` untuk empat role (`buyer`, `initiator`, `seller`, `admin`) karena Inisiator juga dapat menjadi Pembeli. Seller mewakili organisasi `suppliers` melalui `supplier_members`.
+
+**Konsekuensi**
+
+- Penawaran dan campaign menjadi lifecycle terpisah dengan snapshot komersial.
+- Purchase order menjadi kontrak pemenuhan antara Inisiator dan supplier.
+- Data Pembeli tidak dibagikan kepada seller.
+- Otorisasi memerlukan role, membership, cluster, ownership, dan audit log.
+- Kompleksitas bertambah, tetapi batas domain dan tanggung jawab setiap aktor menjadi eksplisit.
+
+**Status:** Accepted
+
 ## Template ADR Baru
 
 Jika di masa depan terdapat keputusan arsitektur baru (misalnya memilih Web Dashboard Livewire vs Inertia, atau mengubah storage ke Cloud R2), maka tambahkan dengan format berikut:
 
 ```markdown
-## ADR-008: Judul Keputusan
+## ADR-009: Judul Keputusan
 
 **Konteks**
 

@@ -2,7 +2,11 @@
 
 **Tanggal:** 20 Juli 2026  
 **Versi:** 3.1  
-**Status:** Production Ready
+**Owner:** Product & Engineering
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -25,6 +29,24 @@
 
 ---
 
+
+## Decision Log
+
+| Tanggal | Decision | ADR | Dampak dokumen | Status |
+| --- | --- | --- | --- | --- |
+| 20 Juli 2026 | Laravel 11 backend | [ADR-001](ARCHITECTURE_DECISION_RECORDS.md#adr-001-laravel-11-vs-nodejsnestjs-vs-golang) | Technical, API, Deployment | Accepted |
+| 20 Juli 2026 | MySQL 8 primary database | [ADR-002](ARCHITECTURE_DECISION_RECORDS.md#adr-002-mysql-8-vs-postgresql-15) | Technical, Test | Accepted |
+| 20 Juli 2026 | S3 private primary storage | [ADR-003](ARCHITECTURE_DECISION_RECORDS.md#adr-003-s3-primary-vs-local-storage) | Technical, Security, Privacy, Deployment | Accepted |
+| 20 Juli 2026 | Cubit state management | [ADR-004](ARCHITECTURE_DECISION_RECORDS.md#adr-004-cubit-vs-riverpod-vs-bloc-vs-provider) | Mobile, Test | Accepted |
+| 20 Juli 2026 | Hive dan SQLite offline storage | [ADR-005](ARCHITECTURE_DECISION_RECORDS.md#adr-005-hive--sqlite-vs-drift-vs-isar) | Mobile, Security | Accepted |
+| 20 Juli 2026 | Sanctum API authentication | [ADR-006](ARCHITECTURE_DECISION_RECORDS.md#adr-006-sanctum-vs-jwt-vs-passport) | API, Security | Accepted |
+| 20 Juli 2026 | Dio HTTP client | [ADR-007](ARCHITECTURE_DECISION_RECORDS.md#adr-007-dio-vs-http-package) | Mobile, Observability | Accepted |
+| 21 Juli 2026 | Seller membuat penawaran; Inisiator membuat campaign; empat role multi-role | [ADR-008](ARCHITECTURE_DECISION_RECORDS.md#adr-008-penawaran-supplier-campaign-inisiator-dan-multi-role) | PRD, Technical, API, Mobile, Security, Test, User Guide | Accepted |
+
+Untuk perubahan besar berikutnya, tambahkan satu baris berisi tanggal, keputusan, ADR, dokumen terdampak, dan status. Release entry wajib mereferensikan Decision Log atau ADR terkait.
+
+---
+
 # Bagian 1: Strategi Versioning
 
 ## 1.1 Pendahuluan & Konteks Bisnis
@@ -40,7 +62,7 @@ Versioning adalah fondasi untuk menjaga **stabilitas** dan **backward compatibil
 | **Komunikasi**  | Pengguna dan developer tahu apa yang berubah       |
 | **Deprecation** | Memberikan waktu transisi untuk perubahan breaking |
 
-### Konteks Bisnis (Referensi BUSINESS_ANALYSIS.md)
+### Konteks Bisnis (Referensi [BUSINESS_ANALYSIS.md](BUSINESS_ANALYSIS.md))
 
 | Komponen              | Nilai               |
 | --------------------- | ------------------- |
@@ -90,7 +112,7 @@ Contoh: 1.0.0, 1.1.0, 2.0.0
 
 ```bash
 # Buat tag
-git tag -a v1.0.0 -m "MVP V1.0 Laravel 11 + S3 + Cluster + GAP Closed"
+git tag -a v1.0.0 -m "MVP V1.0 Laravel 11 + S3 + Cluster + Final"
 
 # Push tag ke remote
 git push origin v1.0.0
@@ -102,7 +124,7 @@ git tag -l
 git show v1.0.0
 ```
 
-**CHANGELOG.md** harus diperbarui setiap release.
+**[CHANGELOG.md](CHANGELOG.md)** harus diperbarui setiap release.
 
 ---
 
@@ -251,7 +273,7 @@ php artisan scribe:generate --config=scribe.v2.config
 
 ### Expand-Contract Pattern
 
-**Contoh: Rename `price_total_supplier` → `supplier_total_price`**
+**Historical Migration Example (Legacy Only): `price_total_supplier` → `supplier_total_price`**
 
 **Phase 1 - Expand (Deploy 1):**
 
@@ -298,7 +320,7 @@ php artisan migrate:rollback --step=1
 php artisan backup:restore
 ```
 
-**Lihat DATABASE_MIGRATION_GUIDE.md untuk detail.**
+**Lihat [Technical Specification §19](TECHNICAL_SPEC.md#19-panduan-migrasi-database) untuk detail.**
 
 ---
 
@@ -396,7 +418,7 @@ Future<void> checkForceUpdate() async {
 | **Non-breaking additive** | Tetap di major yang sama, tidak perlu deprecation             |
 | **Breaking change**       | Wajib major bump + deprecation period minimal **6 bulan**     |
 | **Sunset header**         | Harus mencantumkan tanggal 6 bulan setelah deprecation notice |
-| **Komunikasi**            | CHANGELOG.md + Slack #release + in-app banner + email         |
+| **Komunikasi**            | [CHANGELOG.md](CHANGELOG.md) + Slack #release + in-app banner + email         |
 
 ### Timeline Deprecation
 
@@ -455,7 +477,7 @@ public function oldRecap(Campaign $campaign)
 
 ## 1.7 Upgrade Guide Template
 
-### Template CHANGELOG.md
+### Template [CHANGELOG.md](CHANGELOG.md)
 
 ```markdown
 ## [vX.Y.Z] - DD MMM YYYY - [Breaking / Minor / Patch]
@@ -641,13 +663,13 @@ php artisan pennant:deactivate canary-new-order-service
 | **Database**       | Additive only di Blue-Green, Expand-Contract untuk breaking |
 | **Flutter**        | versionName (SemVer) + versionCode (integer)                |
 | **Feature Flag**   | Pennant untuk canary rollout                                |
-| **Documentation**  | CHANGELOG.md + Upgrade Guide                                |
+| **Documentation**  | [CHANGELOG.md](CHANGELOG.md) + Upgrade Guide                                |
 
 ### Checklist Release
 
 | Item                                                                          | Status |
 | ----------------------------------------------------------------------------- | ------ |
-| [ ] CHANGELOG.md updated with Added/Changed/Deprecated/Removed/Fixed/Security | ☐      |
+| [ ] [CHANGELOG.md](CHANGELOG.md) updated with Added/Changed/Deprecated/Removed/Fixed/Security | ☐      |
 | [ ] Version bump di composer.json (backend)                                   | ☐      |
 | [ ] Version bump di pubspec.yaml (mobile)                                     | ☐      |
 | [ ] Git tag `vX.Y.Z` created and pushed                                       | ☐      |
@@ -684,14 +706,21 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 
 - Web Dashboard Admin Livewire/Inertia (Nice #1) - desktop rekap Pak Agus
 - iOS TestFlight build + Podfile (Nice #2)
-- Analytics Event Dictionary 30 events + notification_open tracking (Nice #3 + #8)
+- Analytics Event Dictionary 59 events + notification_open tracking (Nice #3 + #8)
 - A/B Remote Config Firebase tombol 56dp vs 48dp (Nice #4)
 - i18n flutter_localizations + intl multi-language ID/EN (Nice #5)
 - Dark Mode ThemeMode (Nice #6)
+- Role `seller` serta multi-role melalui `roles` dan `user_roles`.
+- Supplier organization, membership, product, offer, tier harga, area layanan, purchase order, dokumen, dan status log.
+- Alur Seller offer → Inisiator campaign snapshot → purchase order → fulfillment.
+- Verifikasi Supplier dan moderasi offer oleh Admin aplikasi.
+- Policy yang mencegah Seller mengakses data dan bukti pembayaran Pembeli.
 
 ### Changed
 
-- -
+- Campaign wajib dibuat Inisiator dari penawaran aktif.
+- `users.role` digantikan relasi multi-role melalui `user_roles` dan `active_role`.
+- Supplier menjadi organisasi yang diwakili Seller melalui `supplier_members`.
 
 ### Deprecated
 
@@ -711,32 +740,32 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 
 ---
 
-## [v1.0.0] - 20 Juli 2026 (Final MVP V1.0 + GAP Closed Enterprise Ready)
+## [v1.0.0] - 20 Juli 2026 (Final MVP V1.0 + Enterprise Ready)
 
-**BREAKING from v0.5.0 Firebase era - total rewrite Laravel 11 + S3 + Cluster + GAP Closed**
+**BREAKING from v0.5.0 Firebase era - total rewrite Laravel 11 + S3 + Cluster + Final**
 
 ### Added - Backend Laravel 11 Enterprise
 
 - **Framework:** Laravel 11.34.2 PHP 8.3, Sanctum 4 expiry 30d
-- **Clusters Table (Fix Gap DB tanpa cluster_id inkonsistensi #2):** `clusters` id, name, code unique PGH-RT03, rw, kelurahan. FK `users.cluster_id`, `campaigns.cluster_id`, `orders.cluster_id` denormalized. Global Scope ClusterScope auto filter auth user cluster. Seed default cluster PGH-RT03 pilot. Ready multi-cluster V2 without big migration.
-- **S3 Primary Storage (Fix Gap Storage Lokal vs S3 inkonsistensi #1):** `FILESYSTEM_DISK=s3` prod private bucket `grosirun-prod-private` versioning ON, lifecycle delete `order_proofs/*` after 90d. Local only dev. Campaign images `campaigns/{uuid}.jpg` public via CloudFront or S3 public, proof private tempUrl 1h via `temporaryUrl()`. Intervention second compress 600x600 80%. Controller Policy check before generate tempUrl.
+- **Clusters Table:** `clusters` id, name, code unique PGH-RT03, rw, kelurahan. FK `users.cluster_id`, `campaigns.cluster_id`, `orders.cluster_id` denormalized. Global Scope ClusterScope auto filter auth user cluster. Seed default cluster PGH-RT03 pilot. Ready multi-cluster V2 without big migration.
+- **S3 Primary Storage:** `FILESYSTEM_DISK=s3` prod private bucket `grosirun-prod-private` versioning ON, lifecycle delete `order_proofs/*` after 90d. Local only dev. Campaign images `campaigns/{uuid}.jpg` public via CloudFront or S3 public, proof private tempUrl 1h via `temporaryUrl()`. Intervention second compress 600x600 80%. Controller Policy check before generate tempUrl.
 - **Database Design:** 8 tables: clusters, users, otp_codes, campaigns, campaign_variants, orders (uuid external, cluster_id), transaction_logs, notifications fallback, idempotency_keys Redis. ERD mermaid + cardinality + FK diagram + index strategy `(cluster_id,status,deadline)`, `(campaign_id,payment_status)`, `(user_id,created_at)`, partitioning orders by YEAR future V2, read replica for recap heavy.
-- **Idempotency-Key (Gap API_SPEC minor Fix):** Middleware `IdempotencyMiddleware` Redis `idempotency:{user_id}:{key}` cache response 24h, mandatory for POST /orders, POST proof, PATCH validate, batch-validate. Prevents duplicate on Dio retry + offline queue replay.
-- **ETag + Cache-Control + If-Match (Gap API_SPEC minor Fix):** GET /campaigns `Cache-Control: public, max-age=60` Redis 60s + ETag `W/"updated_at-current_kg"`. GET detail ETag, If-None-Match → 304 Not Modified. PATCH validate optional If-Match → 412 STALE if mismatch. Saves battery + bandwidth.
-- **Consent UU PDP + ToS + Deletion (Gap Kritis 1.1 Fix):** users fields `consent_at`, `consent_version`, `tos_accepted_at`, `tos_version`. Endpoints POST /auth/consent, POST /auth/tos-accept, DELETE /auth/account anonymize job AnonymizeUserJob SLA <24h: name Deleted User {id}, phone DELETED\_{id}, fcm null, tokens revoked, S3 proofs deleted, orders anonymized retain Kg for audit. Retensi proof 90d via S3 lifecycle + CleanOldProofsJob daily. Privacy Policy doc.
-- **Notifications Fallback (Gap Kritis #6 Fix):** Table `notifications` id, user_id FK, title, body, data json, read_at. Flow: SendFcmJob try Kreait FCM, even if success also insert DB fallback, if FCM fails catch still insert DB. Flutter polling GET /notifications?unread=true every 60s on resume + FCM foreground handler. PATCH read, POST read-all. Not dependent 100% Firebase.
-- **Batch Operations (Gap API_SPEC minor Fix):** POST /campaigns/{id}/orders/batch-validate {order_uuids[], notes} → 207 multi-status success+failed, transaction per order, FCM batch. For initiator checkbox validate 10 orders at once reduce N+1.
-- **Feature Flags (Gap Penting #5 Fix):** Laravel Pennant `qris-upload`, `extend-deadline`, `batch-validate`, `canary-new-order-service`. Flags via DB + env, toggle without deploy `php artisan pennant:activate --percentage=10`. GET /features return active flags for Flutter hide/show UI.
-- **Rate Limit Centralized (Gap Penting #6 Fix):** AppServiceProvider RateLimiter custom Redis: global 60/min per user/IP, otp 5/min per phone+IP, override 10/min per initiator, validate 30/min. Middleware throttle:otp, throttle:global-api, throttle:override-validate. 429 with `locked_until`, `retry_after`, `code ERR_001_RL`.
-- **Webhooks Placeholder (Gap API_SPEC minor):** POST /webhooks/supplier/order-status signed HMAC future V2 supplier integration, feature flag webhook-supplier false, table webhooks prepared.
-- **Error Catalog (Gap New Doc):** 50 codes ERR_001 OTP_EXPIRED 401 action request ulang, ERR_024 OUT_OF_STOCK 409, ERR_030 ALREADY_VALIDATED 409 admin race, ERR_031 STALE_DATA 412, ERR_040 CLUSTER_MISMATCH 403, ERR_050 UPLOAD_TOO_LARGE 413, etc. Frontend mapper human message + trace_id Sentry.
-- **Versioning Strategy V2 (Gap Kritis #5 Fix):** URL /api/v1/ current, future /api/v2/ backward compat, Deprecation header, Sunset, 6 months maintenance V1 after V2 launch, Accept header `application/vnd.grosirun.v1+json`, X-App-Version check min_supported. Doc VERSIONING_STRATEGY.md + OpenAPI Scribe v1/v2.
+- **Idempotency-Key:** Middleware `IdempotencyMiddleware` Redis `idempotency:{user_id}:{key}` cache response 24h, mandatory for POST /orders, POST proof, PATCH validate, batch-validate. Prevents duplicate on Dio retry + offline queue replay.
+- **ETag + Cache-Control + If-Match:** GET /campaigns `Cache-Control: public, max-age=60` Redis 60s + ETag `W/"updated_at-current_quantity"`. GET detail ETag, If-None-Match → 304 Not Modified. PATCH validate optional If-Match → 412 STALE if mismatch. Saves battery + bandwidth.
+- **Consent UU PDP + ToS + Deletion:** users fields `consent_at`, `consent_version`, `tos_accepted_at`, `tos_version`. Endpoints POST /auth/consent, POST /auth/tos-accept, DELETE /auth/account anonymize job AnonymizeUserJob SLA <24h: name Deleted User {id}, phone DELETED\_{id}, fcm null, tokens revoked, S3 proofs deleted, orders anonymized retain Kg for audit. Retensi proof 90d via S3 lifecycle + CleanOldProofsJob daily. Privacy Policy doc.
+- **Notifications Fallback:** Table `notifications` id, user_id FK, title, body, data json, read_at. Flow: SendFcmJob try Kreait FCM, even if success also insert DB fallback, if FCM fails catch still insert DB. Flutter polling GET /notifications?unread=true every 60s on resume + FCM foreground handler. PATCH read, POST read-all. Not dependent 100% Firebase.
+- **Batch Operations:** POST /campaigns/{id}/orders/batch-validate {order_uuids[], notes} → 207 multi-status success+failed, transaction per order, FCM batch. For initiator checkbox validate 10 orders at once reduce N+1.
+- **Feature Flags:** Laravel Pennant `qris-upload`, `extend-deadline`, `batch-validate`, `canary-new-order-service`. Flags via DB + env, toggle without deploy `php artisan pennant:activate --percentage=10`. GET /features return active flags for Flutter hide/show UI.
+- **Rate Limit Centralized:** AppServiceProvider RateLimiter custom Redis: global 60/min per user/IP, otp 5/min per phone+IP, override 10/min per initiator, validate 30/min. Middleware throttle:otp, throttle:global-api, throttle:override-validate. 429 with `locked_until`, `retry_after`, `code ERR_001_RL`.
+- **Webhooks Placeholder:** POST /webhooks/supplier-erp/order-status signed HMAC future V2 supplier integration, feature flag supplier-erp-webhook false, table webhooks prepared.
+- **Error Catalog (Dokumentasi baru):** 50 codes ERR_001 OTP_EXPIRED 401 action request ulang, ERR_024 OUT_OF_STOCK 409, ERR_030 ALREADY_VALIDATED 409 admin race, ERR_031 STALE_DATA 412, ERR_040 CLUSTER_MISMATCH 403, ERR_050 UPLOAD_TOO_LARGE 413, etc. Frontend mapper human message + trace_id Sentry.
+- **Versioning Strategy V2:** URL /api/v1/ current, future /api/v2/ backward compat, Deprecation header, Sunset, 6 months maintenance V1 after V2 launch, Accept header `application/vnd.grosirun.v1+json`, X-App-Version check min_supported. Doc [Changelog — Strategi Versioning](CHANGELOG.md#bagian-1-strategi-versioning) + OpenAPI Scribe v1/v2.
 - **Clusters + Auth + OTP:** request-otp now cluster_code optional invite, verify-otp consent+tos true required 422 if false, cluster assignment firstOrCreate, token creation.
 - **Proof Upload S3:** Multipart 2MB max mime jpg/png random UUID S3 private, tempUrl 1h, overwrite old log, Idempotency-Key mandatory.
-- **Validation + Admin Race Fixed (Gap Penting 2.2):** OrderService validate now lockForUpdate orders row, throw 409 ALREADY_VALIDATED if already paid, audit logs. Test pest concurrency 2 initiators same order same second.
+- **Validation + Admin Race Fixed:** OrderService validate now lockForUpdate orders row, throw 409 ALREADY_VALIDATED if already paid, audit logs. Test pest concurrency 2 initiators same order same second.
 - **Recap + Distribution + Extend/Cancel:** Read replica mysql_read for recap heavy, cluster scoped, extend feature flag check, FCM + fallback notifications broadcast.
-- **Observability (Gap Penting #1 Fix):** Laravel Pulse dashboard /pulse slow queries, slow requests, exceptions, queue. Prometheus exporter /metrics for Grafana. Sentry DSN prod, decision matrix Log vs Sentry: info→log daily, warning→log breadcrumb, error business recoverable 409→log only, 5xx→log+ Sentry capture + Slack alert, security critical→log critical + Sentry + Slack urgent. Telescope dev only.
-- **Docker Local Environment (Gap Kritis #1 Fix):** docker-compose.yml root app MySQL Redis Nginx queue scheduler, Dockerfile prod, docker/nginx.conf, php.ini prod, supervisord.conf, Dev Container optional, setup 15 min vs 90 min native.
+- **Observability:** Laravel Pulse dashboard /pulse slow queries, slow requests, exceptions, queue. Prometheus exporter /metrics for Grafana. Sentry DSN prod, decision matrix Log vs Sentry: info→log daily, warning→log breadcrumb, error business recoverable 409→log only, 5xx→log+ Sentry capture + Slack alert, security critical→log critical + Sentry + Slack urgent. Telescope dev only.
+- **Docker Local Environment:** docker-compose.yml root app MySQL Redis Nginx queue scheduler, Dockerfile prod, docker/nginx.conf, php.ini prod, supervisord.conf, Dev Container optional, setup 15 min vs 90 min native.
 
 ### Added - Mobile Flutter 3.22+ Enterprise
 
@@ -744,68 +773,63 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - **Cluster Scope:** Auth repo getCurrentUserClusterId, CampaignRepository filter cluster, error dialog ERR_040 cluster mismatch.
 - **Idempotency Interceptor:** Dio interceptor generate UUID v4 per POST/PATCH, header Idempotency-Key, save Hive idempotencyBox mapping url payload.
 - **ETag Handling:** CampaignRemote save ETag from header to Hive etagBox, next GET sends If-None-Match, 304 no rebuild saves battery, If-Match for PATCH validate 412 stale handling.
-- **Deep Linking Handler (Gap STATE_MANAGEMENT Fix):** AppLinks package, grosirun://campaign/{id} + https://grosirun.id/c/{slug}, getInitialAppLink + uriLinkStream, pendingDeepLink when not authenticated saved Hive appStateBox, navigate after login, AndroidManifest intent-filter autoVerify.
-- **FCM Background Handler Full Detail (Gap Fix):** \_firebaseMessagingBackgroundHandler entry-point save Hive notificationsBox, FcmService init foreground onMessage show snackbar + refresh cubits + save Hive, onMessageOpenedApp navigate campaign_id, fallback polling GET /notifications 60s on resume Timer periodic + AppLifecycleState.
-- **Error Boundary Widget Tree (Gap Fix):** ErrorBoundary StatefulWidget, FlutterError.onError + PlatformDispatcher.onError + Sentry + Crashlytics, ErrorView with retry.
-- **State Persistence When Killed (Gap Fix):** appStateBox lastRoute lastCampaignId lastActiveAt lastDeepLink pendingDeepLink notification count, NavigatorObserver save on push, main cold start restore lastRoute within 30 min.
-- **Offline Proof Upload Queue (Gap Nice #7 Fix):** pendingQueueBox type upload_proof {order_uuid, local_file_path in app docs dir, idempotency_key}, SyncService processes both create_order + upload_proof ordered created_at asc 3 tries backoff, if file deleted remove queue + local notif fail, after sync delete local temp file.
+- **Deep Linking Handler:** AppLinks package, grosirun://campaign/{id} + https://grosirun.id/c/{slug}, getInitialAppLink + uriLinkStream, pendingDeepLink when not authenticated saved Hive appStateBox, navigate after login, AndroidManifest intent-filter autoVerify.
+- **FCM Background Handler Full Detail (penyempurnaan):** \_firebaseMessagingBackgroundHandler entry-point save Hive notificationsBox, FcmService init foreground onMessage show snackbar + refresh cubits + save Hive, onMessageOpenedApp navigate campaign_id, fallback polling GET /notifications 60s on resume Timer periodic + AppLifecycleState.
+- **Error Boundary Widget Tree (penyempurnaan):** ErrorBoundary StatefulWidget, FlutterError.onError + PlatformDispatcher.onError + Sentry + Crashlytics, ErrorView with retry.
+- **State Persistence When Killed (penyempurnaan):** appStateBox lastRoute lastCampaignId lastActiveAt lastDeepLink pendingDeepLink notification count, NavigatorObserver save on push, main cold start restore lastRoute within 30 min.
+- **Offline Proof Upload Queue:** pendingQueueBox type upload_proof {order_uuid, local_file_path in app docs dir, idempotency_key}, SyncService processes both create_order + upload_proof ordered created_at asc 3 tries backoff, if file deleted remove queue + local notif fail, after sync delete local temp file.
 - **Batch Validate UI:** Dashboard admin checkbox multi-select 10 orders + batch validate button api 207 partial success dialog success+failed.
 - **Feature Flags UI:** GET /features hide/show QRIS option if qris-upload false without APK update.
-- **Analytics Event Dictionary (Nice #3):** 30 events login_success, campaign_view, checkout_start, checkout_success, validation, notification_open, deep_link_open, proof_upload, etc. FirebaseAnalytics debugView.
+- **Analytics Event Dictionary (Nice #3):** 59 events login_success, campaign_view, checkout_start, checkout_success, validation, notification_open, deep_link_open, proof_upload, etc. FirebaseAnalytics debugView.
 - **Performance Traces:** Firebase Performance custom traces campaign_list_load, checkout_flow, proof_upload.
 
-### Added - Infra / CI/CD / Docs Enterprise (GAP Critical Fixed)
+### Added - Infra / CI/CD / Docs Enterprise
 
 - **Docker:** `docker-compose.yml` (app, nginx, mysql, redis, queue, scheduler) + `docker-compose.prod.yml` override S3 + `backend/Dockerfile` + `backend/Dockerfile.prod` + `backend/docker/nginx.conf` + `php.ini` prod + `supervisord.conf`
-- **CI/CD Pipeline (Gap Kritis #3 Fix):** `.github/workflows/test.yml` runs on PR to develop: `php artisan test --coverage`, `flutter analyze`, `flutter test`, k6 smoke 10 VU, required check CODEOWNERS approve. `deploy.yml` blue-green zero-downtime: build Docker, migrate, health check temp port 8001, switch symlink current, reload FPM Nginx, restart queue, post health, Slack notify, auto rollback.sh if health fails 3x. `build-apk.yml` manual dispatch: build APK split-per-abi obfuscate SENTRY_DSN dart-define, upload artifact + Firebase App Distribution canary 10% then all, size check <10MB fail if >.
-- **Error Tracking Strategy Matrix (Gap Kritis #3 Fix):** Log vs Sentry decision matrix in TECHNICAL_SPEC + OBSERVABILITY.md: info log daily, warning breadcrumb, recoverable 409 log only, 5xx log+ Sentry + Slack, security critical log+ Sentry + Slack urgent.
-- **Migration Rollback Plan (Gap Kritis #4 Fix):** DATABASE_MIGRATION_GUIDE.md expand-contract strategy, safe rollback per migration `migrate:rollback --step=1`, restore from backup S3 if data loss, blue-green additive only migrations.
-- **FCM Fallback (Gap Kritis #6 Fix):** notifications table + GET /notifications polling 60s + PATCH read.
-- **Monitoring & Alerting Detail (Gap Penting #1 Fix):** Laravel Pulse + Prometheus + Grafana dashboards slow queries, slow requests, queue failed, P95 >300ms 5m alert Slack, SSL expiry <7 days alert, disk >80%, DB connections >80%, Firebase Performance custom traces.
-- **Disaster Recovery (Gap Penting #2 Fix):** RTO 1h RPO 24h, backup daily S3 spatie, retention 7d, S3 versioning, restore drill procedure 1x before pilot documented in DISASTER_RECOVERY_DRILL_REPORT.md.
-- **UU PDP Compliance (Gap Penting #3 Fix):** PRIVACY_POLICY.md UU PDP No.27/2022, dasar pengolahan consent, retensi 90d proof, hak hapus DELETE /auth/account anonymize SLA <24h, log consent_at.
-- **Load Testing Script (Gap Penting #4 Fix):** `backend/load-test/k6-deadline-rush.js` 100 VUs 30s 10 quota limited 10 success 90 409, `k6-orders-race.js` 2 VUs same variant 1 quota, `k6-recap-heavy.js` 10 VUs recap heavy, thresholds P95 <300ms, http_req_failed <0.1, baseline saved PERFORMANCE_BENCHMARK.md.
-- **Feature Flags (Gap Penting #5 Fix):** Pennant flags.
-- **Rate Limit Centralized (Gap Penting #6 Fix):** Redis per-route override.
-- **New Docs 18 Enterprise:**
-  1. ARCHITECTURE_DECISION_RECORDS.md 7 ADRs
-  2. DATABASE_DESIGN.md 500 lines ERD cardinality FK index partitioning read replica pooling lifecycle
-  3. DATABASE_MIGRATION_GUIDE.md expand-contract rollback safe
-  4. PERFORMANCE_TUNING.md OPcache Redis Nginx PHP-FPM Flutter ListView image cache memory leak
-  5. SECURITY.md Threat Model OWASP Top 10 API+Mobile Rate Limit Sanctum S3 upload audit
-  6. SECURITY_REVIEW.md OWASP checklist manual self-test before pilot
-  7. OBSERVABILITY.md Logging vs Sentry matrix Pulse Prometheus Grafana Crashlytics Horizon slow query alert
-  8. CI_CD.md GitHub Actions test deploy build-apk blue-green canary rollback Slack
-  9. CODING_STANDARDS.md Laravel Service DTO Resource Flutter Cubit Widget Barrel Theme
-  10. ERROR_CATALOG.md 50 codes ERR_001...
-  11. VERSIONING_STRATEGY.md SemVer API v1/v2 deprecation Sunset upgrade guide
-  12. UI_SPEC.md 8 screens wireframe spacing color typography 56dp loading empty error skeleton
-  13. DISPUTE_SOP.md Non-escrow refund 2x24h eskalasi RW ToS consent screen
-  14. ONBOARDING_PILOT.md Panduan Pak Agus simple Bahasa Indonesia
-  15. FAQ_END_USER.md 20 FAQ buyer
-  16. PRIVACY_POLICY.md UU PDP No.27/2022 retensi 90d deletion SLA
-  17. DATA_MIGRATION_PLAN.md Firebase→MySQL Excel importer command
-  18. ANALYTICS_EVENT_DICTIONARY.md 30 events taxonomy
-  - Plus PERFORMANCE_BENCHMARK.md baseline
-  - Plus DISASTER_RECOVERY_DRILL_REPORT.md template
+- **CI/CD Pipeline:** `.github/workflows/test.yml` runs on PR to develop: `php artisan test --coverage`, `flutter analyze`, `flutter test`, k6 smoke 10 VU, required check CODEOWNERS approve. `deploy.yml` blue-green zero-downtime: build Docker, migrate, health check temp port 8001, switch symlink current, reload FPM Nginx, restart queue, post health, Slack notify, auto rollback.sh if health fails 3x. `build-apk.yml` manual dispatch: build APK split-per-abi obfuscate SENTRY_DSN dart-define, upload artifact + Firebase App Distribution canary 10% then all, size check <10MB fail if >.
+- **Error Tracking Strategy Matrix:** Log vs Sentry decision matrix in TECHNICAL_SPEC + [OBSERVABILITY.md](OBSERVABILITY.md): info log daily, warning breadcrumb, recoverable 409 log only, 5xx log+ Sentry + Slack, security critical log+ Sentry + Slack urgent.
+- **Migration Rollback Plan:** [Technical Specification §19](TECHNICAL_SPEC.md#19-panduan-migrasi-database) expand-contract strategy, safe rollback per migration `migrate:rollback --step=1`, restore from backup S3 if data loss, blue-green additive only migrations.
+- **FCM Fallback:** notifications table + GET /notifications polling 60s + PATCH read.
+- **Monitoring & Alerting Detail:** Laravel Pulse + Prometheus + Grafana dashboards slow queries, slow requests, queue failed, P95 >300ms 5m alert Slack, SSL expiry <7 days alert, disk >80%, DB connections >80%, Firebase Performance custom traces.
+- **Disaster Recovery:** RTO 1h RPO 24h, backup daily S3 spatie, retention 7d, S3 versioning, restore drill procedure 1x before pilot documented in [DEPLOYMENT.md](DEPLOYMENT.md) bagian 13 — Disaster Recovery Plan.
+- **UU PDP Compliance:** [PRIVACY_POLICY.md](PRIVACY_POLICY.md) UU PDP No.27/2022, dasar pengolahan consent, retensi 90d proof, hak hapus DELETE /auth/account anonymize SLA <24h, log consent_at.
+- **Load Testing Script:** `backend/load-test/k6-deadline-rush.js` 100 VUs 30s 10 quota limited 10 success 90 409, `k6-orders-race.js` 2 VUs same variant 1 quota, `k6-recap-heavy.js` 10 VUs recap heavy, thresholds P95 <300ms, http_req_failed <0.1, baseline saved [Observability — Performance & Benchmark](OBSERVABILITY.md#3-performance-engineering).
+- **Feature Flags:** Pennant flags.
+- **Rate Limit Centralized:** Redis per-route override.
+- **Documentation Baseline (15 consolidated documents):**
+  1. `PRD.md` — product requirements dan lifecycle.
+  2. `BUSINESS_ANALYSIS.md` — business, legal-finance assumptions, GTM.
+  3. `TECHNICAL_SPEC.md` — architecture, ERD penawaran-ke-campaign, database, migration.
+  4. `API_SPEC.md` — REST contract dan canonical error catalog.
+  5. `MOBILE_SPEC.md` — UX, screen map, Cubit, offline, FCM.
+  6. `SECURITY.md` — threat model, authorization, security review.
+  7. `PRIVACY_POLICY.md` — legal privacy document dan consent version.
+  8. `TEST_PLAN.md` — test strategy dan acceptance evidence.
+  9. `DEPLOYMENT.md` — CI, build, deploy, rollback, DR.
+  10. `DEVELOPMENT_GUIDE.md` — coding, Git, PR, contribution.
+  11. `OBSERVABILITY.md` — telemetry, performance, 59 analytics events.
+  12. `USER_GUIDE.md` — role guide, FAQ, refund dan dispute operations.
+  13. `ARCHITECTURE_DECISION_RECORDS.md` — 8 ADR.
+  14. `SETUP_GUIDE.md` — local development setup.
+  15. `CHANGELOG.md` — version strategy dan release history.
 
 ### Changed
 
-- **Storage Strategy:** Dari local `storage/app/public` primary → **S3 private primary prod** (Gap inkonsistensi #1 fixed). Local only dev. TempUrl 1h private, lifecycle 90d. Update all docs consistent S3.
+- **Storage Strategy:** Dari local `storage/app/public` primary → **S3 private primary prod**. Local only dev. TempUrl 1h private, lifecycle 90d. Update all docs consistent S3.
 - **DB Schema:** Tambah `clusters` table + FK, tambah `notifications` fallback, tambah `cluster_id` di orders denormalized, tambah `consent_at`, `tos_accepted_at`. Index strategy `(cluster_id,status,deadline)` etc. Partitioning ready.
 - **API:** Tambah Idempotency-Key, ETag, Cache-Control, RateLimit headers, Deprecation Sunset, Versioning Accept header, Batch validate 207, Notifications fallback, Features, Clusters, DELETE account, Consent ToS, Proof-url tempUrl, Webhook placeholder, OpenAPI Scribe.
 - **Mobile:** Tambah consent+ToS checkboxes, cluster scope, Idempotency interceptor, ETag caching 304, deep link handler, FCM background full + fallback polling, error boundary, state persistence killed, offline proof queue, batch validate checkbox, feature flags UI, analytics dictionary.
-- **Docs:** Semua 10 docs existing di-rewrite V3.1 GAP Closed + 18 docs baru enterprise. Semua konsisten S3 primary, cluster_id, CI real, FCM fallback, Idempotency, ETag, etc.
+- **Docs:** Dokumentasi dikonsolidasikan menjadi 15 sumber kebenaran dengan referensi silang yang diperbarui.
 
 ### Deprecated
 
-- **GET /campaigns/{id}/old-recap** text only → use `GET /campaigns/{id}/recap` with PDF S3 tempUrl. Sunset 31 Dec 2026. Header `Deprecation: true`, `Sunset: Sat, 31 Dec 2026`. Doc in CHANGELOG Deprecated + VERSIONING_STRATEGY.
-- **Local storage primary** → deprecated, use S3 primary. Migration guide in DATABASE_MIGRATION_GUIDE + DATA_MIGRATION_PLAN.
+- **GET /campaigns/{id}/old-recap** text only → use `GET /campaigns/{id}/recap` with PDF S3 tempUrl. Sunset 31 Dec 2026. Header `Deprecation: true`, `Sunset: Sat, 31 Dec 2026`. Doc in CHANGELOG Deprecated + CHANGELOG bagian Strategi Versioning.
+- **Local storage primary** → deprecated, use S3 primary. Migration guide in TECHNICAL_SPEC bagian 18–19 (Migrasi Data dan Panduan Migrasi Database).
 - **Firebase Realtime** → deprecated, use Laravel API + Redis cache + ETag polling.
 
 ### Removed
 
-- Firebase Firestore collection `products` → replaced MySQL campaigns table. Data migration plan in DATA_MIGRATION_PLAN.md artisan command `firebase:import`.
+- Firebase Firestore collection `products` → replaced MySQL campaigns table. Data migration plan in [TECHNICAL_SPEC.md](TECHNICAL_SPEC.md) bagian 18 — Rencana Migrasi Data artisan command `firebase:import`.
 - Old `uploads/` folder old docs Firebase era - deleted.
 
 ### Fixed
@@ -818,15 +842,15 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - **GET /campaigns auth policy ambiguous:** Fixed decision final Auth required for all, documented in PRD + API_SPEC + TECHNICAL_SPEC consistent.
 - **FCM Down 100% dependency:** Fixed fallback notifications DB + polling 60s.
 - **OTP Rate Limit Bypass:** Fixed per phone+IP + attempts + locked_until + Redis.
-- **APK Size 12MB:** Fixed split-per-abi 7.8MB arm64.
+- **APK Size 12MB:** Target split-per-ABI <10MB; belum diukur.
 - **Progress Bar Not Updating:** Fixed polling 15s + FCM trigger + ETag 304.
 
 ### Security
 
-- **Non-Escrow + ToS + Dispute SOP:** ToS screen scroll + checkbox consent non-escrow, DISPUTE_SOP.md refund 2x24h eskalasi RW, audit logs.
+- **Non-Escrow + ToS + Dispute SOP:** ToS screen scroll + checkbox consent non-escrow, [User Guide §7–8](USER_GUIDE.md#7-komplain-refund-dan-dispute-operations) refund 2x24h eskalasi RW, audit logs.
 - **UU PDP Compliance:** Consent checkbox + privacy policy + DELETE account anonymize SLA <24h + retensi 90d proof S3 lifecycle + CleanOldProofsJob.
 - **S3 Security:** Private bucket, tempUrl 1h, Policy check owner or initiator own campaign cluster, random UUID filename, mime check, Intervention second compress, no path traversal.
-- **IDOR + Mass Assignment + XSS + SQLi:** Policy + $fillable strict + Resource escape + FormRequest + Eloquent safe, OWASP Checklist in SECURITY_REVIEW.md Pass.
+- **IDOR + Mass Assignment + XSS + SQLi:** Policy + $fillable strict + Resource escape + FormRequest + Eloquent safe, OWASP Checklist in [Security — Review Checklist](SECURITY.md#15-owasp-api-top-10-2023-checklist) Pass.
 - **Rate Limit Centralized:** Redis per-route override 60/min global, 5/min otp, 10/min override sensitive, 429 + trace_id.
 - **Secrets:** No hardcoded .env, dart-define SENTRY_DSN, google-services.json prod via env, keystore \*.jks gitignore, S3 keys via env, Firebase credentials via env.
 - **Audit:** transaction_logs all sensitive actions with ip, initiator_id, notes, type.
@@ -838,7 +862,7 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - [Medium] Offline pending queue hilang if ganti HP (Hive local only) - V1.1 export/import queue planned
 - [Medium] S3 tempUrl 1h expiry - Flutter regenerate via GET proof-url, but if offline cannot regenerate - fallback local file path? Doc in FAQ
 - [Low] Canary 10% via Pennant random 10% not sticky, user could flip - future sticky via user_id hash
-- [Low] Blue-green DB migrations must additive only, dropping column needs 2-phase expand-contract - doc in DATABASE_MIGRATION_GUIDE
+- [Low] Blue-green DB migrations must additive only, dropping column needs 2-phase expand-contract - doc in TECHNICAL_SPEC bagian 19 — Panduan Migrasi Database
 
 ---
 
@@ -909,7 +933,7 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 From v0.5.0 Firebase to v1.0.0 Laravel 11:
 - Must run `php artisan migrate --seed` clusters + notifications
 - Set FILESYSTEM_DISK=s3 prod, create bucket private lifecycle 90d
-- Run DATA_MIGRATION_PLAN Firebase import `php artisan firebase:import`
+- Run TECHNICAL_SPEC bagian 18 — Rencana Migrasi Data Firebase import `php artisan firebase:import`
 - Flutter: add consent + ToS checkboxes, deep link intent-filter, FCM background handler, Idempotency interceptor, ETag handling
 - Env: add AWS_*, SENTRY_DSN, SLACK_WEBHOOK, FEATURE_*, PULSE_ENABLED
 - Docker: `docker compose up -d --build`
@@ -921,7 +945,7 @@ From v0.5.0 Firebase to v1.0.0 Laravel 11:
 ```
 Deprecated:
 - GET /campaigns/{id}/old-recap text only → use GET /campaigns/{id}/recap PDF S3 tempUrl, Sunset 31 Dec 2026, Deprecation header true
-- Local storage primary → use S3 primary, migration via DATA_MIGRATION_PLAN
+- Local storage primary → use S3 primary, migration via TECHNICAL_SPEC bagian 18 — Rencana Migrasi Data
 ```
 
 ### Security Advisory Section Example
@@ -934,5 +958,3 @@ Security:
 ```
 
 ---
-
-**CHANGELOG & Strategi Versioning V3.1 Production Ready - SemVer, API v1/v2, Deprecation 6 Bulan, Upgrade Guide, Feature Flag vs Versioning, dan Catatan Rilis Lengkap!** 🚀📋

@@ -7,7 +7,11 @@
 **OS:** Windows 10/11, macOS 12+ (Intel/M1), Ubuntu 22.04  
 **Tanggal:** 20 Juli 2026  
 **Versi:** 3.1  
-**Status:** Production Ready
+**Owner:** Engineering
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -58,7 +62,7 @@ Panduan ini membantu developer menyiapkan lingkungan pengembangan Grosirun V3.1 
 | **Docker (Rekomendasi)** | 15 menit    | Environment konsisten, semua dependency terisolasi | Butuh RAM 4GB untuk Docker                  |
 | **Native**               | 60-90 menit | Performa lebih cepat, debug lebih mudah            | Setup lebih kompleks, environment beda-beda |
 
-### 1.2 Konteks Bisnis (Referensi BUSINESS_ANALYSIS.md)
+### 1.2 Konteks Bisnis (Referensi [BUSINESS_ANALYSIS.md](BUSINESS_ANALYSIS.md))
 
 | Komponen              | Nilai                          |
 | --------------------- | ------------------------------ |
@@ -1153,7 +1157,7 @@ flutter build apk --release --split-per-abi --obfuscate \
   --dart-define=SENTRY_DSN=https://...@sentry.io/...
 
 # Output:
-# app-arm64-v8a-release.apk ~7.8MB <-- prioritas
+# app-arm64-v8a-release.apk <10MB # target; belum diukur
 # app-armeabi-v7a-release.apk ~7.2MB
 # app-x86_64-release.apk ~8.5MB
 
@@ -1314,6 +1318,21 @@ curl -X POST http://localhost:8000/api/v1/auth/verify-otp \
 
 ---
 
+### 12.3 Seed dan Verifikasi Alur Penawaran-ke-Campaign
+
+Jalankan `php artisan db:seed --class=OfferCampaignSeeder`. Seeder development wajib deterministik dan membuat:
+
+- Empat role, Buyer, Buyer+Initiator multi-role, Seller owner/sales/warehouse, dan Admin.
+- Supplier `pending_verification`, `verified`, dan `suspended` beserta membership lengkap.
+- Product dengan base unit kg/liter/piece, offer area, dua tier harga, dan `supplier_offer_variants`.
+- Offer `draft`, `pending_review`, `active`, `paused`, `expired`, serta kapasitas available/reserved/committed yang memenuhi invariant.
+- Campaign pada seluruh lifecycle: draft, active, target_reached, po_submitted, fulfillment, distribution, completed, expired, cancelled.
+- Purchase order pada seluruh state, item snapshot, invoice, surat jalan, payment proof, delivery evidence, dan append-only status log.
+- Fulfillment dispute open/responded/resolved serta queue verifikasi/moderasi Admin.
+- Dataset race test untuk reservation dan checkout tanpa PII nyata.
+
+Verifikasi `/auth/me` memuat `roles` dan `active_role`; Seller hanya melihat supplier membership sendiri dan selalu mendapat 403 saat meminta identitas atau proof Buyer. Seeder harus idempotent pada database development/testing dan dilarang dijalankan di production.
+
 ## 13. Checklist Pre-Development
 
 ### 13.1 Backend Checklist
@@ -1349,5 +1368,3 @@ curl -X POST http://localhost:8000/api/v1/auth/verify-otp \
 - [ ] Test install APK 3 devices Redmi 4A Android 7, Samsung A10 Android 9, Oppo A3s Android 8 login + checkout + admin validate
 
 ---
-
-**Panduan Instalasi Lengkap V3.1 Production Ready - Docker 15 menit, Native 60-90 menit, S3, Firebase, Flutter, Full Checklist!** 🚀

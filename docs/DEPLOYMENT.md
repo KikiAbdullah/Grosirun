@@ -4,27 +4,32 @@
 **Mobile:** Flutter APK <10MB + Firebase App Distribution + Play Internal  
 **Tanggal:** 20 Juli 2026  
 **Versi:** 3.1  
-**Status:** Production Ready
+**Owner:** Platform / DevOps
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
 ## Daftar Isi
 
 1. Pendahuluan & Arsitektur Deployment
-2. Prasyarat Production
-3. Build Backend Production
-4. Docker Deployment Production
-5. Deployment VPS Native (Nginx, PHP-FPM, Supervisor, Cron)
-6. Blue-Green Zero-Downtime Strategy
-7. Canary Release 10%
-8. Rollback Automation & SSL Monitoring
-9. Build APK Flutter <10MB
-10. Distribusi APK Pilot
-11. Checklist Pra-Rilis
-12. Post-Launch Monitoring & Alerting
-13. Disaster Recovery Plan
-14. Rollback Plan Manual
-15. Cheat Sheet
+2. CI Quality Gates & Build Pipelines
+3. Prasyarat Production
+4. Build Backend Production
+5. Docker Deployment Production
+6. Deployment VPS Native (Nginx, PHP-FPM, Supervisor, Cron)
+7. Blue-Green Zero-Downtime Strategy
+8. Canary Release 10%
+9. Rollback Automation & SSL Monitoring
+10. Build APK Flutter <10MB
+11. Distribusi APK Pilot
+12. Checklist Pra-Rilis V3.1
+13. Post-Launch Monitoring & Alerting
+14. Disaster Recovery Plan
+15. Rollback Plan Manual (Fallback)
+16. Cheat Sheet V3.1
 
 ---
 
@@ -109,9 +114,459 @@ Grosirun V3.1 menggunakan **Blue-Green Deployment** untuk memastikan zero-downti
 
 ---
 
-## 2. Prasyarat Production
+## 2. CI Quality Gates & Build Pipelines
 
-### 2.1 Infrastruktur
+Lifecycle canonical: commit → pull request → CI quality gates → build immutable artifact → deploy staging/production → canary → health check → promote atau rollback → monitoring → disaster recovery.
+
+Bagian ini menyimpan definisi workflow, secrets, CODEOWNERS, dan notification. Implementasi blue-green, canary, rollback, dan DR dilanjutkan pada bagian deployment setelahnya.
+
+### 1. Ikhtisar & CI Gate
+
+#### 1.1 Latar Belakang
+
+Sebelum V3.1, proses CI/CD masih bersifat manual. Pengembang menjalankan test secara lokal sebelum Pull Request, kemudian melakukan deploy manual ke server produksi. Hal ini menimbulkan risiko human error seperti:
+
+- Test tidak dijalankan sama sekali
+- Coverage kode menurun tanpa disadari
+- Deploy menyebabkan downtime karena tidak ada strategi zero-downtime
+- Rollback memakan waktu karena harus manual
+
+**V3.1 memperkenalkan pipeline CI/CD otomatis penuh dengan GitHub Actions.**
+
+#### 1.2 Alur Pipeline Lengkap
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PULL REQUEST ke develop                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  test.yml (WAJIB)                                                          │
+│  ├── backend-test:                                                         │
+│  │   ├── PHP 8.3 + MySQL 8 + Redis 7                                      │
+│  │   ├── composer install                                                 │
+│  │   ├── php artisan migrate --env=testing                               │
+│  │   ├── ./vendor/bin/pint --test                                        │
+│  │   ├── php artisan test --parallel --coverage --min=80                │
+│  │   └── php artisan test --filter=RaceCondition                        │
+│  ├── frontend-test:                                                       │
+│  │   ├── Flutter 3.22.3                                                  │
+│  │   ├── flutter pub get                                                 │
+│  │   ├── flutter analyze (0 issues)                                      │
+│  │   ├── flutter test --coverage                                         │
+│  │   └── dart format --set-exit-if-changed                              │
+│  ├── apk-size-check:                                                      │
+│  │   ├── flutter build apk --release --split-per-abi                    │
+│  │   └── Check arm64 APK < 10MB                                          │
+│  └── k6-smoke:                                                            │
+│      └── k6 run k6-deadline-rush.js --vus 10 --duration 10s             │
+│                                                                             │
+│  Syarat Merge: ✅ backend-test ✅ frontend-test ✅ CODEOWNERS approve       │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        MERGE ke develop                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        RELEASE ke main (Tag vX.Y.Z)                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  deploy.yml (Blue-Green)                                                   │
+│  ├── SSH ke VPS                                                            │
+│  ├── Jalankan deploy-blue-green.sh                                        │
+│  │   ├── Deteksi current color (blue/green)                              │
+│  │   ├── Deploy ke next color                                             │
+│  │   ├── composer install --no-dev                                       │
+│  │   ├── php artisan migrate --force (additive only)                    │
+│  │   ├── php artisan config:cache route:cache view:cache                │
+│  │   ├── Health check temp port 8001                                     │
+│  │   ├── Switch symlink current                                          │
+│  │   ├── Reload PHP-FPM + Nginx (zero-downtime)                         │
+│  │   └── Restart queue workers                                           │
+│  ├── Health check prod (5x retry)                                        │
+│  │   ├── ✅ Success → Slack notify                                       │
+│  │   └── ❌ Failed → Auto rollback (rollback.sh)                         │
+│  └── Notifikasi Slack                                                    │
+│                                                                             │
+│  build-apk.yml (Trigger Tag)                                              │
+│  ├── Flutter build APK split-per-abi + obfuscate                         │
+│  ├── Flutter build AAB                                                    │
+│  ├── Check size <10MB                                                     │
+│  ├── Upload artifact                                                      │
+│  ├── Firebase App Distribution:                                           │
+│  │   ├── 10% ke grup pilot-canary                                        │
+│  │   └── Monitor Crashlytics 1 jam                                       │
+│  └── Slack notify APK size + link                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 1.3 Tabel Trigger Workflow
+
+| Workflow        | Trigger                     | Tujuan                          |
+| --------------- | --------------------------- | ------------------------------- |
+| `test.yml`      | PR ke `develop` atau `main` | Validasi kode sebelum merge     |
+| `test.yml`      | Push ke `develop`           | Test ulang setelah merge        |
+| `deploy.yml`    | Push ke `main`              | Deploy ke produksi (blue-green) |
+| `deploy.yml`    | `workflow_dispatch`         | Deploy manual via GitHub UI     |
+| `build-apk.yml` | Tag `v*.*.*`                | Build APK untuk rilis           |
+| `build-apk.yml` | `workflow_dispatch`         | Build APK manual                |
+
+---
+
+#### 1.4 Gate Penawaran-ke-Campaign
+
+CI wajib menjalankan Policy test empat role, supplier membership test, offer tier property test, campaign snapshot test, purchase-order state-machine test, privacy serialization test, dan race test kapasitas offer. Migration gate memastikan tabel role/supplier/offer/PO memiliki FK serta indeks. OpenAPI diff gagal jika endpoint seller berubah tanpa versioning.
+
+### 2. Workflow: test.yml (Gate Wajib)
+
+#### 2.1 Tujuan
+
+Memastikan setiap Pull Request ke `develop` atau `main` lolos seluruh test sebelum di-merge. Workflow ini adalah **gate wajib** yang tidak bisa dilewati.
+
+#### 2.2 File: `.github/workflows/test.yml`
+
+```yaml
+name: Test Gate
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+jobs:
+  # ==================== BACKEND TEST ====================
+  backend-test:
+    runs-on: ubuntu-22.04
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: grosirun_testing
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: grosirun
+          MYSQL_PASSWORD: secret
+        ports: ["3306:3306"]
+        options: --health-cmd="mysqladmin ping" --health-interval=10s
+      redis:
+        image: redis:7.2-alpine
+        ports: ["6379:6379"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql, redis, gd, imagick, zip, bcmath
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        working-directory: backend
+
+      - name: Setup environment
+        run: cp .env.example .env.testing
+        working-directory: backend
+
+      - name: Generate application key
+        run: php artisan key:generate
+        working-directory: backend
+
+      - name: Run database migrations
+        run: php artisan migrate --env=testing --force
+        working-directory: backend
+
+      - name: Check coding style (Pint)
+        run: ./vendor/bin/pint --test
+        working-directory: backend
+
+      - name: Run PHPUnit/Pest tests with coverage
+        run: php artisan test --parallel --coverage --min=80
+        working-directory: backend
+
+      - name: Run Race Condition tests
+        run: php artisan test --filter=RaceCondition --parallel
+        working-directory: backend
+
+  # ==================== FRONTEND TEST ====================
+  frontend-test:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.3"
+          channel: "stable"
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: mobile
+
+      - name: Static analysis
+        run: flutter analyze
+        working-directory: mobile
+
+      - name: Run unit tests
+        run: flutter test --coverage
+        working-directory: mobile
+
+      - name: Check code formatting
+        run: dart format --set-exit-if-changed lib/
+        working-directory: mobile
+
+      # Release APK build dan size gate dijalankan satu kali oleh build-apk workflow
+      # menggunakan command canonical pada bagian 10.2.
+
+  # ==================== K6 SMOKE TEST ====================
+  k6-smoke:
+    runs-on: ubuntu-22.04
+    needs: backend-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run smoke test (10 VU, 10s)
+        run: |
+          k6 run backend/load-test/k6-deadline-rush.js \
+            --vus 10 \
+            --duration 10s \
+            --env API_URL=http://127.0.0.1:8000/api/v1 \
+            --env TOKEN=test-token
+```
+
+#### 2.3 Step-by-Step Penjelasan Job
+
+##### backend-test
+
+| Langkah | Perintah                                          | Keterangan                                       |
+| ------- | ------------------------------------------------- | ------------------------------------------------ |
+| 1       | Setup PHP 8.3                                     | Menginstall PHP beserta ekstensi yang dibutuhkan |
+| 2       | `composer install`                                | Install dependency Laravel (tanpa dev di CI)     |
+| 3       | `cp .env.example .env.testing`                    | Setup environment untuk testing                  |
+| 4       | `php artisan key:generate`                        | Generate APP_KEY                                 |
+| 5       | `php artisan migrate`                             | Migrasi database testing                         |
+| 6       | `pint --test`                                     | Cek coding style PSR-12                          |
+| 7       | `php artisan test --parallel --coverage --min=80` | Jalankan semua test, coverage minimal 80%        |
+| 8       | `--filter=RaceCondition`                          | Test race condition (kritis untuk zero oversell) |
+
+##### frontend-test
+
+| Langkah | Perintah                            | Keterangan                      |
+| ------- | ----------------------------------- | ------------------------------- |
+| 1       | Setup Flutter 3.22.3                | Install Flutter SDK             |
+| 2       | `flutter pub get`                   | Install dependency Dart/Flutter |
+| 3       | `flutter analyze`                   | Static analysis, 0 issues wajib |
+| 4       | `flutter test --coverage`           | Jalankan unit test              |
+| 5       | `dart format --set-exit-if-changed` | Cek format kode                 |
+| 6       | Build APK arm64                     | Cek ukuran APK <10MB            |
+
+##### k6-smoke
+
+| Langkah | Perintah                             | Keterangan                                        |
+| ------- | ------------------------------------ | ------------------------------------------------- |
+| 1       | Setup k6                             | Install k6 load testing tool                      |
+| 2       | `k6 run ... --vus 10 --duration 10s` | Smoke test dengan 10 virtual user selama 10 detik |
+
+#### 2.4 Syarat Merge
+
+| Syarat             | Keterangan                              |
+| ------------------ | --------------------------------------- |
+| `backend-test` ✅  | Semua test backend lulus, coverage >80% |
+| `frontend-test` ✅ | Flutter analyze 0 issues, APK <10MB     |
+| `k6-smoke` ✅      | Smoke test tidak error                  |
+| CODEOWNERS ✅      | Minimal 1 approval dari CODEOWNERS      |
+
+---
+
+### 3. Workflow: deploy.yml (Orchestration Only)
+
+Workflow dipicu setelah test gate hijau pada release yang disetujui. Tanggung jawabnya hanya memilih environment, mengambil immutable artifact, memperoleh concurrency lock, memanggil deployment mechanism pada bagian 7, menjalankan health check, mempromosikan atau memanggil rollback bagian 9, lalu menerbitkan deployment record dan notifikasi.
+
+Workflow tidak menduplikasi shell implementation Blue-Green, migration, Nginx switch, queue restart, atau rollback. Command runtime canonical hanya berada pada bagian 7–9.
+
+Dependency:
+
+```text
+test gate → build artifact → environment approval → deploy lock
+→ deploy mechanism → health check → promote|rollback → notify
+```
+
+### 4. Workflow: build-apk.yml (Orchestration Only)
+
+Workflow memverifikasi tag/version, mengambil source yang sudah lulus test, menjalankan build command canonical pada bagian 10, memeriksa target size, menghasilkan checksum/SBOM, menandatangani artifact, lalu mengunggah artifact immutable. Distribusi dan canary mobile mengikuti bagian 11.
+
+Build workflow tidak menyimpan salinan kedua command Flutter atau strategi distribusi. Hasil size aktual tetap `Belum diukur` sampai artifact tersedia.
+
+### 5. Branch Protection & CODEOWNERS
+
+#### 5.1 File: `.github/CODEOWNERS`
+
+```txt
+# Default owner untuk semua file
+* @backend-lead @mobile-lead
+
+# Backend-specific
+/backend/ @backend-lead
+
+# Mobile-specific
+/mobile/ @mobile-lead
+
+# Documentation
+/docs/ @product-owner @backend-lead @mobile-lead
+*.md @product-owner
+
+# Infrastructure
+docker-compose.yml @backend-lead @infra
+.github/workflows/ @infra @backend-lead
+
+# Load testing
+backend/load-test/ @backend-lead
+```
+
+#### 5.2 Branch Protection Rules (GitHub Settings)
+
+**Untuk branch `develop` dan `main`:**
+
+| Pengaturan                  | Nilai | Keterangan                                  |
+| --------------------------- | ----- | ------------------------------------------- |
+| Require pull request        | ✅    | Tidak bisa push langsung ke branch          |
+| Require approvals           | 1     | Minimal 1 approval dari CODEOWNERS          |
+| Dismiss stale reviews       | ✅    | Review otomatis di-reset jika ada push baru |
+| Require status checks       | ✅    | `backend-test`, `frontend-test` harus hijau |
+| Require branches up-to-date | ✅    | PR harus sync dengan base branch            |
+| Include administrators      | ✅    | Aturan berlaku untuk semua, termasuk admin  |
+
+---
+
+### 8. Manajemen Secrets
+
+#### 8.1 GitHub Secrets yang Dibutuhkan
+
+| Nama Secret                | Keterangan                             | Diperlukan di Workflow    |
+| -------------------------- | -------------------------------------- | ------------------------- |
+| `VPS_SSH_KEY`              | Private key SSH ke VPS                 | deploy.yml                |
+| `VPS_HOST`                 | IP/Domain VPS (contoh: 123.45.67.89)   | deploy.yml                |
+| `VPS_USER`                 | Username SSH (contoh: ubuntu)          | deploy.yml                |
+| `FIREBASE_APP_ID`          | Firebase App ID untuk App Distribution | build-apk.yml             |
+| `FIREBASE_SERVICE_ACCOUNT` | JSON Service Account Firebase          | build-apk.yml             |
+| `SENTRY_DSN`               | Sentry DSN untuk error tracking        | build-apk.yml             |
+| `SLACK_WEBHOOK`            | Slack Incoming Webhook URL             | deploy.yml, build-apk.yml |
+
+#### 8.2 Cara Setup Secrets
+
+1. Buka repository GitHub
+2. Settings → Secrets and variables → Actions
+3. Klik "New repository secret"
+4. Masukkan Nama dan Nilai
+
+#### 8.3 Environment Variables di VPS (Tidak di GitHub)
+
+File `.env.prod` disimpan langsung di VPS di `/var/www/grosirun/blue/.env.prod` dan `/var/www/grosirun/green/.env.prod` (salin dari vault 1Password).
+
+```bash
+# .env.prod (contoh)
+APP_ENV=production
+APP_DEBUG=false
+
+DB_HOST=localhost
+DB_DATABASE=grosirun
+DB_USERNAME=grosirun
+DB_PASSWORD=secret
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
+AWS_DEFAULT_REGION=ap-southeast-1
+AWS_BUCKET=grosirun-prod-private
+
+SENTRY_LARAVEL_DSN=https://...
+SLACK_WEBHOOK=https://hooks.slack.com/...
+```
+
+---
+
+### 9. Notifikasi Slack
+
+#### 9.1 Konfigurasi Webhook
+
+1. Buat Slack App → Incoming Webhooks
+2. Tambahkan ke channel `#grosirun-ci` dan `#grosirun-alerts`
+3. Copy Webhook URL → simpan sebagai `SLACK_WEBHOOK` di GitHub Secrets
+
+#### 9.2 Format Notifikasi
+
+**Notifikasi Sukses:**
+
+```json
+{
+  "text": "✅ Deploy Blue-Green sukses!\nRepo: grosirun\nCommit: abc123\nAuthor: @dev\nRef: main\nWorkflow: Deploy Blue-Green\nStatus: success"
+}
+```
+
+**Notifikasi Gagal:**
+
+```json
+{
+  "text": "❌ Deploy Blue-Green gagal!\nRepo: grosirun\nCommit: abc123\nAuthor: @dev\nRef: main\nWorkflow: Deploy Blue-Green\nStatus: failure\nAction: ./rollback.sh telah dijalankan otomatis"
+}
+```
+
+**Notifikasi Rollback:**
+
+```json
+{
+  "text": "🚨 Rollback otomatis triggered!\nDari: blue\nKe: green\nAlasan: Health check gagal 5x\nTim: @backend-lead @infra"
+}
+```
+
+#### 9.3 Channel Tujuan
+
+| Channel            | Tujuan Notifikasi                    |
+| ------------------ | ------------------------------------ |
+| `#grosirun-ci`     | Semua workflow (test, deploy, build) |
+| `#grosirun-alerts` | Hanya gagal/rollback/urgent          |
+| `@backend-lead`    | Mention jika rollback terjadi        |
+
+---
+
+### 10. Tabel Ringkasan Workflow
+
+| Workflow        | Trigger         | Durasi Estimasi | Output                          |
+| --------------- | --------------- | --------------- | ------------------------------- |
+| `test.yml`      | PR ke develop   | 5-8 menit       | Status test, coverage, APK size |
+| `test.yml`      | Push ke develop | 5-8 menit       | Status test                     |
+| `deploy.yml`    | Push ke main    | 3-5 menit       | Deploy ke VPS (blue-green)      |
+| `build-apk.yml` | Tag v*.*.\*     | 5-7 menit       | APK + Firebase Distribution     |
+
+#### 10.1 Status Check yang Wajib
+
+```
+✅ backend-test       # PHPUnit/Pest lulus, coverage >80%
+✅ frontend-test      # Flutter analyze 0, test lulus, APK <10MB
+✅ k6-smoke           # Smoke test 10 VU lulus
+✅ CODEOWNERS         # Minimal 1 approval
+```
+
+---
+
+
+---
+
+## 3. Prasyarat Production
+
+### 3.1 Infrastruktur
 
 | Komponen   | Spesifikasi                | Keterangan                           |
 | ---------- | -------------------------- | ------------------------------------ |
@@ -122,7 +577,7 @@ Grosirun V3.1 menggunakan **Blue-Green Deployment** untuk memastikan zero-downti
 | **Redis**  | 7.2 Managed atau localhost | maxclients=10000                     |
 | **S3**     | `grosirun-prod-private`    | ap-southeast-1, versioning ON        |
 
-### 2.2 Software Requirements
+### 3.2 Software Requirements
 
 ```bash
 # PHP 8.3 + Extensions
@@ -139,7 +594,7 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
-### 2.3 Environment Variables
+### 3.3 Environment Variables
 
 **File:** `/var/www/grosirun/backend/.env.prod` (disimpan di VPS + 1Password Vault)
 
@@ -190,7 +645,7 @@ FEATURE_EXTEND_DEADLINE=true
 FEATURE_BATCH_VALIDATE=true
 ```
 
-### 2.4 S3 Bucket Setup
+### 3.4 S3 Bucket Setup
 
 ```bash
 # 1. Buat bucket private
@@ -240,9 +695,9 @@ aws s3api put-bucket-lifecycle-configuration \
 
 ---
 
-## 3. Build Backend Production
+## 4. Build Backend Production
 
-### 3.1 Persiapan Kode
+### 4.1 Persiapan Kode
 
 ```bash
 cd /var/www/grosirun/backend
@@ -275,7 +730,7 @@ php artisan pennant:feature list
 php artisan backup:run --only-db
 ```
 
-### 3.2 Permission
+### 4.2 Permission
 
 ```bash
 # Set permission
@@ -284,7 +739,7 @@ sudo chmod -R 775 storage bootstrap/cache
 sudo chmod -R 775 storage/logs
 ```
 
-### 3.3 PHP-FPM Pool Tuning
+### 4.3 PHP-FPM Pool Tuning
 
 **File:** `/etc/php/8.3/fpm/pool.d/www.conf`
 
@@ -298,7 +753,7 @@ pm.max_requests = 500
 request_terminate_timeout = 60s
 ```
 
-### 3.4 OPcache Tuning
+### 4.4 OPcache Tuning
 
 **File:** `/etc/php/8.3/cli/conf.d/10-opcache.ini`
 
@@ -315,9 +770,9 @@ opcache.enable_file_override=1
 
 ---
 
-## 4. Docker Deployment Production
+## 5. Docker Deployment Production
 
-### 4.1 docker-compose.prod.yml
+### 5.1 docker-compose.prod.yml
 
 **File:** `docker-compose.prod.yml` (override untuk production)
 
@@ -409,7 +864,7 @@ networks:
     driver: bridge
 ```
 
-### 4.2 Dockerfile.prod
+### 5.2 Dockerfile.prod
 
 **File:** `backend/Dockerfile.prod`
 
@@ -449,7 +904,7 @@ EXPOSE 9000
 CMD ["php-fpm"]
 ```
 
-### 4.3 Menjalankan Docker Production
+### 5.3 Menjalankan Docker Production
 
 ```bash
 # Build dan up
@@ -465,7 +920,7 @@ docker compose exec app php artisan config:cache
 curl https://api.grosirun.id/api/v1/health
 ```
 
-### 4.4 Blue-Green dengan Docker
+### 5.4 Blue-Green dengan Docker
 
 Untuk blue-green dengan Docker, buat dua stack:
 
@@ -483,9 +938,9 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml \
 
 ---
 
-## 5. Deployment VPS Native (Nginx, PHP-FPM, Supervisor, Cron)
+## 6. Deployment VPS Native (Nginx, PHP-FPM, Supervisor, Cron)
 
-### 5.1 Nginx Configuration
+### 6.1 Nginx Configuration
 
 **File:** `/etc/nginx/sites-available/api.grosirun.id`
 
@@ -545,7 +1000,7 @@ server {
 }
 ```
 
-### 5.2 Supervisor Configuration
+### 6.2 Supervisor Configuration
 
 **File:** `/etc/supervisor/conf.d/grosirun-worker.conf`
 
@@ -564,7 +1019,7 @@ stdout_logfile_backups=3
 stopwaitsecs=3600
 ```
 
-### 5.3 Cron Jobs
+### 6.3 Cron Jobs
 
 ```bash
 # Edit crontab
@@ -577,7 +1032,7 @@ sudo crontab -e -u www-data
 0 * * * * certbot renew --quiet --post-hook "systemctl reload nginx"
 ```
 
-### 5.4 Enable Services
+### 6.4 Enable Services
 
 ```bash
 # Nginx
@@ -601,9 +1056,9 @@ sudo systemctl restart cron
 
 ---
 
-## 6. Blue-Green Zero-Downtime Strategy
+## 7. Blue-Green Zero-Downtime Strategy
 
-### 6.1 Folder Structure
+### 7.1 Folder Structure
 
 ```
 /var/www/grosirun/
@@ -620,7 +1075,7 @@ sudo systemctl restart cron
 └── rollback.sh
 ```
 
-### 6.2 Deploy Script
+### 7.2 Deploy Script
 
 **File:** `/var/www/grosirun/deploy-blue-green.sh`
 
@@ -706,7 +1161,7 @@ else
 fi
 ```
 
-### 6.3 Migrasi Additive Only
+### 7.3 Migrasi Additive Only
 
 **Prinsip Blue-Green:** Database schema harus backward compatible.
 
@@ -721,9 +1176,9 @@ fi
 
 ---
 
-## 7. Canary Release 10%
+## 8. Canary Release 10%
 
-### 7.1 Pennant Feature Flag
+### 8.1 Pennant Feature Flag
 
 Untuk high-risk changes (OrderService lock change, query optimization), gunakan canary rollout.
 
@@ -747,7 +1202,7 @@ if (Feature::active('canary-new-order-service')) {
 }
 ```
 
-### 7.2 Rollout Step-by-Step
+### 8.2 Rollout Step-by-Step
 
 | Langkah | Command                                                                 | Monitoring              |
 | ------- | ----------------------------------------------------------------------- | ----------------------- |
@@ -756,7 +1211,7 @@ if (Feature::active('canary-new-order-service')) {
 | 3       | Jika error <2% → `--percentage=100`                                     | Error rate, Pulse 1 jam |
 | 4       | Jika error >5% → `php artisan pennant:deactivate`                       | Rollback flag           |
 
-### 7.3 Nginx Weighted Canary (Alternatif)
+### 8.3 Nginx Weighted Canary (Alternatif)
 
 ```nginx
 upstream backend {
@@ -767,9 +1222,9 @@ upstream backend {
 
 ---
 
-## 8. Rollback Automation & SSL Monitoring
+## 9. Rollback Automation & SSL Monitoring
 
-### 8.1 Rollback Script
+### 9.1 Rollback Script
 
 **File:** `/var/www/grosirun/rollback.sh`
 
@@ -834,7 +1289,7 @@ echo "✅ Rollback to $ROLLBACK completed!"
 echo "=========================================="
 ```
 
-### 8.2 SSL Monitoring Script
+### 9.2 SSL Monitoring Script
 
 **File:** `/var/www/grosirun/check-ssl.sh`
 
@@ -865,7 +1320,7 @@ exit 0
 0 0 * * * /var/www/grosirun/check-ssl.sh
 ```
 
-### 8.3 Health Check Response
+### 9.3 Health Check Response
 
 **GET /api/v1/health:**
 
@@ -883,16 +1338,16 @@ exit 0
 
 ---
 
-## 9. Build APK Flutter <10MB
+## 10. Build APK Flutter <10MB
 
-### 9.1 pubspec.yaml Versioning
+### 10.1 pubspec.yaml Versioning
 
 ```yaml
 name: grosirun_app
 version: 1.0.0+1 # versionName + versionCode
 ```
 
-### 9.2 Build Command Production
+### 10.2 Build Command Production
 
 ```bash
 cd mobile
@@ -911,60 +1366,18 @@ flutter build appbundle --release --obfuscate \
 
 # Cek size
 ls -lh build/app/outputs/apk/release/*.apk
-# app-arm64-v8a-release.apk ~7.8MB <10MB ✅
+# app-arm64-v8a-release.apk <10MB # target; belum diukur
 ```
 
-### 9.3 CI/CD Build (GitHub Actions)
+### 10.3 Integrasi Build Workflow
 
-**File:** `.github/workflows/build-apk.yml`
-
-```yaml
-name: Build APK
-
-on:
-  push:
-    tags: ["v*.*.*"]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.22.3"
-      - run: flutter pub get
-        working-directory: mobile
-      - run: |
-          flutter build apk --release --split-per-abi --obfuscate \
-            --split-debug-info=./build/debug-info \
-            --dart-define=API_BASE_URL=https://api.grosirun.id/api/v1 \
-            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
-        working-directory: mobile
-      - name: Check size
-        run: |
-          SIZE=$(stat -c%s build/app/outputs/apk/release/app-arm64-v8a-release.apk)
-          MAX=10485760
-          if [ $SIZE -gt $MAX ]; then exit 1; fi
-        working-directory: mobile
-      - uses: actions/upload-artifact@v4
-        with:
-          name: apk-arm64
-          path: mobile/build/app/outputs/apk/release/app-arm64-v8a-release.apk
-      - uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{ secrets.FIREBASE_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: pilot-canary
-          file: mobile/build/app/outputs/apk/release/app-arm64-v8a-release.apk
-```
+Workflow orchestration berada pada bagian 2.4 dan memanggil command canonical bagian 10.2. Artifact, checksum, signature, SBOM, size result, dan provenance diunggah satu kali; workflow tidak memiliki salinan command build kedua.
 
 ---
 
-## 10. Distribusi APK Pilot
+## 11. Distribusi APK Pilot
 
-### 10.1 3 Opsi Distribusi
+### 11.1 3 Opsi Distribusi
 
 | Opsi                          | Kelebihan                            | Kekurangan             | Rekomendasi        |
 | ----------------------------- | ------------------------------------ | ---------------------- | ------------------ |
@@ -972,7 +1385,7 @@ jobs:
 | **Play Store Internal**       | Official, auto-update                | Butuh proses review    | Untuk V1.1         |
 | **Google Drive / WA**         | Sederhana                            | Manual, susah tracking | Fallback           |
 
-### 10.2 Firebase App Distribution
+### 11.2 Firebase App Distribution
 
 **Setup:**
 
@@ -998,7 +1411,7 @@ firebase appdistribution:distribute \
   app-arm64-v8a-release.apk
 ```
 
-### 10.3 Canary Strategy
+### 11.3 Canary Strategy
 
 | Langkah | Waktu      | Aktivitas                                           |
 | ------- | ---------- | --------------------------------------------------- |
@@ -1009,9 +1422,9 @@ firebase appdistribution:distribute \
 
 ---
 
-## 11. Checklist Pra-Rilis V3.1
+## 12. Checklist Pra-Rilis V3.1
 
-### 11.1 Backend Checklist
+### 12.1 Backend Checklist
 
 - [ ] `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d` build success
 - [ ] S3 bucket `grosirun-prod-private` exists, lifecycle 90d, versioning ON
@@ -1023,7 +1436,7 @@ firebase appdistribution:distribute \
 - [ ] Idempotency Redis cache: POST /orders same Idempotency-Key twice → same response
 - [ ] ETag: GET /campaigns returns ETag, If-None-Match returns 304
 - [ ] RateLimiter Redis: `redis-cli KEYS "rl:*"` exists
-- [ ] Feature Flags: `php artisan pennant:feature list` shows qris-upload, extend-deadline
+- [ ] Feature Flags registry sesuai API_SPEC bagian 12; seluruh default false sebelum rollout dan mencakup client serta backend-only flags
 - [ ] Blue-Green folders `/var/www/grosirun/blue` & `/green` + symlink `/current` exists
 - [ ] `deploy-blue-green.sh` executable, health check temp port 8001 works
 - [ ] `rollback.sh` tested, Slack notification sent
@@ -1034,7 +1447,7 @@ firebase appdistribution:distribute \
 - [ ] Sentry DSN prod set, test `Sentry::captureMessage('test')` appears
 - [ ] Pulse enabled prod, `/pulse` dashboard accessible
 
-### 11.2 Mobile Checklist
+### 12.2 Mobile Checklist
 
 - [ ] Consent + ToS checkbox screens exist, POST /auth/consent + /tos-accept called
 - [ ] DeepLink test: `adb shell am start -W -a android.intent.action.VIEW -d "grosirun://campaign/12"` opens detail
@@ -1050,9 +1463,9 @@ firebase appdistribution:distribute \
 
 ---
 
-## 12. Post-Launch Monitoring & Alerting
+## 13. Post-Launch Monitoring & Alerting
 
-### 12.1 Laravel Pulse
+### 13.1 Laravel Pulse
 
 **Install:**
 
@@ -1072,7 +1485,7 @@ php artisan migrate
 - Queue jobs failed
 - Cache hit/miss
 
-### 12.2 Alert Rules
+### 13.2 Alert Rules
 
 | Alert              | Threshold            | Channel       | Action                          |
 | ------------------ | -------------------- | ------------- | ------------------------------- |
@@ -1084,7 +1497,7 @@ php artisan migrate
 | FCM job fail       | 3 tries              | Slack #alerts | Check Firebase credentials      |
 | Crash-free         | <99.5%               | Slack #alerts | Hotfix APK, redistribute        |
 
-### 12.3 Uptime Monitoring
+### 13.3 Uptime Monitoring
 
 **UptimeRobot / BetterStack:**
 
@@ -1092,7 +1505,7 @@ php artisan migrate
 - Alert jika 503 3 kali berturut-turut
 - Monitor SSL expiry
 
-### 12.4 Slack Integration
+### 13.4 Slack Integration
 
 **Webhook URL:** `$SLACK_WEBHOOK` di .env.prod
 
@@ -1100,16 +1513,16 @@ php artisan migrate
 
 ---
 
-## 13. Disaster Recovery Plan
+## 14. Disaster Recovery Plan
 
-### 13.1 RTO/RPO Definition
+### 14.1 RTO/RPO Definition
 
 | Metric                             | Target | Keterangan                                |
 | ---------------------------------- | ------ | ----------------------------------------- |
 | **RTO** (Recovery Time Objective)  | 1 jam  | Waktu dari deteksi down sampai service up |
 | **RPO** (Recovery Point Objective) | 24 jam | Data loss maksimal (backup daily 02:00)   |
 
-### 13.2 Backup Strategy
+### 14.2 Backup Strategy
 
 | Komponen        | Frekuensi     | Retention | Lokasi          |
 | --------------- | ------------- | --------- | --------------- |
@@ -1118,7 +1531,7 @@ php artisan migrate
 | **Source Code** | Tag vX.Y.Z    | Forever   | GitHub          |
 | **Secrets**     | Manual        | Forever   | 1Password Vault |
 
-### 13.3 Disaster Scenarios
+### 14.3 Disaster Scenarios
 
 | Disaster              | Impact                 | Recovery Procedure                       | Est. Time |
 | --------------------- | ---------------------- | ---------------------------------------- | --------- |
@@ -1128,11 +1541,9 @@ php artisan migrate
 | **Redis down**        | Queue fail, cache miss | Restart redis, retry queue jobs          | 5 min     |
 | **SSL expired**       | HTTPS fail             | Certbot renew `--force-renewal`          | 5 min     |
 
-### 13.4 Disaster Recovery Drill
+### 14.4 Disaster Recovery Drill
 
 **Wajib dilakukan 1x sebelum Alpha Pilot.**
-
-**Dokumentasi:** `docs/DISASTER_RECOVERY_DRILL_REPORT.md`
 
 **Prosedur:**
 
@@ -1154,18 +1565,42 @@ php artisan migrate
 5. Clone repo, set .env.prod (copy from 1Password)
 6. `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d`
 7. Health check: `curl /api/v1/health` → 200
-8. Test login OTP, create campaign, order, proof upload S3 tempUrl
+8. Test login OTP, pilih offer aktif, buat campaign snapshot, order, proof upload S3 tempUrl
 9. Measure time → target <1 jam
-10. Document issues, update DEPLOYMENT.md
+10. Document issues, update [DEPLOYMENT.md](DEPLOYMENT.md)
 11. Destroy staging VPS
 
 **Ulangi setiap 3 bulan.**
 
+
+### 14.5 Tata Kelola Laporan Drill
+
+- Sebelum drill, salin template pada bagian 13.6–13.10 ke artefak laporan bertanggal.
+- Seluruh nilai aktual, timestamp, commit, pelaksana, dan bukti wajib berasal dari pelaksanaan nyata.
+- Jangan menandai hasil `PASS` sebelum bukti health check, integritas data, dan durasi pemulihan dilampirkan.
+- Simpan laporan aktual terpisah dari spesifikasi ini agar riwayat drill tidak mengubah baseline prosedur deployment.
+
+> **Catatan:** Nilai dan tanggal dalam template berikut adalah contoh format pengisian, bukan hasil drill yang sudah dilaksanakan.
+
+### 14.6 Template Laporan Aktual
+
+| Field | Nilai |
+| --- | --- |
+| Tanggal drill | Belum dilaksanakan |
+| Commit SHA | Belum tersedia |
+| Pelaksana | Belum ditetapkan |
+| Backup ID/timestamp | Belum tersedia |
+| RTO aktual | Belum diukur |
+| RPO aktual | Belum diukur |
+| Hasil | Belum dinilai |
+
+Laporan setelah drill wajib melampirkan timeline, command/output health check, integritas row count/checksum, status container, verifikasi S3, pengujian penawaran-ke-campaign, isu, action owner/deadline, dan sign-off. Jangan mengisi PASS atau nilai aktual tanpa bukti artefak.
+
 ---
 
-## 14. Rollback Plan Manual (Fallback)
+## 15. Rollback Plan Manual (Fallback)
 
-### 14.1 Trigger Manual
+### 15.1 Trigger Manual
 
 Jika automation gagal, lakukan manual:
 
@@ -1190,7 +1625,7 @@ sudo systemctl reload nginx
 sudo supervisorctl restart grosirun-worker:*
 ```
 
-### 14.2 Database Rollback
+### 15.2 Database Rollback
 
 Jika migration menyebabkan data loss:
 
@@ -1209,9 +1644,9 @@ php artisan migrate:rollback --step=1
 
 ---
 
-## 15. Cheat Sheet V3.1
+## 16. Cheat Sheet V3.1
 
-### 15.1 Perintah Penting
+### 16.1 Perintah Penting
 
 | Keperluan               | Command                                                                                                                                                                                |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1226,9 +1661,9 @@ php artisan migrate:rollback --step=1
 | **Check SSL expiry**    | `./check-ssl.sh`                                                                                                                                                                       |
 | **K6 load test 100 VU** | `k6 run backend/load-test/k6-deadline-rush.js`                                                                                                                                         |
 | **K6 race test**        | `k6 run backend/load-test/k6-orders-race.js`                                                                                                                                           |
-| **Flutter build prod**  | `flutter build apk --release --split-per-abi --obfuscate --split-debug-info=./build/debug-info --dart-define=API_BASE_URL=https://api.grosirun.id/api/v1 --dart-define=SENTRY_DSN=...` |
+| **Flutter build prod**  | Lihat command canonical bagian 10.2 |
 
-### 15.2 File Locations
+### 16.2 File Locations
 
 | File                  | Lokasi                                                                   |
 | --------------------- | ------------------------------------------------------------------------ |
@@ -1241,7 +1676,7 @@ php artisan migrate:rollback --step=1
 | **Supervisor config** | `/etc/supervisor/conf.d/grosirun-worker.conf`                            |
 | **Logs**              | `/var/www/grosirun/current/backend/storage/logs/`                        |
 
-### 15.3 Rollback Checklist
+### 16.3 Rollback Checklist
 
 | Urutan | Action            | Command                                               |
 | ------ | ----------------- | ----------------------------------------------------- |
@@ -1253,5 +1688,3 @@ php artisan migrate:rollback --step=1
 | 6      | Notify Slack      | Manual jika script gagal                              |
 
 ---
-
-**Panduan Deployment V3.1 Production Ready - Blue-Green, Canary, Rollback, Monitoring, Disaster Recovery!** 🚀

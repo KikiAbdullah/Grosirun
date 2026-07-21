@@ -3,7 +3,11 @@
 **Sesuai UU Pelindungan Data Pribadi No.27/2022**  
 **Tanggal Efektif:** 20 Juli 2026  
 **Versi:** 1.0  
-**Status:** Production Ready
+**Owner:** Legal & Security
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -29,7 +33,7 @@
 
 Grosirun adalah aplikasi patungan belanja sembako berbasis RT/RW yang membantu warga mendapatkan harga grosir lebih murah. Kebijakan privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, menyimpan, dan melindungi data pribadi Bapak/Ibu sesuai dengan **Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)**.
 
-### 1.2 Konteks Bisnis (Referensi BUSINESS_ANALYSIS.md)
+### 1.2 Konteks Bisnis (Referensi [BUSINESS_ANALYSIS.md](BUSINESS_ANALYSIS.md))
 
 | Komponen              | Nilai               |
 | --------------------- | ------------------- |
@@ -57,7 +61,7 @@ Grosirun adalah aplikasi patungan belanja sembako berbasis RT/RW yang membantu w
 | **Nama lengkap**  | Diisi sendiri oleh pengguna                      | ✅ Wajib |
 | **Nomor HP (WA)** | Format E.164 (628xxx), digunakan untuk login OTP | ✅ Wajib |
 | **Cluster ID**    | RT tempat tinggal (contoh: PGH-RT03)             | ✅ Wajib |
-| **Role**          | Buyer (pembeli) atau Initiator (Ketua RT)        | ✅ Wajib |
+| **Role**          | Buyer, Initiator, Seller, atau Admin; satu user dapat memiliki lebih dari satu role | ✅ Wajib |
 
 ### 2.2 Data Teknis
 
@@ -72,7 +76,7 @@ Grosirun adalah aplikasi patungan belanja sembako berbasis RT/RW yang membantu w
 
 | Data                 | Keterangan                                                                        | Wajib?             |
 | -------------------- | --------------------------------------------------------------------------------- | ------------------ |
-| **Orders**           | Pesanan: variant, quantity, total_kg, total_price, payment_method, payment_status | ✅ Wajib           |
+| **Orders**           | Pesanan: variant, quantity, total_quantity, total_price, payment_method, payment_status | ✅ Wajib           |
 | **Proof Path**       | Path S3 bukti QRIS (gambar)                                                       | ❌ Hanya jika QRIS |
 | **is_taken**         | Status pengambilan barang                                                         | ✅ Wajib           |
 | **Taken_at**         | Waktu pengambilan                                                                 | ✅ Wajib           |
@@ -100,6 +104,14 @@ Grosirun adalah aplikasi patungan belanja sembako berbasis RT/RW yang membantu w
 
 ---
 
+### 2.6 Data Penjual dan Pemisahan Data Pembeli
+
+Untuk akun seller, Grosirun memproses nama, nomor kontak bisnis, supplier membership, identitas usaha, NPWP jika diwajibkan, alamat, area layanan, produk, penawaran, invoice, dan surat jalan. Data verifikasi hanya dapat diakses Admin aplikasi yang berwenang.
+
+Seller tidak memperoleh nama, nomor HP, bukti pembayaran, atau riwayat transaksi individual Pembeli. Data yang diberikan untuk fulfillment dibatasi pada total agregat per item, alamat dan kontak bisnis Inisiator, serta nomor purchase order. Dasar pengolahan data seller adalah pelaksanaan perjanjian kemitraan supplier dan kewajiban hukum yang berlaku.
+
+---
+
 ## 3. Dasar Pengolahan Data (UU PDP)
 
 Berdasarkan **UU PDP No.27/2022**, pengolahan data pribadi harus memiliki dasar hukum yang jelas. Grosirun menggunakan 3 dasar pengolahan:
@@ -113,7 +125,7 @@ Bapak/Ibu memberikan persetujuan secara eksplisit dengan:
 
 **Data yang diproses dengan consent:**
 
-- Nama, nomor HP, cluster_id, role
+- Nama, nomor HP, cluster_id, roles, active_role
 - Orders dan transaksi
 - Notifikasi
 
@@ -256,7 +268,7 @@ Bapak/Ibu berhak mengetahui data apa saja yang kami simpan.
 
 **Data yang ditampilkan:**
 
-- Nama, nomor HP, cluster, role
+- Nama, nomor HP, cluster, roles, active_role
 - Riwayat orders (5 terakhir)
 - Riwayat notifikasi
 
@@ -353,7 +365,7 @@ Jika Bapak/Ibu merasa data disalahgunakan, bisa melapor ke:
 | **Token**            | Sanctum, disimpan di `flutter_secure_storage` (bukan Hive)            |
 | **OTP**              | Hash bcrypt, expiry 5 menit, rate limit 5/menit + lock 15 menit       |
 | **Rate Limit**       | Redis: global 60/min, OTP 5/min, override 10/min                      |
-| **RBAC**             | Role buyer/initiator/admin, Policy check cluster_id                   |
+| **RBAC**             | Role buyer/initiator/seller/admin, Policy check cluster_id                   |
 | **Input Validation** | FormRequest, $fillable strict, no SQL injection                       |
 | **Upload Security**  | Mime check, random UUID filename, Intervention compress, max 2MB      |
 | **Audit Log**        | `transaction_logs` semua aksi sensitif (validation, reject, override) |
@@ -552,5 +564,3 @@ Jika tidak puas dengan respons DPO, Bapak/Ibu dapat melapor ke:
 5. ✅ **Hubungi DPO** jika ada pertanyaan atau masalah.
 
 ---
-
-**Kebijakan Privasi V3.1 Production Ready - UU PDP No.27/2022 Compliant, Consent, Retensi 90 Hari, Hak Hapus, S3 Private, No Sell Data!** 🔒✅
