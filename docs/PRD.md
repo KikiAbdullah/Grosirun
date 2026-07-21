@@ -1,12 +1,16 @@
-# PRODUCT REQUIREMENTS DOCUMENT (PRD) - Grosirun V3.1 Enterprise GAP Closed
+# PRODUCT REQUIREMENTS DOCUMENT (PRD) - Grosirun V3.1 Enterprise
 
 **Nama:** Grosirun  
 **Stack:** Backend Laravel 11 (REST API) + Frontend Flutter 3.22+ + Web Admin V1.1 (Livewire/Inertia)  
-**Target:** APK `<10 MB` arm64, Coverage >75%, Crash-free >99.5%  
+**Target:** APK `<10 MB` arm64, overall backend coverage ≥80%, critical Policy/state-transition coverage 100%, Crash-free >99.5%
 **Fase:** MVP V1.0 + Enterprise Readiness  
 **Tanggal:** 20 Juli 2026  
-**Versi:** 3.1 GAP Closed  
-**Status:** Final Draft
+**Versi:** 3.1
+**Owner:** Product
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -31,21 +35,21 @@
 **Problem Validasi Lapangan 2026:** Harga eceran Rp14k vs grosir Rp11.5k, rekap manual salah 30%, uang titipan Rp5-10jt tercecer, ketua RT burnout 60% berhenti 2 siklus.
 
 **Solusi V3.1:**
-- Laravel 11 API ACID + `lockForUpdate()` zero oversell, `clusters` table untuk multi-RT future (gap #2 fixed)
-- S3 primary storage prod (gap storage inkonsistensi fixed): VPS tidak penuh, backup + lifecycle 90 hari
+- Laravel 11 API ACID + `lockForUpdate()` untuk mencegah oversell serta tabel `clusters` untuk dukungan multi-RT
+- S3 sebagai primary storage produksi dengan backup dan lifecycle 90 hari
 - Flutter offline-first Hive + pendingQueue, onboarding Pak Agus + FAQ ibu-ibu
-- CI/CD GitHub Actions gate test (gap CI future fixed)
+- GitHub Actions sebagai CI/CD test gate
 
 **Stakeholder Matrix:**
 
 | Stakeholder | Role | Kepentingan | Power | Strategi |
 | :--- | :--- | :--- | :--- | :--- |
 | Bu Siti (Buyer) | End User | Hemat 15-20%, checkout <2 menit | High interest, Low power | Fokus UX tombol 56dp, tutorial 60s, FAQ |
-| Pak Agus (Initiator) | Admin | Hemat 80% waktu admin | High interest, High power | Libatkan di dogfooding, SOP onboarding, ToS |
+| Pak Agus (Initiator) | Inisiator | Hemat 80% waktu admin | High interest, High power | Libatkan di dogfooding, SOP onboarding, ToS |
 | Ketua RW | Sponsor | Transparansi dana RT | Medium interest, High power | Laporan PDF rekap, observability dashboard |
 | Dev Team | Builder | Code coverage, no oversell | High interest, Medium power | CI/CD, ADR, security review |
 | Kominfo/UU PDP | Regulator | Data pribadi warga | Low interest, High power | Privacy policy, DELETE account, retensi |
-| Supplier (Makmur Jaya) | External | Pesanan akurat | Medium interest, Low power | Rekap PDF teks auto via WA, webhook V2 optional |
+| Penjual/Supplier (Makmur Jaya) | Seller / Mitra Usaha | Penawaran akurat dan fulfillment efisien | High interest, Medium power | Seller workspace, purchase order, invoice, surat jalan |
 
 ---
 
@@ -67,16 +71,16 @@
 | **UU PDP Consent** | 100% consent checkbox logged | users consent_at | Per user | Block login jika belum consent |
 | **Data Deletion SLA** | <24h setelah DELETE /auth/account | logs | Per request | Alert Slack |
 
-### MoSCoW Priority V1.0 (GAP Fixed)
+### MoSCoW Priority V1.0
 
 | Must Have | Should Have | Could Have V1.1 | Won't Have |
 | :--- | :--- | :--- | :--- |
 | Auth OTP WA + lock 15m + consent UU PDP checkbox + ToS non-escrow | Extend + Cancel + broadcast FCM + fallback /notifications | Web Dashboard Livewire (admin web) | Escrow payment gateway |
-| Campaign CRUD + cluster_id FK + target multiple rule | Transfer pesanan on_behalf | iOS TestFlight | ML recommendation |
+| Campaign dari offer aktif + snapshot + cluster scope | Transfer pesanan on_behalf | iOS TestFlight | ML recommendation |
 | Varian Paten +/- no manual input | Social proof ticker polling 15s + share WA | Dark Mode + i18n | Multi-currency |
 | Order lockForUpdate + quota check atomic + 409 oversell | Backup daily + restore drill RTO 1h RPO 24h | Analytics Dictionary + notification_open event | Google Maps |
 | Upload bukti compress 70% + S3 primary + 90d lifecycle | Rate limit per-route Redis: auth 60/min, override 10/min | A/B Remote Config tombol |  |
-| Validate/Reject/Override with notes + undo 5min + audit transaction_logs | Feature Flags laravel-feature-flags | Offline proof upload queue |  |
+| Validate/Reject/Override with notes + undo 5min + audit transaction_logs | Feature Flags Laravel Pennant | Offline proof upload queue |  |
 | Rekap PDF + teks WA | Observability Pulse + Prometheus Grafana |  |  |
 | Checklist distribusi is_taken + complete | CI/CD test gate |  |  |
 | FCM + fallback /notifications poll |  |  |  |
@@ -105,17 +109,17 @@
 
 ### Pak Agus (Initiator)
 
-Butuh SOP sengketa jika buyer bilang sudah transfer tapi proof blur: lihat DISPUTE_SOP.md tanggung jawab initiator validasi 2x24 jam.
+Butuh SOP sengketa jika buyer bilang sudah transfer tapi proof blur: lihat [User Guide §7–8](USER_GUIDE.md#7-komplain-refund-dan-dispute-operations) tanggung jawab initiator validasi 2x24 jam.
 
 ### Sistem Persona Laravel
 
-Harus tahan 50-100 concurrent deadline rush (GAP thundering herd), bukan cuma 20.
+Harus tahan 50-100 concurrent deadline rush (skenario thundering herd), bukan cuma 20.
 
 ---
 
 ## 4. Ruang Lingkup Fitur + Cluster + Non-Escrow + ToS
 
-### 4.1. Cluster Multi-RT (Fix Gap Inkonsistensi DB tanpa cluster_id)
+### 4.1. Cluster Multi-RT
 
 **Sebelumnya:** PRD bilang 1 Cluster=500 user tapi DB tidak punya cluster_id → migration besar nanti.
 
@@ -129,9 +133,9 @@ Harus tahan 50-100 concurrent deadline rush (GAP thundering herd), bukan cuma 20
 | rw, kelurahan, kota | varchar |
 | created_at | timestamp |
 
-Update `users` add `cluster_id FK nullable`, `campaigns` add `cluster_id FK`. Seed default cluster PGH-RT03 untuk pilot. Semua query `GET /campaigns` filter `where cluster_id = auth user cluster_id` (scope global). Untuk MVP 1 cluster, tapi schema siap multi-cluster tanpa migration besar (GAP fixed).
+Update `users` add `cluster_id FK nullable`, `campaigns` add `cluster_id FK`. Seed default cluster PGH-RT03 untuk pilot. Semua query `GET /campaigns` filter `where cluster_id = auth user cluster_id` (scope global). Untuk MVP 1 cluster, tapi schema siap multi-cluster tanpa migration besar.
 
-### 4.2. Auth + UU PDP Compliance (GAP Kritis 1.1)
+### 4.2. Auth + UU PDP Compliance
 
 **Flow Consent:**
 1. User login OTP screen tambah checkbox wajib: "Saya menyetujui Penyimpanan data WA & transaksi untuk keperluan PO RT sesuai Kebijakan Privasi (link)"
@@ -144,35 +148,75 @@ Update `users` add `cluster_id FK nullable`, `campaigns` add `cluster_id FK`. Se
 
 Tambah di SETUP_GUIDE & API_SPEC.
 
-### 4.3. Non-Escrow + ToS + Dispute SOP (GAP Kritis 1.2)
+### 4.3. Non-Escrow + ToS + Dispute SOP
 
 **Disclaimer ToS Screen Onboarding (wajib scroll + checkbox):**
-"Grosirun hanya mencatat status pembayaran (pending/paid). Dana tunai fisik atau transfer QRIS langsung ke rekening pribadi Initiator. Grosirun bukan penjamin dana, bukan escrow, tidak memegang dana. Jika ada sengketa dana, tanggung jawab pertama Initiator untuk refund manual 2x24 jam, eskalasi ke Ketua RT/RW. Baca DISPUTE_SOP."
+"Grosirun hanya mencatat status pembayaran (pending/paid). Dana tunai fisik atau transfer QRIS langsung ke rekening pribadi Initiator. Grosirun bukan penjamin dana, bukan escrow, tidak memegang dana. Jika ada sengketa dana, tanggung jawab pertama Initiator untuk refund manual 2x24 jam, eskalasi ke Ketua RT/RW. Baca USER_GUIDE bagian 7–8 — Dispute Operations."
 
 - Flutter: first launch setelah login jika `tos_accepted_at null` → tampilkan modal ToS + checkbox → POST `/auth/tos-accept`
 - Laravel: `users.tos_accepted_at`, `tos_version`
 - Buyer agree ToS logged di `transaction_logs` type `tos_accept`
 - Jika tidak agree → logout.
 
-**Dispute SOP** detail ada di `docs/DISPUTE_SOP.md` (GAP fixed): timeline, tanggung jawab, bukti, eskalasi.
+**Dispute SOP** detail ada di `USER_GUIDE.md` bagian 7–8: timeline, tanggung jawab, bukti, eskalasi.
 
-### 4.4. Fitur Sebelumnya Tetap + Tambahan Baru GAP
+### 4.4. Ruang Lingkup Fitur
 
 Semua fitur lama (login OTP, beranda, varian paten, progress, ticker, checkout cash/qris, share WA, buat PO, dashboard 3 tab, rekap PDF, extend, cancel, checklist distribusi) tetap.
 
-**Tambahan baru V3.1 dari GAP:**
+**Fitur pendukung V1.0:**
 
-- **FCM Fallback (GAP Kritis #6):** Jika FCM gagal (Firebase down), simpan notifikasi ke table `notifications` Laravel. Flutter fallback polling `GET /api/v1/notifications?unread=true` setiap 60s atau saat app resume. Notif ditandai read setelah dibaca. Jadi tidak bergantung 100% FCM. Lihat API_SPEC + OBSERVABILITY.
+- **FCM Fallback:** Jika FCM gagal (Firebase down), simpan notifikasi ke table `notifications` Laravel. Flutter fallback polling `GET /api/v1/notifications?unread=true` setiap 60s atau saat app resume. Notif ditandai read setelah dibaca. Jadi tidak bergantung 100% FCM. Lihat API_SPEC + OBSERVABILITY.
 
-- **Feature Flags (GAP Penting #5):** Package `laravel- Pennant` atau `laravel-feature-flags` (internal). Flags: `qris_upload`, `extend_deadline`, `dark_mode` (for remote config). Enable/disable via env + DB + Horizon tanpa deploy. Contoh: jika QRIS bermasalah, matikan via flag tanpa upload APK baru. Lihat TECHNICAL_SPEC + PERFORMANCE_TUNING.
+- **Feature Flags:** Gunakan Laravel Pennant dengan registry canonical di API_SPEC bagian 12: client flags `qris-upload`, `extend-deadline`, `batch-validate`, `dark-mode`, `seller-onboarding`, `supplier-offers`, `purchase-orders`; backend-only `supplier-erp-webhook` dan `canary-new-order-service`. Seluruh flag default false sebelum implementasi dan diaktifkan bertahap sesuai scope global, user, cluster, supplier, atau percentage.
 
-- **API Gateway Rate Limit Centralized (GAP Penting #6):** Bukan hanya throttle middleware per controller. Buat `RateLimiter` custom di `AppServiceProvider`: global 60/min per user, per IP 100/min, per-route override: `request-otp 5/min per phone + IP`, `validate 30/min initiator`, `override-validate 10/min initiator` (sensitif). Gunakan Redis limiter. Lihat SECURITY.md.
+- **API Gateway Rate Limit Centralized:** Bukan hanya throttle middleware per controller. Buat `RateLimiter` custom di `AppServiceProvider`: global 60/min per user, per IP 100/min, per-route override: `request-otp 5/min per phone + IP`, `validate 30/min initiator`, `override-validate 10/min initiator` (sensitif). Gunakan Redis limiter. Lihat [SECURITY.md](SECURITY.md).
 
-- **Offline Proof Upload Queue (Nice #7 + GAP):** Sebelumnya hanya order queue offline. Sekarang tambah proof upload queue juga: jika buyer QRIS offline saat mau upload bukti, simpan file path lokal di pending queue type `upload_proof`, sync saat online (mirip order). Lihat STATE_MANAGEMENT_FLOW + PERFORMANCE_TUNING.
+- **Offline Proof Upload Queue:** Sebelumnya hanya order queue offline. Sekarang tambah proof upload queue juga: jika buyer QRIS offline saat mau upload bukti, simpan file path lokal di pending queue type `upload_proof`, sync saat online (mirip order). Lihat MOBILE_SPEC bagian 3–9 + OBSERVABILITY bagian 3 dan 7 — Performance Engineering.
 
-- **Batch Operations (Nice + API_SPEC Gap):** Endpoint `POST /api/v1/campaigns/{id}/orders/batch-validate` untuk validasi 10 orders sekaligus (checkbox di dashboard). Kurangi N+1 request admin saat distribusi 100 buyer.
+- **Batch Operations:** Endpoint `POST /api/v1/campaigns/{id}/orders/batch-validate` untuk validasi 10 orders sekaligus (checkbox di dashboard). Kurangi N+1 request admin saat distribusi 100 buyer.
 
-- **Web Dashboard Admin V1.1 (Nice #1):** Doc `UI_SPEC.md` mention web admin Livewire/Inertia optional V1.1 untuk rekap desktop Pak Agus. Tidak scope V1.0 tapi design siap.
+- **Web Dashboard Admin V1.1 (Nice #1):** Doc `[Mobile Specification](MOBILE_SPEC.md)` mention web admin Livewire/Inertia optional V1.1 untuk rekap desktop Pak Agus. Tidak scope V1.0 tapi design siap.
+
+---
+
+### 4.5 Alur Penawaran-ke-Campaign
+
+#### 4.5.1 Peran dan Batas Kewenangan
+
+| Peran | Identitas | Kewenangan utama | Larangan utama |
+| --- | --- | --- | --- |
+| **Pembeli (`buyer`)** | Warga anggota cluster | Melihat campaign cluster, membuat order, membayar Inisiator, mengunggah bukti, memantau distribusi | Membuat campaign, melihat order warga lain, mengakses data Penjual |
+| **Inisiator (`initiator`)** | Koordinator cluster | Memilih penawaran aktif, membuat campaign, menentukan margin dan target, memvalidasi pembayaran, membuat purchase order, mendistribusikan barang | Mengubah harga dasar Penjual, mengelola supplier, melihat cluster lain |
+| **Penjual (`seller`)** | Anggota organisasi supplier | Mengelola produk dan penawaran, menerima/menolak purchase order, mengunggah invoice/surat jalan, memperbarui fulfillment | Melihat identitas/bukti bayar Pembeli, memvalidasi pembayaran Pembeli, membuat campaign cluster |
+| **Admin aplikasi (`admin`)** | Operator Grosirun | Verifikasi supplier dan seller, moderasi, cluster, role, feature flag, audit dan suspend | Mengubah transaksi tanpa alasan dan audit log |
+
+Satu pengguna dapat memiliki beberapa role melalui `user_roles`; satu role aktif dipilih pada sesi. `buyer` dan `initiator` wajib memiliki `cluster_id`. `seller` terhubung ke supplier melalui `supplier_members`. `admin` tidak dibatasi cluster.
+
+#### 4.5.2 Pemisahan Penawaran dan Campaign
+
+- **Penawaran (`supplier_offers`)** dimiliki supplier dan dikelola seller. Isinya produk, unit, minimum order, tier harga, kapasitas, area kirim, biaya kirim, serta masa berlaku.
+- **Campaign (`campaigns`)** dimiliki Inisiator dan wajib merujuk satu penawaran aktif. Campaign menyimpan snapshot nama produk, unit, harga supplier, tier terpilih, dan syarat pengiriman agar perubahan penawaran tidak mengubah campaign berjalan.
+- Inisiator menentukan harga Pembeli, target, deadline, lokasi distribusi, dan margin. Harga Pembeli tidak boleh lebih rendah dari total harga supplier dan biaya yang dialokasikan.
+- Penjual tidak membuat, mengubah, memperpanjang, atau membatalkan campaign.
+
+#### 4.5.3 Alur End-to-End
+
+1. Seller membuat profil supplier; Admin memverifikasi supplier dan keanggotaan seller.
+2. Seller membuat produk dan penawaran berstatus `draft`, lalu mengirimkannya untuk moderasi.
+3. Admin menyetujui penawaran menjadi `active`; penawaran hanya terlihat di area layanan dan selama masa berlaku.
+4. Inisiator memilih penawaran aktif dan membuat campaign dengan snapshot komersial.
+5. Pembeli bergabung dan membayar langsung kepada Inisiator sesuai model non-escrow.
+6. Ketika target dan ambang pembayaran tercapai, Inisiator membuat purchase order untuk supplier.
+7. Seller menerima atau menolak purchase order. Penolakan wajib memiliki alasan; Inisiator dapat memilih penawaran lain atau membatalkan campaign dan melakukan refund.
+8. Inisiator membayar supplier di luar Grosirun dan mengunggah bukti transfer; Grosirun hanya mencatat status.
+9. Seller menandai `paid`, `processing`, `shipped`, dan mengunggah invoice serta surat jalan.
+10. Inisiator mengonfirmasi `delivered`, memeriksa kuantitas, lalu mendistribusikan barang kepada Pembeli.
+11. Semua perubahan status, harga, dokumen, dan override dicatat di `transaction_logs`.
+
+#### 4.5.4 Privasi Penjual
+
+Seller hanya menerima jumlah agregat per varian, alamat pengiriman Inisiator, kontak bisnis Inisiator, dan dokumen purchase order. Nama, nomor HP, bukti pembayaran, serta riwayat Pembeli tidak diberikan kepada seller.
 
 ---
 
@@ -182,15 +226,18 @@ Semua fitur lama (login OTP, beranda, varian paten, progress, ticker, checkout c
 
 ```mermaid
 flowchart TD
-    A[Initiator Buat Campaign PO] --> B{Target & Varian valid?}
-    B -- Yes --> C[Status Active, Cache Redis clear]
-    B -- No --> A
-    C --> D[Buyer Lihat Home List Active]
-    D --> E[Buyer Detail + Polling 15s + Ticker]
-    E --> F[Buyer Pilih Varian Qty Checkout Cash/QRIS]
-    F --> G{Quota cukup? lockForUpdate}
+    S[Seller Publikasikan Offer Aktif] --> A[Inisiator Lihat dan Pilih Offer]
+    A --> B[Isi Target dan Harga Buyer]
+    B --> C{Offer aktif, area sesuai, margin dan kapasitas valid?}
+    C -- Yes --> D[Server lock offer, reservasi kapasitas, simpan snapshot]
+    C -- No --> A
+    D --> E[Campaign Active dan Cache Redis dihapus]
+    E --> F[Buyer Lihat Home List Active]
+    F --> G1[Buyer Detail + Polling 15s + Ticker]
+    G1 --> F1[Buyer Pilih Varian Qty Checkout Cash/QRIS]
+    F1 --> G{Quota cukup? lockForUpdate}
     G -- No --> H[409 OUT_OF_STOCK, Flutter dialog stok habis]
-    G -- Yes --> I[Order Created pending/waiting_qris, sold++, current_kg++]
+    G -- Yes --> I[Order Created pending/waiting_qris, sold++, current_quantity++]
     I --> J{Payment Method?}
     J -- Cash --> K[Buyer Bayar Tunai ke Initiator Offline]
     J -- QRIS --> L[Buyer Upload Proof compress 70% S3 + 90d lifecycle]
@@ -202,19 +249,19 @@ flowchart TD
     Q -- Yes --> O
     Q -- No Blur --> R[Reject + reason + FCM + fallback notif]
     R --> L
-    O --> S{current_kg >= target_kg?}
-    S -- Yes --> T[Status Completed auto, FCM broadcast completed]
+    O --> S{current_quantity >= target_quantity?}
+    S -- Yes --> T[Status target_reached, checkout ditutup, Inisiator siap membuat PO]
     S -- No --> E
-    T --> U[Initiator Recap PDF + Text Share WA Supplier]
-    U --> V[Supplier Kirim Barang Truk]
-    V --> W[Initiator Distribution Checklist markTaken is_taken]
+    T --> U[Inisiator Buat dan Submit Purchase Order]
+    U --> V[Seller Accept, Proses, Upload Invoice dan Surat Jalan, lalu Shipped]
+    V --> W[Inisiator Konfirmasi Delivered dan Buka Distribution Checklist]
     W --> X[Complete Distribution distribution_completed_at]
     X --> Y[90 Hari, CleanOldProofsJob delete S3 proof]
 ```
 
-Sequence Diagram detail ada di `DATABASE_DESIGN.md` + `TECHNICAL_SPEC.md` tambahan.
+Sequence Diagram detail ada di `TECHNICAL_SPEC.md`.
 
-### 5.2. Skenario Thundering Herd (GAP Penting 2.1)
+### 5.2. Skenario Thundering Herd
 
 Jam H-1 deadline, 50-100 buyer buka app bersamaan checkout sisa 10 paket.
 
@@ -222,7 +269,7 @@ Jam H-1 deadline, 50-100 buyer buka app bersamaan checkout sisa 10 paket.
 - Flutter Dio retry 503 dengan backoff jika server 503 maintenance deploy.
 - Load test k6 `k6-deadline-rush.js` simulasi 100 VUs.
 
-### 5.3. Skenario Admin Race (GAP Penting 2.2)
+### 5.3. Skenario Admin Race
 
 2 admin device (Pak Agus HP + istri login akun sama? atau 2 initiator satu cluster) validate order sama bersamaan.
 
@@ -246,17 +293,17 @@ Jam H-1 deadline, 50-100 buyer buka app bersamaan checkout sisa 10 paket.
 
 Update di semua dokumen: TECHNICAL_SPEC, API_SPEC, DEPLOYMENT, SECURITY konsisten S3 primary.
 
-### Versioning Strategy V2 (GAP Kritis #5)
+### Versioning Strategy V2
 
 - API versioning: prefix `/api/v1/` now. Future `/api/v2/` backward compatible.
 - Strategy: V1 maintain min 6 bulan setelah V2 launch. Deprecation header `X-API-Deprecation: 2026-12-31` + Sunset.
-- Breaking changes: need major version bump. Add guide in VERSIONING_STRATEGY.md
+- Breaking changes: need major version bump. Add guide in [Changelog — Strategi Versioning](CHANGELOG.md#bagian-1-strategi-versioning)
 - Flutter: send `Accept: application/vnd.grosirun.v1+json` header optional, plus `X-App-Version`
 - Docs: OpenAPI/Swagger per version via Scribe generate `storage/docs/v1/openapi.yaml`
 
-### Performance Budget (Add dari GAP)
+### Performance Budget (Add dari penyempurnaan spesifikasi)
 
-Lihat README + PERFORMANCE_TUNING.md:
+Lihat README + [Observability — Performance Engineering](OBSERVABILITY.md#3-performance-engineering):
 
 - GET /campaigns P95 <150ms cache hit Redis 60s
 - POST /orders P95 <300ms include lock
@@ -266,7 +313,7 @@ Lihat README + PERFORMANCE_TUNING.md:
 - APK <10MB
 - Frame 60 FPS
 
-### Database Index + Partitioning (Gap TECHNICAL_SPEC)
+### Database Index + Partitioning
 
 - Index: `campaigns (cluster_id, status, deadline)`, `campaign_variants (campaign_id)`, `orders (campaign_id, payment_status, user_id)`, `otp_codes (phone_number, expires_at)`, `notifications (user_id, read_at)`
 - Partitioning: `orders` partition by year `PARTITION BY RANGE (YEAR(created_at))` jika >1M rows V2 (Mvp single partition but ready doc)
@@ -286,20 +333,20 @@ Semua endpoint filter by `auth()->user()->cluster_id` scope.
 | Fase | Timeline | Backend | Mobile | Infra/Security | Output |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Sprint 1 Foundation | 20 Jul - 3 Ags 2026 | Laravel 11 + Docker compose MySQL Redis Nginx + cluster table + OtpService + UU PDP consent fields | Flutter Dio Hive SecureStorage + AuthCubit + consent checkbox | CI test.yml gate Pest + flutter analyze + Docker ready | Auth E2E + cluster |
-| Sprint 2 Core | 4 Ags - 18 Ags | Campaign CRUD cluster scope + variant + cache Redis + S3 primary | Home Detail progress ticker polling + share WA + deep link | ADR docs + DATABASE_DESIGN + SECURITY.md | PO listing live |
-| Sprint 3 Transaction | 19 Ags - 2 Sep | OrderService lockForUpdate + proof S3 tempUrl + batch validate + notifications fallback table | Checkout + proof queue offline + upload compress | k6 load test deadline rush 100 concurrent + ERROR_CATALOG | Checkout live |
-| Sprint 4 Admin & Obs | 3 Sep - 10 Sep | Recap PDF + distribution + FCM + fallback /notifications + feature flags + rate limit centralized | Admin dashboard 3 tabs + recap viewer + checklist + FCM background handler | OBSERVABILITY.md Pulse Prometheus Grafana + PERFORMANCE_TUNING | Admin full |
-| Dogfooding + Security Review | 11 Sep - 17 Sep | Load test thundering herd + admin race test + restore drill RTO 1h | Test 3 device low-end + APK <10MB + error boundary | SECURITY_REVIEW OWASP Top 10 API+Mobile checklist | RC + sec review |
+| Sprint 2 Core | 4 Ags - 18 Ags | Offer marketplace + campaign snapshot + variant + cache Redis + S3 primary | Home Detail progress ticker polling + share WA + deep link | ADR docs + TECHNICAL_SPEC + [SECURITY.md](SECURITY.md) | PO listing live |
+| Sprint 3 Transaction | 19 Ags - 2 Sep | OrderService lockForUpdate + proof S3 tempUrl + batch validate + notifications fallback table | Checkout + proof queue offline + upload compress | k6 load test deadline rush 100 concurrent + API_SPEC bagian 1.4 — Format dan Katalog Error | Checkout live |
+| Sprint 4 Admin & Obs | 3 Sep - 10 Sep | Recap PDF + distribution + FCM + fallback /notifications + feature flags + rate limit centralized | Admin dashboard 3 tabs + recap viewer + checklist + FCM background handler | [OBSERVABILITY.md](OBSERVABILITY.md) Pulse Prometheus Grafana + OBSERVABILITY bagian 3 dan 7 — Performance Engineering | Admin full |
+| Dogfooding + Security Review | 11 Sep - 17 Sep | Load test thundering herd + admin race test + restore drill RTO 1h | Test 3 device low-end + APK <10MB + error boundary | SECURITY bagian Checklist Review Keamanan OWASP Top 10 API+Mobile checklist | RC + sec review |
 | Alpha Pilot 1 RT | 18 Sep - 25 Sep | Deploy blue-green zero-downtime + backup daily S3 + canary 10% | Firebase App Distribution + onboarding pilot guide Pak Agus + FAQ | Monitoring alert Slack P95>300ms | Pilot 1 RT |
 | Go-Live V1.0 | 26 Sep - 30 Sep | Go-live if adoption>70% crash-free>99.5% | Feedback form analytics dictionary | Post-launch hotfix plan | Prod V1.0 |
 
-Gantt visual di README.md.
+Gantt visual di [README.md](../README.md).
 
 ---
 
 ## 8. Mitigasi Risiko + Dispute SOP Ref
 
-### Dispute SOP Non-Escrow (Gap Kritis Fixed - Detail di DISPUTE_SOP.md)
+### Dispute SOP Non-Escrow
 
 | Skenario | Tanggung Jawab | Timeline | Bukti | Eskalasi |
 | :--- | :--- | :--- | :--- | :--- |
@@ -314,12 +361,27 @@ ToS consent screen wajib di onboarding: user centang setuju non-escrow + UU PDP.
 
 | Risiko | Plan A | Plan B | Plan C |
 | :--- | :--- | :--- | :--- |
-| FCM Down Firebase | Fallback /notifications DB poll 60s (GAP fixed) | Retry queue 3x exponential | Buyer cek manual di app My Orders tanpa push |
+| FCM Down Firebase | Fallback /notifications DB poll 60s | Retry queue 3x exponential | Buyer cek manual di app My Orders tanpa push |
 | Storage S3 Down | Retry 3x, fallback local temp + queue upload S3 later | Alert admin, bukti simpan lokal HP dulu | Manual WA bukti ke initiator |
 | Disaster VPS down | Restore dari backup S3, RTO 1h RPO 24h, disaster drill 1x sebelum pilot | Blue-green standby | Manual Excel sementara |
 | UU PDP violation | Privacy policy + consent + DELETE account + retensi 90d | Anonimisasi | Lapor DPO |
 
 ---
+
+### 8.3 Failure, Refund, dan Reservation Matrix
+
+| Kondisi | Campaign | Purchase order | Reservation | Refund/penyelesaian | SLA |
+| --- | --- | --- | --- | --- | --- |
+| Offer stale/expired/capacity insufficient saat create | Tidak dibuat | — | Tidak berubah | Inisiator refresh/pilih offer | Instan |
+| Campaign expired sebelum target | `expired` | — | Dilepas atomik | Refund Buyer paid oleh Inisiator | 2×24 jam |
+| Inisiator cancel sebelum PO accepted | `cancelled` | cancelled/tidak ada | Dilepas atomik | Refund Buyer paid | 2×24 jam |
+| Seller reject PO | `target_reached` menunggu keputusan | `rejected` | Dilepas | Buat campaign baru dari offer lain atau cancel/refund | Seller ≤12 jam; refund 2×24 jam |
+| Seller tidak respons | `po_submitted` | `submitted` | Tetap reserved | Reminder 6 jam; Admin 12 jam; Inisiator dapat cancel | 12 jam |
+| Seller cancel setelah accepted | `fulfillment` tertahan | dispute | Tetap committed | Replacement supplier atau refund berdasarkan resolusi Admin | Respons 1×24 jam |
+| Kurang/rusak | `fulfillment` | `shipped` + dispute | Tetap committed | Replacement/partial refund supplier; Inisiator meneruskan hak Buyer | Buka 1×24 jam; respons 1×24 jam |
+| Distribusi selesai | `completed` | `delivered` | Committed direkonsiliasi | Tidak ada refund kecuali dispute terbukti | Sesuai SOP |
+
+Refund Buyer tetap dilakukan Inisiator karena non-escrow. Klaim Inisiator kepada Supplier adalah alur terpisah; kegagalan Supplier tidak menghapus kewajiban Inisiator kepada Buyer.
 
 ## 9. Daftar Tugas + Dependency Graph
 
@@ -335,7 +397,7 @@ clusters table → users.cluster_id → campaigns.cluster_id → variants → or
 
 Order tidak bisa dibuat jika cluster mismatch: buyer cluster harus sama dengan campaign cluster (scope).
 
-### Checklist Developer Update (Tambahan GAP)
+### Checklist Developer Update (Tambahan spesifikasi)
 
 **Backend:**
 - [ ] Migration `clusters` + add FK `users.cluster_id`, `campaigns.cluster_id`
@@ -360,22 +422,22 @@ Order tidak bisa dibuat jika cluster mismatch: buyer cluster harus sama dengan c
 - [ ] Offline proof upload queue pendingQueue type upload_proof
 - [ ] Error boundary `FlutterError.onError` + `PlatformDispatcher.onError` Sentry
 - [ ] State persistence Hive when killed (Auth state, campaign detail)
-- [ ] Analytics Dictionary 30 events
+- [ ] Analytics Dictionary 59 events
 - [ ] FAQ + Onboarding pilot screens
 
-Total estimasi tambah 7 hari untuk GAP fixes → masih dalam 5 minggu + 1 minggu buffer.
+Total estimasi tambah 7 hari untuk penyempurnaan → masih dalam 5 minggu + 1 minggu buffer.
 
 ---
 
 ## 10. Glosarium + Keputusan Final Inkonsistensi
 
-### Keputusan Final Fix Inkonsistensi Antar Dokumen (Gap #4)
+### Keputusan Lintas Dokumen
 
 | # | Isu Sebelum | Keputusan Final V3.1 |
 | :--- | :--- | :--- |
 | 1 | Storage lokal vs S3 inkonsisten | **S3 primary prod** (private bucket tempUrl 1h), local hanya dev. Update semua docs: TECHNICAL_SPEC, API_SPEC, DEPLOYMENT, SECURITY konsisten S3. |
 | 2 | DB tanpa cluster_id padahal PRD 1 cluster=500 user | **Tambah clusters table + FK** di users & campaigns. Semua query scoped cluster_id. Siap multi-cluster V2 tanpa migration besar. |
-| 3 | CI Future vs deploy matang inkonsisten | **CI/CD real** now: `.github/workflows/test.yml` gate Pest + flutter analyze required before merge develop (GAP fixed). Deploy blue-green zero-downtime, bukan manual git pull di prod langsung. |
+| 3 | CI Future vs deploy matang inkonsisten | **CI/CD real** now: `.github/workflows/test.yml` gate Pest + flutter analyze required before merge develop. Deploy blue-green zero-downtime, bukan manual git pull di prod langsung. |
 | 4 | GET /campaigns public vs auth required | **Final: Auth required untuk semua** (keputusan produk). Public read hanya untuk health. PRD update eksplisit, bukan hanya API_SPEC. |
 
 ### Glosarium Baru
@@ -395,8 +457,8 @@ Total estimasi tambah 7 hari untuk GAP fixes → masih dalam 5 minggu + 1 minggu
 
 ---
 
-**Penutup V3.1 Enterprise:** PRD ini sekarang menutup semua GAP Kritis (UU PDP, Dispute SOP, CI/CD, Storage S3, Cluster_id, FCM fallback) + Penting (Thundering herd load test, admin race, zero-downtime, disaster drill) + menambahkan MoSCoW RICE stakeholder matrix untuk keputusan produk transparan.
+PRD ini menetapkan kebutuhan UU PDP, Dispute SOP, CI/CD, penyimpanan S3, cluster, fallback FCM, load testing, penanganan race condition, zero-downtime deployment, disaster recovery, MoSCoW, RICE, dan stakeholder matrix.
 
 **Next Action:** Update semua dokumen lain sesuai keputusan Final di Section 10 ini (single source of truth).
 
-**Signed:** Product Team Grosirun, 20 Juli 2026, V3.1 GAP Closed.
+**Signed:** Product Team Grosirun, 20 Juli 2026, V3.1.

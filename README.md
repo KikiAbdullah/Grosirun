@@ -4,17 +4,21 @@
 **Tagline:** *Grosir + Run — Gotong Royong Ekonomi Digital Mikro*  
 **Versi Dokumen:** 3.1 - Enterprise GAP Closed Edition  
 **Tanggal Efektif:** 20 Juli 2026  
-**Status:** MVP V1.0 Final + Enterprise Readiness  
-**Target APK:** `< 10 MB` arm64-v8a | Coverage Backend >75% | Crash-free >99.5%
+**Status Dokumentasi:** Final
+**Status Implementasi:** Belum Dimulai
+**Target Release:** MVP V1.0
+**Target APK:** `< 10 MB` arm64-v8a | Coverage Backend ≥80% | Crash-free >99.5%
 
 [![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?logo=laravel)](https://laravel.com)
 [![Flutter](https://img.shields.io/badge/Flutter-3.22+-02569B?logo=flutter)](https://flutter.dev)
 [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php)](https://php.net)
-[![Coverage](https://img.shields.io/badge/coverage-backend_82%25-green)](./docs/TEST_PLAN.md)
-[![APK Size](https://img.shields.io/badge/APK-7.8_MB-arm64-brightgreen)](./docs/DEPLOYMENT.md)
-[![CI](https://img.shields.io/badge/CI-GitHub_Actions-blue?logo=githubactions)](./docs/CI_CD.md)
+[![Coverage](https://img.shields.io/badge/coverage-not_measured-lightgrey)](./docs/TEST_PLAN.md)
+[![APK Size](https://img.shields.io/badge/APK_size-not_measured-lightgrey)](./docs/DEPLOYMENT.md)
+[![Implementation](https://img.shields.io/badge/implementation-not_started-lightgrey)](#status)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 
+
+📚 **[Indeks Dokumentasi, urutan membaca, glossary, dan traceability](docs/README.md)**
 ---
 
 ## Daftar Isi
@@ -38,10 +42,13 @@ Grosirun adalah tool group-buying RT/RW untuk menghemat 15-20% harga sembako den
 
 **Masalah:** Rekap manual di WA → 30% salah hitung, uang titipan Rp5-10jt tercecer, ketua RT burnout.
 
-**Solusi V3.1:** 
-- Backend ACID MySQL `lockForUpdate()` zero oversell, audit `transaction_logs`, backup daily + disaster recovery drill.
-- Mobile <10MB, tombol 56dp, compress gambar 70% sebelum upload, offline queue + auto sync.
-- Kepatuhan UU PDP No.27/2022: consent, retensi, DELETE /auth/account, privacy policy.
+**Solusi V3.1:**
+- Empat role utama: Pembeli (`buyer`), Inisiator (`initiator`), Penjual (`seller`), dan Admin aplikasi (`admin`), dengan dukungan multi-role.
+- Alur penawaran-ke-campaign: Penjual membuat penawaran supplier; Inisiator membuat campaign dari penawaran aktif dan tersimpan sebagai snapshot.
+- Purchase order menghubungkan campaign Inisiator dengan fulfillment Penjual tanpa membuka data pribadi Pembeli.
+- Backend ACID MySQL `lockForUpdate()` mencegah oversell, dengan audit `transaction_logs`, backup harian, dan disaster recovery drill.
+- Mobile ringan, kompresi gambar sebelum upload, offline queue, dan sinkronisasi otomatis.
+- Kepatuhan UU PDP No.27/2022: consent, retensi, penghapusan akun, serta pemisahan data Pembeli dan Penjual.
 
 ---
 
@@ -82,7 +89,7 @@ graph TB
     Mobile -.-> CRASH
 ```
 
-### ERD Ringkas (Detail di DATABASE_DESIGN.md)
+### ERD Ringkas (Detail di [TECHNICAL_SPEC.md](docs/TECHNICAL_SPEC.md))
 ```
 users 1--* campaigns (initiator_id + cluster_id FK)
 campaigns 1--* campaign_variants
@@ -100,7 +107,7 @@ clusters 1--* campaigns
 
 ## 3. Fitur & MoSCoW
 
-Lihat detail lengkap di PRD.md Section 4 + 5.
+Lihat detail lengkap di [PRD.md](docs/PRD.md) Section 4 + 5.
 
 | Prioritas | Fitur |
 | :--- | :--- |
@@ -109,13 +116,13 @@ Lihat detail lengkap di PRD.md Section 4 + 5.
 | **Could Have V1.1** | Web Dashboard Admin Blade/Livewire, iOS TestFlight, Dark Mode, i18n flutter_localizations, Analytics Event Dictionary, Push open tracking |
 | **Won't Have Now** | Escrow payment gateway, ML recommendation, Multi-currency, Maps |
 
-RICE Scoring ada di PRD.md.
+RICE Scoring ada di [PRD.md](docs/PRD.md).
 
 ---
 
 ## 4. Tech Stack & ADR
 
-Semua keputusan arsitektur didokumentasikan di **ARCHITECTURE_DECISION_RECORDS.md**:
+Semua keputusan arsitektur didokumentasikan di **[ARCHITECTURE_DECISION_RECORDS.md](docs/ARCHITECTURE_DECISION_RECORDS.md)**:
 
 - ADR-001 Laravel 11 bukan Node.js/Nest (Ecosystem PHP Indonesia, ACID mudah, Horizon)
 - ADR-002 MySQL 8 bukan Postgres (tim familiar, lockForUpdate mature, cost VPS)
@@ -147,11 +154,11 @@ grosirun/
 │   ├── lib/logic/cubits/
 │   ├── lib/presentation/screens/
 │   └── integration_test/
-├── docs/ (20+ docs enterprise)
-│   ├── PRD.md, TECHNICAL_SPEC.md, API_SPEC.md, DATABASE_DESIGN.md
-│   ├── ADR, SECURITY.md, OBSERVABILITY.md, CI_CD.md
-│   ├── PERFORMANCE_TUNING.md, CODING_STANDARDS.md, ERROR_CATALOG.md
-│   ├── DISPUTE_SOP.md, ONBOARDING_PILOT.md, FAQ_END_USER.md, etc.
+├── docs/ (17 dokumen domain + 1 indeks)
+│   ├── PRD.md, TECHNICAL_SPEC.md, API_SPEC.md
+│   ├── ADR, SECURITY.md, OBSERVABILITY.md, [Deployment §2](docs/DEPLOYMENT.md#2-ci-quality-gates--build-pipelines)
+│   ├── OBSERVABILITY.md bagian 3 dan 7 — Performance Engineering, DEVELOPMENT_GUIDE.md, API_SPEC.md bagian 1.4 — Format dan Katalog Error
+│   ├── [User Guide §7–8](docs/USER_GUIDE.md#7-komplain-refund-dan-dispute-operations), USER_GUIDE.md, etc.
 ├── docker-compose.yml            # Laravel + MySQL + Redis + Nginx local
 ├── .github/workflows/            # test.yml, deploy.yml, build-apk.yml
 └── README.md
@@ -183,7 +190,7 @@ docker-compose ps
 docker-compose logs -f app queue scheduler
 ```
 
-Lihat **SETUP_GUIDE.md + DATABASE_MIGRATION_GUIDE.md**.
+Lihat **[SETUP_GUIDE.md](docs/SETUP_GUIDE.md) + [Technical Specification §19](docs/TECHNICAL_SPEC.md#19-panduan-migrasi-database)**.
 
 ### Opsi B: Native
 
@@ -212,33 +219,23 @@ ls -lh build/app/outputs/apk/release/*.apk
 
 | Dokumen | Isi | Status |
 | :--- | :--- | :--- |
-| **PRD.md** | MoSCoW, RICE, stakeholder matrix, UU PDP, cluster_id, iOS decision, ToS | ✅ v3.1 |
-| **TECHNICAL_SPEC.md** | Index strategy, partitioning orders by year, read replica recap, pooling, storage S3 primary, cluster_id FK | ✅ v3.1 |
-| **API_SPEC.md** | OpenAPI, idempotency-key, webhook, batch validate, Cache-Control, ETag, /notifications fallback, versioning V2 strategy | ✅ v3.1 |
-| **DATABASE_DESIGN.md** | ERD mermaid, cardinality, FK diagram, index, query optimization, lifecycle, partitioning | ✅ New |
-| **ARCHITECTURE_DECISION_RECORDS.md** | 7 ADR: Laravel, MySQL, S3, Cubit, Hive, Sanctum, Dio | ✅ New |
-| **SETUP_GUIDE.md** | Docker, Dev Container, native, WA gateway, Firebase, decision tree troubleshooting | ✅ v3.1 |
-| **STATE_MANAGEMENT_FLOW.md** | State transition diagram, memory lifecycle, retry matrix, deep linking `grosirun://`, FCM background handler, error boundary | ✅ v3.1 |
-| **DATABASE_MIGRATION_GUIDE.md** | Cara buat migration, rollback safe, seed, data migration Firebase→MySQL | ✅ New |
-| **PERFORMANCE_TUNING.md** | Laravel OPcache, Redis cache, Nginx, PHP-FPM pool, Flutter ListView builder, image cache, memory leak | ✅ New |
-| **SECURITY.md** | Threat Model, OWASP Top 10 API+Mobile, Rate Limit, Sanctum, SQLi, XSS, IDOR, Upload, Audit Log | ✅ New |
-| **SECURITY_REVIEW.md** | Checklist OWASP manual sebelum pilot | ✅ New |
-| **OBSERVABILITY.md** | Logging vs Sentry matrix, Pulse, Prometheus Grafana, Crashlytics, Horizon metrics, slow query, Alert | ✅ New |
-| **CI_CD.md** | GitHub Actions test.yml (Pest + flutter analyze), deploy.yml blue-green zero-downtime, build-apk.yml, health check | ✅ New |
-| **DEPLOYMENT.md** | Blue-Green, Canary 10%, rollback automation, SSL auto-renew monitoring, RTO 1h RPO 24h, disaster drill | ✅ v3.1 |
-| **CODING_STANDARDS.md** | Laravel Service/DTO/Resource naming, Flutter Cubit Widget naming, Barrel export, Theme | ✅ New |
-| **ERROR_CATALOG.md** | ERR_001 OTP_EXPIRED 401, ERR_024 OUT_OF_STOCK 409, ERR_050 UPLOAD_TOO_LARGE 413, action frontend | ✅ New |
-| **VERSIONING_STRATEGY.md** | SemVer, API v1 v2 deprecation, mobile versionCode, upgrade guide | ✅ New |
-| **UI_SPEC.md** | 8 screens wireframe, spacing 8dp, color #16A34A neon, typography, 56dp button, loading/empty/error skeleton | ✅ New |
-| **DISPUTE_SOP.md** | Non-escrow refund SOP, tanggung jawab initiator 2x24 jam, eskalasi RT/RW, ToS consent screen | ✅ New |
-| **ONBOARDING_PILOT.md** | Panduan Pak Agus install APK, buat PO, validasi, rekap, distribusi bahasa sederhana | ✅ New |
-| **FAQ_END_USER.md** | 20 FAQ buyer: OTP tidak masuk, beda cash vs QRIS, tidak punya Android, bukti blur | ✅ New |
-| **PRIVACY_POLICY.md** | UU PDP No.27/2022, dasar pengolahan, retensi 90 hari proof, hak hapus data DELETE /auth/account | ✅ New |
-| **DATA_MIGRATION_PLAN.md** | Migrasi Firebase → MySQL, Excel → MySQL importer artisan command | ✅ New |
-| **ANALYTICS_EVENT_DICTIONARY.md** | 30 events: login_success, campaign_view, checkout, validation, notification_open | ✅ New |
-| **TEST_PLAN.md** | Thundering herd 100 concurrent deadline rush, admin race, smoke checklist, regression, factory, chaos, k6 | ✅ v3.1 |
-| **CONTRIBUTING.md** | Conventional Commits, CODEOWNERS, review checklist race/RBAC/offline/APK size | ✅ v3.1 |
-| **CHANGELOG.md** | Deprecated, Upgrade Guide, Security Advisory, Rilis Template | ✅ v3.1 |
+| **[PRD.md](docs/PRD.md)** | Requirement, scope, role, penawaran-ke-campaign, lifecycle, failure/refund | Final specification |
+| **[BUSINESS_ANALYSIS.md](docs/BUSINESS_ANALYSIS.md)** | Unit economics, market, legal-finance assumptions, GTM | Final specification |
+| **[TECHNICAL_SPEC.md](docs/TECHNICAL_SPEC.md)** | Architecture, ERD penawaran-ke-campaign, database, migration, storage, service layer | Final specification |
+| **[API_SPEC.md](docs/API_SPEC.md)** | REST contract, canonical errors, seller/admin/dispute APIs, versioning | Final specification |
+| **[MOBILE_SPEC.md](docs/MOBILE_SPEC.md)** | UX, design system, screen map, Cubit, offline, deep link, FCM | Final specification |
+| **[SECURITY.md](docs/SECURITY.md)** | Threat model, RBAC, privacy boundary, OWASP, security review | Final specification |
+| **[PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md)** | UU PDP, consent, rights, retention, third party | Final legal document |
+| **[TEST_PLAN.md](docs/TEST_PLAN.md)** | Unit, feature, integration, race, security, performance plan | Final specification |
+| **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** | CI gates, build, deploy, canary, rollback, monitoring, DR | Final specification |
+| **[DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md)** | Coding standards, Git, PR, review, testing, contribution | Final specification |
+| **[OBSERVABILITY.md](docs/OBSERVABILITY.md)** | Logs, traces, metrics, performance engineering, 59 analytics events | Final specification |
+| **[USER_GUIDE.md](docs/USER_GUIDE.md)** | Role guide, FAQ, troubleshooting, refund dan dispute operations | Final operations manual |
+| **[PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md](docs/PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md)** | Proposal persuasif dan materi validasi untuk tiga stakeholder | Final communication material |
+| **[PRESENTASI_GROSIRUN.md](docs/PRESENTASI_GROSIRUN.md)** | Naskah slide akurat untuk presentasi stakeholder dan pilot | Final presentation material |
+| **[ARCHITECTURE_DECISION_RECORDS.md](docs/ARCHITECTURE_DECISION_RECORDS.md)** | 8 accepted architecture decisions | Final decision record |
+| **[SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** | Local environment, dependencies, Firebase, S3, WA gateway | Final specification |
+| **[CHANGELOG.md](docs/CHANGELOG.md)** | Version strategy and release history | Maintained per release |
 
 Plus infra:
 
@@ -250,7 +247,7 @@ Plus infra:
 
 ## 8. Keamanan, UU PDP & Non-Escrow
 
-**Non-Escrow:** Aplikasi tidak pegang dana. Dana tunai fisik atau QRIS langsung ke rekening initiator pribadi. Grosirun hanya `status` (Laravel). Tidak perlu izin OJK/BI, tapi ada **DISPUTE_SOP.md + ToS consent** di onboarding.
+**Non-Escrow:** Aplikasi tidak pegang dana. Dana tunai fisik atau QRIS langsung ke rekening initiator pribadi. Grosirun hanya `status` (Laravel). Tidak perlu izin OJK/BI, tapi ada **[User Guide §7–8](docs/USER_GUIDE.md#7-komplain-refund-dan-dispute-operations) + ToS consent** di onboarding.
 
 **UU PDP Indonesia No.27/2022:**
 - Dasar: consent saat login OTP (checkbox)
@@ -259,27 +256,26 @@ Plus infra:
 - Hak: `DELETE /api/v1/auth/account` anonimize name → `Deleted User 123` + hapus phone + token + FCM job, retain orders anonymized for audit
 - Log: `transaction_logs` tidak simpan data pribadi sensitif, hanya IDs
 
-Lihat **PRIVACY_POLICY.md + SECURITY.md**.
+Lihat **[PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md) + [SECURITY.md](docs/SECURITY.md)**.
 
-**OWASP Checklist:** `SECURITY_REVIEW.md` wajib diisi sebelum pilot.
+**OWASP Checklist:** `SECURITY.md bagian Checklist Review Keamanan` wajib diisi sebelum pilot.
 
 ---
 
 ## 9. Performance Budget
 
-| Layer | Metric | Budget | Current |
+| Layer | Metric | Budget | Hasil aktual |
 | :--- | :--- | :--- | :--- |
-| **API GET /campaigns** | P95 | <150ms | 120ms cache hit |
-| **API POST /orders** | P95 include lock | <300ms | 220ms |
-| **Upload proof 2MB** | avg | <2s | 1.6s |
-| **Recap PDF 200 orders** | gen | <3s | 2.4s |
-| **Flutter Cold Start** |  | <2s | 1.4s |
-| **RAM PSS** | low-end 2GB device | <180MB | 145MB |
-| **APK arm64** |  | <10MB | 7.8MB |
-| **Frame** |  | 60 FPS | 60 |
-| **Crash-free** |  | >99.5% | 99.8% pilot |
+| API GET /campaigns | P95 | <150ms | Belum diukur |
+| API POST /orders | P95 | <300ms | Belum diukur |
+| API GET /offers | P95 | <200ms | Belum diukur |
+| API POST /campaigns | P95 | <350ms | Belum diukur |
+| Flutter cold start | — | <2s | Belum diukur |
+| RAM PSS | HP RAM 2GB | <180MB | Belum diukur |
+| APK arm64 | — | <10MB | Belum diukur |
+| Crash-free | — | >99.5% | Belum diukur |
 
-Monitoring: **Laravel Pulse + Prometheus Grafana + Firebase Performance**. Lihat **PERFORMANCE_TUNING.md + OBSERVABILITY.md**.
+Monitoring: **Laravel Pulse + Prometheus Grafana + Firebase Performance**. Lihat **[OBSERVABILITY.md](docs/OBSERVABILITY.md)**.
 
 Alert: P95 >300ms 5 menit → Slack.
 
@@ -312,7 +308,7 @@ gantt
 
 ## 11. Kontribusi
 
-Lihat **CONTRIBUTING.md + CODING_STANDARDS.md + CI_CD.md**.
+Lihat **[DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) + [Deployment §2](docs/DEPLOYMENT.md#2-ci-quality-gates--build-pipelines)**.
 
 - Branch: `main <- develop <- feature/*`
 - Commit: Conventional Commits `feat(backend): ...`
@@ -324,13 +320,13 @@ Lihat **CONTRIBUTING.md + CODING_STANDARDS.md + CI_CD.md**.
 **Quick Links:**
 - Setup Docker: `SETUP_GUIDE.md`
 - ADR: `ARCHITECTURE_DECISION_RECORDS.md`
-- Error Code: `ERROR_CATALOG.md`
-- FAQ Ibu-ibu: `FAQ_END_USER.md`
-- Panduan Pak Agus: `ONBOARDING_PILOT.md`
+- Error Code: `API_SPEC.md bagian 1.4 — Format dan Katalog Error`
+- FAQ Ibu-ibu: `USER_GUIDE.md`
+- Panduan Pak Agus: `USER_GUIDE.md`
 
 ---
 
 Dibangun dengan ❤️ untuk RT/RW.  
 **Motto V3.1 Enterprise:** *Ringan di HP, Berat di Audit, Taat UU PDP, Siap Disaster.*
 
-Siap? `docker-compose up -d` → baca `ONBOARDING_PILOT.md` → pilot! 🚀
+Siap? `docker-compose up -d` → baca `USER_GUIDE.md` → pilot! 🚀

@@ -4,7 +4,11 @@
 **Target:** MVP V1.0 Pilot 1 RT 500 users + Thundering Herd 100 concurrent + Admin Race + Disaster Drill  
 **Tanggal:** 20 Juli 2026  
 **Versi:** 3.1  
-**Status:** Production Ready
+**Owner:** QA, Engineering & Security
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -43,7 +47,7 @@ Rencana pengujian ini bertujuan untuk memastikan bahwa aplikasi Grosirun V3.1 te
 | **Crash-free**        | >99.5% di Crashlytics                                         |
 | **APK Size**          | <10MB arm64                                                   |
 
-### 1.2 Konteks Bisnis (Referensi BUSINESS_ANALYSIS.md)
+### 1.2 Konteks Bisnis (Referensi [BUSINESS_ANALYSIS.md](BUSINESS_ANALYSIS.md))
 
 | Komponen              | Nilai               |
 | --------------------- | ------------------- |
@@ -352,7 +356,7 @@ test('FCM fail + fallback DB still insert', function () {
 
 | Test                             | Endpoint          | Expected                           |
 | -------------------------------- | ----------------- | ---------------------------------- |
-| POST campaign with image         | `POST /campaigns` | 201, S3 path `campaigns/*.jpg`     |
+| POST campaign dengan `supplier_offer_id` aktif | `POST /campaigns` | 201, snapshot tersimpan, kapasitas tereservasi |
 | GET campaigns with ETag          | `GET /campaigns`  | ETag header                        |
 | GET campaigns with If-None-Match | `GET /campaigns`  | 304 Not Modified                   |
 | Cache-Control max-age=60         | `GET /campaigns`  | Header `Cache-Control: max-age=60` |
@@ -407,8 +411,8 @@ test('CampaignModel fromJson parses cluster and progress', () {
     'id': 1,
     'cluster_id': 1,
     'name': 'Beras Mahkota',
-    'target_kg': 1000,
-    'current_kg': 750,
+    'target_quantity': 1000,
+    'current_quantity': 750,
     'slug': 'beras-mahkota',
     'status': 'active',
   };
@@ -639,17 +643,18 @@ testWidgets('E2E buyer checkout + consent + deep link + FCM fallback', (tester) 
 | Langkah | Actor                | Action                                          | Expected             |
 | ------- | -------------------- | ----------------------------------------------- | -------------------- |
 | 1       | Initiator (PGH-RT03) | Login dengan consent+tos                        | 200, token           |
-| 2       | Initiator            | Buat campaign dengan image S3                   | 201, image_url       |
+| 2       | Initiator            | Lihat offer, pilih offer, isi target dan harga buyer | Offer aktif terpilih |
+| 3       | System               | Lock offer, reservasi kapasitas, simpan snapshot | 201, campaign active |
 | 3       | Initiator            | Share WA deep link `grosirun://campaign/{slug}` | WA terkirim          |
 | 4       | Buyer (PGH-RT03)     | Login consent+tos                               | 200, token           |
 | 5       | Buyer                | Home list hanya campaign cluster sendiri        | Campaign muncul      |
 | 6       | Buyer                | Tap deep link → detail campaign                 | Detail terbuka       |
 | 7       | Buyer                | Checkout qty1, Idempotency-Key uuid1            | 201, pending         |
 | 8       | System               | sold++ pada variant                             | sold bertambah       |
-| 9       | System               | current_kg++ pada campaign                      | current_kg bertambah |
+| 9       | System               | current_quantity++ pada campaign                      | current_quantity bertambah |
 | 10      | Initiator            | Validasi + FCM + fallback DB                    | 200, log validation  |
 | 11      | Buyer                | FCM foreground + fallback polling               | Notifikasi masuk     |
-| 12      | System               | Ulangi sampai 100%                              | Status completed     |
+| 12      | System               | Ulangi sampai target                            | Status target_reached |
 | 13      | Initiator            | Recap PDF S3 tempUrl                            | PDF terbuka          |
 | 14      | Initiator            | Distribution checklist                          | is_taken true        |
 | 15      | Buyer                | DELETE account                                  | 202, anonymize       |
@@ -1157,9 +1162,51 @@ export default function () {
 | M9  | Data Storage      | SecureStorage token, S3 private tempUrl    | ☐      |
 | M10 | Cryptography      | OTP hash bcrypt, Sanctum token hash        | ☐      |
 
-**Dokumentasi lengkap:** `SECURITY_REVIEW.md`
+**Dokumentasi lengkap:** `[Security — Review Checklist](SECURITY.md#15-owasp-api-top-10-2023-checklist)`
 
 ---
+
+### 9.3 Pengujian Penawaran-ke-Campaign dan Empat Role
+
+| ID | Skenario | Ekspektasi |
+| --- | --- | --- |
+| OC-01 | Seller non-member mengubah offer supplier | 403 `ERR_065` |
+| OC-02 | Supplier belum verified submit offer | 403 `ERR_060` |
+| OC-03 | Tier harga naik pada kuantitas lebih besar | 422 `ERR_063` |
+| OC-04 | Inisiator membuat campaign dari offer expired | 409 `ERR_061` |
+| OC-05 | Dua Inisiator mengambil sisa kapasitas bersamaan | Kapasitas tidak negatif; satu transaksi 409 bila habis |
+| OC-06 | Offer berubah setelah campaign dibuat | Snapshot campaign tidak berubah |
+| OC-07 | Seller meminta endpoint proof Buyer | 403 `ERR_066`, event security tercatat |
+| OC-08 | Seller menerima PO dua kali dengan key sama | Respons replay identik, satu status log |
+| OC-09 | Warehouse mencoba reject PO | 403 |
+| OC-10 | Transisi `submitted → shipped` | 409 `ERR_064` |
+| OC-11 | Inisiator konfirmasi delivered dengan selisih | Dispute fulfillment tercatat, belum selesai |
+| OC-12 | User buyer+initiator berganti active role | Navigasi berubah; Policy tetap sesuai role aktif dan ownership |
+
+Factory wajib menyediakan empat role, supplier verified/pending, tiga member_role, offer aktif/expired, campaign snapshot, dan seluruh status purchase order. Coverage Policy dan state transition wajib 100%.
+
+### 9.4 Matrix Test Unit, Lifecycle, Failure, dan Admin
+
+| ID | Test | Expected |
+| --- | --- | --- |
+| UV-01 | Offer base unit kg, package 5 dan 10 | Semua konsumsi pool base unit yang sama |
+| UV-02 | Tier 1.000 kg × Rp10.000, package 5 kg | supplier package price Rp50.000 |
+| UV-03 | Buyer base price Rp12.000, package 10 kg | buyer package price Rp120.000 |
+| UV-04 | Dua campaign reserve kapasitas bersamaan | reserved+committed tidak melebihi available |
+| CL-01 | target tercapai | `active→target_reached`, bukan completed |
+| CL-02 | PO submitted/accepted/delivered | campaign `po_submitted→fulfillment→distribution` |
+| CL-03 | distribusi selesai | campaign completed |
+| PO-01 | Seller accept | accepted dan awaiting_payment atomik, satu log tiap transisi |
+| PO-02 | submitted→shipped langsung | 409 invalid transition |
+| FL-01 | Seller reject | reservation dilepas satu kali, notifikasi dan audit |
+| FL-02 | timeout 12 jam | reminder/escalation, tidak auto-cancel paid campaign |
+| FL-03 | damaged delivery | dispute otomatis, PO tetap shipped |
+| MB-01 | hapus owner terakhir | 409 ERR_071 |
+| AD-01 | Admin verify/moderate/suspend | re-auth, reason, audit, notification |
+| AD-02 | Admin override tanpa ticket | 422/403 |
+| PV-01 | Seller serialize PO | tidak ada buyer identity/proof |
+
+Property test memvariasikan unit, package quantity, tier, reservation, cancellation, dan concurrent acceptance. State-machine transition coverage wajib 100%.
 
 ## 10. Smoke Test Checklist
 
@@ -1168,7 +1215,7 @@ export default function () {
 - [ ] `GET /health` → 200, db, redis, s3 connected, ssl_expires > 7 hari
 - [ ] `POST /auth/request-otp` + `POST /auth/verify-otp` consent+tos → token 200
 - [ ] `GET /clusters?code=PGH-RT03` → 200
-- [ ] `POST /campaigns` with image S3 → 201, image_url tempUrl works
+- [ ] `POST /campaigns` dengan `supplier_offer_id` aktif → 201, snapshot dan reservasi kapasitas tersimpan
 - [ ] `GET /campaigns` → ETag present, Cache-Control max-age=60
 - [ ] `POST /orders` with Idempotency-Key → 201, sold++
 - [ ] `POST /orders` same key replay → same 201, no duplicate
@@ -1340,5 +1387,3 @@ export default function () {
 ```
 
 ---
-
-**Rencana Pengujian V3.1 Production Ready - k6 100 VU Thundering Herd, Admin Race, ETag, Idempotency, S3, Cluster, Consent, FCM Fallback, DeepLink, Proof Queue, Blue-Green, Disaster Drill!** 🚀🧪

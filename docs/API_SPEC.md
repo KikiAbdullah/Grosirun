@@ -6,6 +6,11 @@
 **Tanggal:** 20 Juli 2026  
 **Format:** JSON dengan struktur `data` + `meta` + `code` (Error Catalog)  
 **OpenAPI:** Generate via Scribe `storage/docs/v1/openapi.yaml`
+**Owner:** Backend
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -15,15 +20,19 @@
 2. Strategi Versioning V2
 3. Autentikasi, Consent UU PDP, ToS & Penghapusan Akun
 4. Cluster
-5. Campaign (PO)
-6. Varian
-7. Order + Batch + Idempotency
-8. Upload Bukti (Proof) S3 tempUrl
-9. Distribusi
-10. Notifikasi Fallback (FCM Fallback)
-11. Feature Flags
-12. Webhook & Batch Operations
-13. Health & Version
+5. Supplier, Produk, Penawaran & Purchase Order
+6. Campaign (PO)
+7. Varian
+8. Order + Batch + Idempotency
+9. Upload Bukti (Proof) S3 tempUrl
+10. Distribusi
+11. Notifikasi Fallback (FCM Fallback)
+12. Feature Flags
+13. Webhook & Batch Operations
+14. Health & Version
+15. OpenAPI / Scribe
+16. Ringkasan Perubahan dari V3.0
+17. Admin Application Operations
 
 ---
 
@@ -111,9 +120,440 @@
 | `ERR_060`    | 429  | RATE_LIMIT_GLOBAL     | Tunggu sebentar    |
 | `ERR_100`    | 500  | INTERNAL_SERVER_ERROR | Coba lagi          |
 
-**Error Catalog Lengkap:** Lihat `ERROR_CATALOG.md` (50+ error codes)
+**Error Catalog Lengkap:** Lihat `[API Specification §1.4](API_SPEC.md#14-format-error--error-catalog)` (50+ error codes)
 
 **Frontend Mapping:** Tampilkan `message` ke user, log `code` + `trace_id` ke Sentry.
+
+#### Katalog Error Canonical dan Mapping Client
+
+Katalog berikut adalah bagian normatif kontrak API. Penambahan atau perubahan kode error wajib memperbarui OpenAPI, test backend, mapper Flutter, analytics, dan changelog. Kode tidak boleh digunakan ulang untuk makna berbeda.
+
+#### Error Autentikasi (ERR_001 - ERR_010)
+
+| Kode         | HTTP | Pesan                                                               | Penyebab                                                    | Aksi Frontend                                                                                                      |
+| ------------ | ---- | ------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `ERR_001`    | 401  | OTP_EXPIRED - Kode OTP kadaluarsa                                   | `otp_codes.expires_at < now()` (5 menit)                    | Tampilkan dialog "Kode OTP kadaluarsa, minta ulang" → tombol "Minta Ulang"                                         |
+| `ERR_001_RL` | 429  | OTP_RATE_LIMIT - Terlalu banyak percobaan, coba lagi dalam 15 menit | `attempts >= 5` atau RateLimiter 5/menit                    | Tampilkan countdown timer sampai `locked_until`, disable tombol verifikasi                                         |
+| `ERR_002`    | 422  | CONSENT_REQUIRED - Harus setuju privasi UU PDP                      | `consent = false`                                           | Tampilkan checkbox Privacy Policy, disable tombol verifikasi jika belum centang                                    |
+| `ERR_003`    | 422  | TOS_REQUIRED - Harus setuju Terms of Service non-escrow             | `tos = false`                                               | Tampilkan modal ToS scroll + checkbox, wajib centang                                                               |
+| `ERR_004`    | 401  | OTP_INVALID - Kode OTP salah                                        | `Hash::check(otp, otp_hash)` gagal                          | Tampilkan "Kode OTP salah, sisa X percobaan". Jika attempts == 4, peringatkan "1 kali lagi akan terkunci 15 menit" |
+| `ERR_005`    | 401  | UNAUTHENTICATED - Token tidak valid atau kadaluarsa                 | Bearer token missing, Sanctum expired 30 hari, atau revoked | Clear SecureStorage → navigasi ke login → dialog "Sesi habis, silakan login ulang"                                 |
+| `ERR_006`    | 403  | FORBIDDEN_ROLE - Role tidak cukup                                   | Buyer mencoba POST `/campaigns` (hanya initiator)           | Tampilkan dialog "Anda tidak memiliki akses ke fitur ini"                                                          |
+| `ERR_007`    | 403  | FORBIDDEN_CLUSTER - Role ok tapi beda cluster                       | (Digabung dengan ERR_040)                                   | -                                                                                                                  |
+| `ERR_008`    | 202  | ACCOUNT_DELETION_ACCEPTED - Permintaan hapus akun diproses <24 jam  | DELETE `/auth/account` berhasil                             | Tampilkan "Data akan dianonimkan dalam <24 jam" → logout otomatis                                                  |
+| `ERR_009`    | 422  | PHONE_INVALID - Format nomor HP tidak valid                         | Nomor tidak sesuai E.164 (628xxx)                           | Tampilkan "Masukkan nomor HP dengan format 08xx"                                                                   |
+
+---
+
+#### Error Cluster (ERR_040 - ERR_049)
+
+| Kode      | HTTP | Pesan                                                          | Penyebab                                  | Aksi Frontend                                                                                                |
+| --------- | ---- | -------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `ERR_040` | 403  | CLUSTER_MISMATCH - Kamu beda cluster, tidak bisa pesan di sini | `buyer.cluster_id != campaign.cluster_id` | Tampilkan dialog "PO ini hanya untuk warga RT [Nama RT]. Hubungi initiator cluster tersebut." → refresh home |
+| `ERR_041` | 404  | CLUSTER_NOT_FOUND - Cluster code tidak ditemukan               | `cluster_code` invite invalid             | Tampilkan "Kode cluster tidak valid. Hubungi Ketua RT untuk mendapatkan kode yang benar."                    |
+
+---
+
+#### Error Campaign (ERR_011 - ERR_019)
+
+| Kode      | HTTP | Pesan                                                                 | Penyebab                                            | Aksi Frontend                                                                                   |
+| --------- | ---- | --------------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `ERR_011` | 422  | CAMPAIGN_TARGET_INVALID - Target harus kelipatan varian terkecil      | `target_quantity % min_variant_size != 0`                 | Tampilkan error di form: "Target harus kelipatan [varian terkecil] Kg"                          |
+| `ERR_012` | 422  | CAMPAIGN_DEADLINE_INVALID - Deadline minimal +24 jam                  | `deadline < now() + 24 hours`                       | Tampilkan error di form: "Tenggat waktu minimal 24 jam dari sekarang"                           |
+| `ERR_013` | 404  | CAMPAIGN_NOT_FOUND - PO tidak ditemukan                               | Campaign ID tidak ada atau sudah dihapus            | Tampilkan ErrorView "PO tidak ditemukan" + tombol "Kembali ke Beranda"                          |
+| `ERR_014` | 409 | CAMPAIGN_NOT_ACTIVE - PO tidak menerima checkout | `campaign.status != active` (`draft`, `target_reached`, `po_submitted`, `fulfillment`, `distribution`, `completed`, `expired`, `cancelled`) | Tampilkan status aktual dan nonaktifkan tombol checkout |
+| `ERR_015` | 403  | CAMPAIGN_OWNERSHIP - Bukan pemilik campaign                           | `auth.user_id != campaign.initiator_id`             | Tampilkan "Anda bukan pemilik PO ini"                                                           |
+| `ERR_016` | 409  | CAMPAIGN_ALREADY_COMPLETED - PO sudah selesai                         | `status = completed`                                | Tampilkan badge "Selesai" di detail, tidak bisa order                                           |
+| `ERR_017` | 409  | CAMPAIGN_EXTEND_LIMIT - Maksimal 2 kali perpanjang                    | `extend_count >= 2`                                 | Tampilkan dialog "Sudah 2 kali perpanjang, tidak bisa perpanjang lagi"                          |
+| `ERR_018` | 409  | CAMPAIGN_CANCEL_NOT_ALLOWED - Tidak bisa batal jika sudah ada paid >0 | `orders.paid > 0` (tetapi diizinkan dengan warning) | Tampilkan confirm dialog: "Ada [X] pembayaran lunas. Anda wajib refund manual 2×24 jam. Yakin?" |
+| `ERR_019` | 422  | CAMPAIGN_VARIANTS_MIN - Minimal 1 packaging dipilih | `selected_offer_variant_ids` kosong | Tampilkan error: "Pilih minimal 1 packaging"                                                   |
+
+---
+
+#### Error Order (ERR_020 - ERR_029)
+
+| Kode      | HTTP | Pesan                                                               | Penyebab                                                               | Aksi Frontend                                                                                                  |
+| --------- | ---- | ------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `ERR_020` | 404  | ORDER_NOT_FOUND - Pesanan tidak ditemukan                           | `uuid` tidak valid                                                     | Tampilkan ErrorView "Pesanan tidak ditemukan"                                                                  |
+| `ERR_021` | 403  | ORDER_OWNERSHIP - Bukan pemilik order                               | `user_id != order.user_id` dan `initiator_id != campaign.initiator_id` | Tampilkan "Anda tidak memiliki akses ke pesanan ini"                                                           |
+| `ERR_022` | 409  | ORDER_ALREADY_CANCELLED - Sudah batal                               | `cancelled_at != null`                                                 | Tampilkan "Pesanan sudah dibatalkan"                                                                           |
+| `ERR_023` | 409  | ORDER_CANNOT_CANCEL - Tidak bisa batal karena sudah paid            | `payment_status = paid`                                                | Tampilkan "Pesanan sudah lunas, tidak bisa dibatalkan. Hubungi initiator."                                     |
+| `ERR_024` | 409  | OUT_OF_STOCK - Stok varian habis                                    | `variant.quota - variant.sold < quantity` (lockForUpdate)              | Tampilkan dialog "Stok varian [size]Kg habis. Pilih varian lain." → hapus dari pending queue jika offline sync |
+| `ERR_025` | 422  | ORDER_QUANTITY_INVALID - Jumlah tidak valid                         | `quantity < 1 atau quantity > 100`                                     | Tampilkan error di form: "Minimal 1, maksimal 100"                                                             |
+| `ERR_026` | 422  | VARIANT_NOT_FOUND - Varian bukan milik campaign                     | `variant.campaign_id != campaign.id`                                   | Tampilkan "Varian tidak valid"                                                                                 |
+| `ERR_027` | 403  | CLUSTER_MISMATCH_ORDER - Beda cluster                               | (Duplikat ERR_040)                                                     | -                                                                                                              |
+| `ERR_028` | 409  | ORDER_PENDING_PAYMENT_EXISTS - Sudah ada order pending untuk PO ini | (Tidak di MVP, diizinkan multiple order)                               | -                                                                                                              |
+| `ERR_029` | 422  | PAYMENT_METHOD_INVALID - Metode pembayaran tidak valid              | `payment_method not in [cash, qris]`                                   | Tampilkan error di form: "Pilih cash atau QRIS"                                                                |
+
+---
+
+#### Error Validasi & Admin (ERR_030 - ERR_039)
+
+| Kode      | HTTP | Pesan                                                        | Penyebab                                            | Aksi Frontend                                                                                   |
+| --------- | ---- | ------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `ERR_030` | 409  | ALREADY_VALIDATED - Sudah divalidasi di device lain          | Admin race condition (2 device validate same order) | Snackbar "Sudah divalidasi di device lain, refresh daftar" → panggil `loadOrders()`             |
+| `ERR_031` | 412  | STALE_DATA - Data sudah lama, refresh dulu                   | ETag mismatch (If-Match)                            | Dialog "Data sudah berubah. Refresh halaman untuk mendapatkan data terbaru." → tombol "Refresh" |
+| `ERR_032` | 403  | VALIDATION_OWNERSHIP - Bukan initiator pemilik campaign      | `auth.user_id != campaign.initiator_id`             | Tampilkan "Anda tidak bisa memvalidasi PO ini"                                                  |
+| `ERR_033` | 422  | REJECT_REASON_REQUIRED - Alasan reject wajib                 | `reason = null atau empty`                          | Tampilkan form "Alasan penolakan wajib diisi (min 10 karakter)"                                 |
+| `ERR_034` | 403  | UNDO_EXPIRED - Undo hanya 5 menit setelah validasi           | `validated_at > 5 minutes ago`                      | Tampilkan dialog "Sudah lewat 5 menit, gunakan fitur Override"                                  |
+| `ERR_035` | 422  | OVERRIDE_NOTES_REQUIRED - Override wajib notes               | `notes = null atau empty`                           | Tampilkan form "Catatan override wajib diisi"                                                   |
+| `ERR_036` | 429  | OVERRIDE_RATE_LIMIT - Terlalu banyak override                | RateLimiter 10/menit                                | Tampilkan "Terlalu banyak override, tunggu sebentar" + `retry_after`                            |
+| `ERR_037` | 207  | BATCH_PARTIAL_SUCCESS - Batch validate sebagian berhasil     | 207 Multi-Status                                    | Tampilkan dialog: "Berhasil: [list]. Gagal: [list dengan reason]"                               |
+| `ERR_038` | 403  | TAKEN_OWNERSHIP - Bukan initiator                            | `auth.user_id != campaign.initiator_id`             | Tampilkan "Anda tidak bisa menandai pengambilan"                                                |
+| `ERR_039` | 422  | DISTRIBUTION_INCOMPLETE - Masih ada order yang belum diambil | `orders.is_taken = false`                           | Tampilkan "Masih ada [X] order yang belum diambil. Selesaikan distribusi terlebih dahulu."      |
+
+---
+
+#### Error Upload (ERR_050 - ERR_059)
+
+| Kode      | HTTP | Pesan                                                                      | Penyebab                                    | Aksi Frontend                                                                                 |
+| --------- | ---- | -------------------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `ERR_050` | 413  | UPLOAD_TOO_LARGE - File kegedean                                           | Proof > 2MB, Campaign image > 5MB           | Kompres lebih kecil (70% → 60%), snackbar "File maksimal 2MB untuk bukti / 5MB untuk foto PO" |
+| `ERR_051` | 422  | UPLOAD_MIME_INVALID - Format harus jpg/png                                 | Mime type not `image/jpeg` or `image/png`   | Tampilkan "Format file tidak didukung. Gunakan JPG atau PNG."                                 |
+| `ERR_052` | 422  | UPLOAD_NO_FILE - Tidak ada file                                            | `file = null`                               | Button upload disabled jika tidak ada file, tampilkan "Pilih file terlebih dahulu"            |
+| `ERR_053` | 403  | UPLOAD_OWNERSHIP - Bukan pemilik order                                     | `auth.user_id != order.user_id`             | Tampilkan "Anda tidak bisa upload bukti untuk pesanan orang lain"                             |
+| `ERR_054` | 409  | UPLOAD_STATUS_INVALID - Upload hanya saat waiting_validation atau rejected | `payment_status not in [waiting, rejected]` | Tampilkan "Status pesanan tidak memungkinkan upload bukti"                                    |
+| `ERR_055` | 410  | PROOF_URL_EXPIRED - Link bukti kadaluarsa                                  | S3 tempUrl 1h expired                       | Tampilkan "Link bukti kadaluarsa. Generate ulang." → panggil `GET /orders/{uuid}/proof-url`   |
+| `ERR_056` | 422  | UPLOAD_COMPRESS_FAILED - Gagal kompres gambar                              | Intervention Image error                    | Tampilkan "Gagal memproses gambar. Coba file lain."                                           |
+
+---
+
+#### Error Rate Limit & Keamanan
+
+| Kode      | HTTP | Pesan                                         | Penyebab                                       | Aksi Frontend                                                                                      |
+| --------- | ---- | --------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `ERR_060` | 429  | RATE_LIMIT_GLOBAL - Terlalu banyak request    | RateLimiter global 60/menit per user/IP        | Tampilkan "Terlalu banyak permintaan. Tunggu `retry_after` detik."                                 |
+| `ERR_061` | 429  | RATE_LIMIT_OVERRIDE - Terlalu banyak override | Override 10/menit                              | Tampilkan countdown                                                                                |
+| `ERR_062` | 429  | RATE_LIMIT_VALIDATE - Terlalu banyak validasi | Validate 30/menit                              | Tampilkan countdown                                                                                |
+| `ERR_063` | 403  | IDOR_ATTEMPT - Akses data orang lain          | IDOR attempt (accessing order of another user) | Log Sentry critical + Slack alert. Tampilkan "Anda tidak memiliki akses"                           |
+| `ERR_064` | 403  | FEATURE_DISABLED - Fitur dimatikan            | Feature flag inactive (Pennant)                | Hide UI elemen (QRIS button, Extend button). Jika tetap diakses: "Fitur sedang dalam pemeliharaan" |
+| `ERR_065` | 403  | ACCOUNT_SUSPENDED - Akun ditangguhkan         | Platform fee overdue > 7 hari                  | Tampilkan banner merah "Akun Anda ditangguhkan karena belum bayar platform fee. Hubungi admin."    |
+
+---
+
+#### Error Sistem (ERR_100 - ERR_109)
+
+| Kode      | HTTP | Pesan                                                    | Penyebab                             | Aksi Frontend                                                                                                                      |
+| --------- | ---- | -------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `ERR_100` | 500  | INTERNAL_SERVER_ERROR - Terjadi kesalahan server         | Exception tidak tertangani           | Log Sentry + tampilkan "Terjadi kesalahan server, coba lagi". Tampilkan ErrorView dengan tombol Retry (tidak auto retry untuk 500) |
+| `ERR_101` | 503  | SERVICE_UNAVAILABLE - Maintenance                        | Blue-green deploy / maintenance mode | Dio interceptor retry 3x dengan backoff (2s, 5s, 10s). Tampilkan banner "Aplikasi sedang maintenance, coba lagi nanti"             |
+| `ERR_102` | 503  | DB_CONNECTION_FAILED - Koneksi database gagal            | MySQL down                           | Sentry + Slack alert. Tampilkan "Koneksi database bermasalah"                                                                      |
+| `ERR_103` | 503  | REDIS_CONNECTION_FAILED - Koneksi Redis gagal            | Redis down                           | Cache miss, aplikasi tetap berjalan (fallback). Log warning.                                                                       |
+| `ERR_104` | 503  | S3_CONNECTION_FAILED - Koneksi S3 gagal                  | S3 down                              | Retry 3x, fallback local temp + queue upload later. Alert Slack. Tampilkan "Gagal upload, akan dicoba ulang nanti"                 |
+| `ERR_105` | 503  | FCM_CONNECTION_FAILED - FCM down                         | Firebase Cloud Messaging error       | Fallback notifications DB inserted. Flutter polling 60s works. Log warning.                                                        |
+| `ERR_106` | 400  | IDEMPOTENCY_KEY_MISSING - Header wajib tidak ada         | Idempotency-Key tidak dikirim        | Frontend generate UUID mandatory untuk semua POST/PATCH kritis                                                                     |
+| `ERR_107` | 400  | IDEMPOTENCY_KEY_REUSE - Key reuse dengan payload berbeda | Sama key, payload berbeda            | Generate UUID baru per intent. Jangan reuse key untuk payload berbeda.                                                             |
+| `ERR_108` | 304  | NOT_MODIFIED - Data tidak berubah                        | ETag If-None-Match match             | Keep previous state, no rebuild (INFO, bukan error)                                                                                |
+| `ERR_109` | 503  | THIRD_PARTY_TIMEOUT - Timeout pihak ketiga               | Fonnte WA timeout / Xendit timeout   | Log error, retry queue job. Tampilkan "Gagal mengirim notifikasi, akan dicoba ulang"                                               |
+
+---
+
+##### Error Seller, Offer, dan Purchase Order
+
+| Kode | HTTP | Pesan | Aksi frontend |
+| --- | --- | --- | --- |
+| `ERR_060_SUPPLIER_NOT_VERIFIED` | 403 | Supplier belum diverifikasi | Buka status verifikasi |
+| `ERR_061_OFFER_EXPIRED` | 409 | Penawaran sudah berakhir | Refresh daftar offer |
+| `ERR_062_OFFER_CAPACITY_EXCEEDED` | 409 | Kapasitas tidak mencukupi | Tampilkan kapasitas terbaru |
+| `ERR_063_INVALID_PRICE_TIER` | 422 | Tier harga tidak valid | Sorot tier bermasalah |
+| `ERR_064_PURCHASE_ORDER_INVALID_TRANSITION` | 409 | Perubahan status tidak diizinkan | Muat ulang timeline PO |
+| `ERR_065_SUPPLIER_MEMBERSHIP_REQUIRED` | 403 | Akses supplier ditolak | Kembali ke role selector |
+| `ERR_066_BUYER_DATA_FORBIDDEN` | 403 | Data Pembeli tidak tersedia untuk Penjual | Hentikan request dan log security |
+| `ERR_067_OFFER_VERSION_STALE` | 412 | Penawaran telah berubah | Refresh offer dan minta konfirmasi ulang |
+| `ERR_068_SUPPLIER_DOCUMENT_INVALID` | 422 | Dokumen supplier tidak valid | Tampilkan aturan file |
+| `ERR_069_FULFILLMENT_DISCREPANCY` | 409 | Jumlah diterima berbeda | Buka formulir dispute fulfillment |
+| `ERR_070_INVITATION_EXPIRED` | 410 | Undangan supplier tidak berlaku | Minta owner mengirim undangan baru |
+| `ERR_071_LAST_OWNER_REQUIRED` | 409 | Owner terakhir tidak dapat dihapus | Tunjuk owner pengganti |
+| `ERR_072_OFFER_RESERVED` | 409 | Perubahan mengganggu reservation aktif | Buat versi offer baru |
+| `ERR_073_PURCHASE_ORDER_TIMEOUT` | 409 | SLA respons PO terlewati | Tampilkan eskalasi atau cancel |
+| `ERR_074_DISPUTE_WINDOW_EXPIRED` | 410 | Batas pengajuan dispute terlewati | Hubungi Admin dengan bukti |
+| `ERR_075_DOCUMENT_REQUIRED` | 422 | Dokumen fulfillment belum lengkap | Sorot invoice/surat jalan yang wajib |
+
+#### Mapping Frontend
+
+##### Dart Mapping Function
+
+```dart
+// lib/core/error/error_mapper.dart
+
+String humanMessage(DioException e) {
+  final code = e.response?.data['code'];
+  final message = e.response?.data['message'] ?? 'Koneksi terputus';
+  final traceId = e.response?.data['trace_id'] ?? '';
+
+  // Log trace_id ke Sentry
+  if (traceId.isNotEmpty) {
+    Sentry.addBreadcrumb(
+      Breadcrumb(message: 'Error: $code', data: {'trace_id': traceId}),
+    );
+  }
+
+  switch (code) {
+    // Auth Errors
+    case 'ERR_001':
+      return 'Kode OTP kadaluarsa, minta ulang';
+    case 'ERR_001_RL':
+      final lockedUntil = e.response?.data['locked_until'];
+      return 'Terlalu banyak percobaan. Coba lagi ${_formatTime(lockedUntil)}';
+    case 'ERR_002':
+      return 'Harus setuju privasi UU PDP';
+    case 'ERR_003':
+      return 'Harus setuju Syarat Layanan Non-Escrow';
+    case 'ERR_004':
+      final attempts = e.response?.data['attempts'] ?? 0;
+      return 'Kode OTP salah. Sisa $attempts percobaan.';
+    case 'ERR_005':
+      return 'Sesi habis, silakan login ulang';
+    case 'ERR_006':
+      return 'Anda tidak memiliki akses ke fitur ini';
+
+    // Cluster Errors
+    case 'ERR_040':
+      return 'Beda cluster RT, tidak bisa pesan di sini';
+    case 'ERR_041':
+      return 'Kode cluster tidak valid';
+
+    // Campaign Errors
+    case 'ERR_011':
+      return 'Target harus kelipatan varian terkecil';
+    case 'ERR_012':
+      return 'Tenggat waktu minimal 24 jam dari sekarang';
+    case 'ERR_013':
+      return 'PO tidak ditemukan';
+    case 'ERR_014':
+      return 'PO sudah tidak aktif';
+    case 'ERR_017':
+      return 'Maksimal 2 kali perpanjangan';
+    case 'ERR_018':
+      return 'Ada pembayaran lunas. Refund manual 2×24 jam wajib.';
+
+    // Order Errors
+    case 'ERR_020':
+      return 'Pesanan tidak ditemukan';
+    case 'ERR_021':
+      return 'Anda tidak memiliki akses ke pesanan ini';
+    case 'ERR_024':
+      return 'Stok habis, pilih varian lain';
+    case 'ERR_025':
+      return 'Minimal 1, maksimal 100';
+
+    // Validation Errors
+    case 'ERR_030':
+      return 'Sudah divalidasi di device lain, refresh';
+    case 'ERR_031':
+      return 'Data sudah lama, refresh dulu';
+    case 'ERR_033':
+      return 'Alasan penolakan wajib diisi';
+    case 'ERR_034':
+      return 'Sudah lewat 5 menit, gunakan Override';
+    case 'ERR_035':
+      return 'Catatan override wajib diisi';
+    case 'ERR_036':
+      return 'Terlalu banyak override, tunggu sebentar';
+    case 'ERR_037':
+      return 'Validasi sebagian berhasil. Cek detail.';
+
+    // Upload Errors
+    case 'ERR_050':
+      return 'File terlalu besar (max 2MB)';
+    case 'ERR_051':
+      return 'Format harus JPG atau PNG';
+    case 'ERR_054':
+      return 'Status tidak bisa upload bukti';
+    case 'ERR_055':
+      return 'Link bukti kadaluarsa, generate ulang';
+
+    // Rate Limit
+    case 'ERR_060':
+      return 'Terlalu banyak permintaan, tunggu sebentar';
+    case 'ERR_061':
+      return 'Terlalu banyak override, tunggu sebentar';
+    case 'ERR_062':
+      return 'Terlalu banyak validasi, tunggu sebentar';
+
+    // System
+    case 'ERR_100':
+      return 'Terjadi kesalahan server, coba lagi';
+    case 'ERR_101':
+      return 'Aplikasi sedang maintenance, coba lagi nanti';
+    case 'ERR_104':
+      return 'Gagal upload, akan dicoba ulang nanti';
+    case 'ERR_106':
+      return 'Idempotency-Key tidak valid';
+    case 'ERR_107':
+      return 'Key idempotency tidak valid untuk payload ini';
+
+    default:
+      return message; // fallback ke message dari server
+  }
+}
+
+String _formatTime(String? isoTime) {
+  if (isoTime == null) return 'nanti';
+  try {
+    final date = DateTime.parse(isoTime);
+    final diff = date.difference(DateTime.now());
+    if (diff.inSeconds < 60) return '${diff.inSeconds} detik';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} menit';
+    return '${diff.inHours} jam';
+  } catch (_) {
+    return 'nanti';
+  }
+}
+```
+
+##### Error Dialog Widget
+
+```dart
+// lib/presentation/widgets/error_dialog.dart
+
+class ErrorDialog extends StatelessWidget {
+  const ErrorDialog({
+    super.key,
+    required this.code,
+    required this.message,
+    this.onRetry,
+  });
+
+  final String code;
+  final String message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.error_outline, color: Colors.red),
+          const SizedBox(width: 8),
+          Text('Error $code'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message),
+          const SizedBox(height: 8),
+          Text(
+            'Trace ID: ${_getTraceId()}',
+            style: TextStyle(fontSize: 10, color: Colors.grey),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Tutup'),
+        ),
+        if (onRetry != null)
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onRetry!();
+            },
+            child: const Text('Coba Lagi'),
+          ),
+      ],
+    );
+  }
+
+  String _getTraceId() {
+    // Ambil dari context atau global state
+    return 'trace-${DateTime.now().millisecondsSinceEpoch}';
+  }
+}
+```
+
+---
+
+#### Panduan Penggunaan
+
+##### Backend (Laravel)
+
+**Throwing Error di Controller/Service:**
+
+```php
+// app/Exceptions/Handler.php
+throw new HttpException(409, 'Stok varian habis', null, ['code' => 'ERR_024']);
+
+// Atau dengan response helper
+return response()->json([
+    'message' => 'Stok varian habis',
+    'code' => 'ERR_024',
+    'http_code' => 409,
+    'trace_id' => (string) Str::uuid(),
+], 409);
+```
+
+**Error Code di Form Request:**
+
+```php
+// app/Http/Requests/StoreOrderRequest.php
+public function rules(): array
+{
+    return [
+        'quantity' => ['required', 'integer', 'min:1', 'max:100'],
+    ];
+}
+
+public function messages(): array
+{
+    return [
+        'quantity.min' => 'Minimal 1',
+        'quantity.max' => 'Maksimal 100',
+    ];
+}
+```
+
+##### Menambahkan Error Code Baru
+
+1. Tambahkan kode di katalog ini dengan format:
+
+   ```
+   | `ERR_XXX` | HTTP | Pesan | Penyebab | Aksi |
+   ```
+
+2. Tambahkan mapping di `error_mapper.dart`:
+
+   ```dart
+   case 'ERR_XXX':
+     return 'Pesan error';
+   ```
+
+3. Update test di `TEST_PLAN.md` security matrix
+
+4. Update `CHANGELOG.md`
+
+##### Error Code Range
+
+| Range             | Kategori              |
+| ----------------- | --------------------- |
+| ERR_001 - ERR_010 | Autentikasi           |
+| ERR_011 - ERR_019 | Campaign              |
+| ERR_020 - ERR_029 | Order                 |
+| ERR_030 - ERR_039 | Validasi & Admin      |
+| ERR_040 - ERR_049 | Cluster               |
+| ERR_050 - ERR_059 | Upload                |
+| ERR_060 - ERR_075 | Seller, Supplier, Offer, Purchase Order, dan Fulfillment |
+| ERR_100 - ERR_109 | Sistem                |
+
+---
+
+#### Ringkasan Error Kritis
+
+| Kode         | HTTP | Pesan                 | Prioritas                   |
+| ------------ | ---- | --------------------- | --------------------------- |
+| `ERR_024`    | 409  | OUT_OF_STOCK          | 🔴 Critical (zero oversell) |
+| `ERR_030`    | 409  | ALREADY_VALIDATED     | 🔴 Critical (admin race)    |
+| `ERR_040`    | 403  | CLUSTER_MISMATCH      | 🟡 High (isolasi data)      |
+| `ERR_050`    | 413  | UPLOAD_TOO_LARGE      | 🟡 High (UX)                |
+| `ERR_001_RL` | 429  | OTP_RATE_LIMIT        | 🟡 High (security)          |
+| `ERR_005`    | 401  | UNAUTHENTICATED       | 🟡 High (security)          |
+| `ERR_063`    | 403  | IDOR_ATTEMPT          | 🔴 Critical (security)      |
+| `ERR_100`    | 500  | INTERNAL_SERVER_ERROR | 🔴 Critical (stability)     |
+
+---
 
 ### 1.5 Rate Limit Terpusat (Redis)
 
@@ -163,7 +603,7 @@
 
 **Mekanisme:**
 
-1. `GET /campaigns/{id}` return `ETag: W/"{campaign.updated_at}-{current_kg}"`
+1. `GET /campaigns/{id}` return `ETag: W/"{campaign.updated_at}-{current_quantity}"`
 2. Client simpan ETag
 3. `PATCH /orders/{uuid}/validate` kirim `If-Match: W/"etag-version"`
 4. Server bandingkan ETag:
@@ -207,7 +647,7 @@ Route::prefix('v2')->group(fn() => require __DIR__.'/api/v2.php');
 | ------------------- | ---------------------------------------- |
 | Periode Deprecation | Minimal 6 bulan setelah V2 launch        |
 | Header Deprecation  | `Deprecation: true`, `Sunset: date`      |
-| Komunikasi          | CHANGELOG.md, Slack, in-app banner       |
+| Komunikasi          | [CHANGELOG.md](CHANGELOG.md), Slack, in-app banner       |
 | Monitoring          | Pulse tracking usage deprecated endpoint |
 
 **Contoh Response Deprecated:**
@@ -261,8 +701,8 @@ X-API-Deprecation-Notice: Use GET /campaigns/{id}/recap instead.
 2. Generate OTP 4 digit random
 3. Hash OTP dengan bcrypt
 4. Simpan di `otp_codes` (expiry 5 menit)
-5. Kirim WA via Fonnte (atau log ke file di local)
-6. Return 200 OK
+6. Kirim WA via Fonnte (atau log ke file di local)
+7. Return 200 OK
 
 **Response 200:**
 
@@ -326,7 +766,8 @@ X-API-Deprecation-Notice: Use GET /campaigns/{id}/recap instead.
       "id": 1,
       "name": "Siti",
       "phone": "6281234567890",
-      "role": "buyer",
+      "roles": ["buyer"],
+      "active_role": "buyer",
       "cluster_id": 1,
       "consent_at": "2026-07-20T10:00:00+07:00",
       "tos_accepted_at": "2026-07-20T10:00:00+07:00",
@@ -406,7 +847,8 @@ X-API-Deprecation-Notice: Use GET /campaigns/{id}/recap instead.
     "id": 1,
     "name": "Siti",
     "phone": "6281234567890",
-    "role": "buyer",
+    "roles": ["buyer"],
+    "active_role": "buyer",
     "cluster": {
       "id": 1,
       "code": "PGH-RT03",
@@ -519,6 +961,25 @@ X-API-Deprecation-Notice: Use GET /campaigns/{id}/recap instead.
 
 ---
 
+
+### 3.10 PUT /auth/active-role
+
+**Auth:** Required. Mengganti konteks role aktif tanpa membuat identitas atau token baru. Role yang diminta wajib terdapat pada `roles` milik user.
+
+```json
+{"active_role":"initiator"}
+```
+
+Response mengembalikan kontrak identitas canonical:
+
+```json
+{"data":{"roles":["buyer","initiator"],"active_role":"initiator"}}
+```
+
+Pergantian dicatat sebagai event `role_switch`. Seluruh Policy tetap memeriksa membership role, active role, ownership, cluster, atau supplier membership.
+
+---
+
 ## 4. Cluster
 
 ### 4.1 GET /clusters
@@ -605,9 +1066,145 @@ X-API-Deprecation-Notice: Use GET /campaigns/{id}/recap instead.
 
 ---
 
-## 5. Campaign (PO)
+## 5. Seller, Supplier, Offer, Purchase Order & Fulfillment Dispute
 
-### 5.1 GET /campaigns
+Semua endpoint seller memerlukan `active_role=seller` dan supplier membership aktif. Semua list memakai `page`, `per_page` maksimum 100, `sort`, filter terdokumentasi, response `data+meta`, ETag, dan rate limit global. Semua mutation memakai Idempotency-Key; update/transition memakai If-Match.
+
+### 5.1 POST /suppliers
+
+Seller membuat supplier `pending_verification` dan menjadi owner. Wajib: `name`, `legal_name`, alamat, kota, provinsi, kontak bisnis; tax ID/dokumen mengikuti kebijakan verifikasi. Response 201 mengembalikan UUID, status, version. Rate limit 3/hari/user.
+
+### 5.2 GET /suppliers dan GET /suppliers/{uuid}
+
+Inisiator hanya melihat supplier `verified+active` sesuai area; Seller melihat membership sendiri; Admin dapat filter seluruh status. Response publik tidak memuat tax ID atau dokumen verifikasi.
+
+### 5.3 PATCH /suppliers/{uuid}
+
+Seller owner, supplier sendiri, If-Match wajib. Perubahan identitas legal pada supplier verified mengubah status menjadi `pending_reverification`; offer aktif dapat dibekukan oleh policy.
+
+### 5.4 POST /suppliers/{uuid}/members/invite
+
+Seller owner mengundang user seller dengan `member_role=owner|sales|warehouse`. Invitation token single-use, hash disimpan, kedaluwarsa 48 jam. Owner terakhir tidak dapat dihapus atau diturunkan.
+
+### 5.5 POST /supplier-invitations/{token}/accept
+
+Seller menerima invitation yang belum dipakai/kedaluwarsa. Unique `(supplier_id,user_id)` mencegah duplikasi.
+
+### 5.6 PATCH /suppliers/{uuid}/members/{user_uuid}/role
+
+Owner mengubah member role dengan If-Match. Larangan owner terakhir berlaku.
+
+### 5.7 DELETE /suppliers/{uuid}/members/{user_uuid}
+
+Owner mencabut membership. Self-removal diizinkan kecuali owner terakhir. Session seller target kehilangan akses segera.
+
+### 5.8 POST /suppliers/{uuid}/products dan PATCH /products/{uuid}
+
+Owner/sales mengelola produk. `base_unit` wajib dari controlled vocabulary `kg|liter|piece|pack`; unit tambahan memerlukan Admin configuration. Product tidak dapat berpindah supplier.
+
+### 5.9 POST /products/{uuid}/offers
+
+Membuat offer `draft` dengan `minimum_quantity`, `available_quantity`, delivery fee/radius, validity, tiers, variants, dan areas.
+
+```json
+{
+  "minimum_quantity": 500,
+  "available_quantity": 3000,
+  "delivery_fee": 0,
+  "valid_from": "2026-08-01T00:00:00+07:00",
+  "valid_until": "2026-08-31T23:59:59+07:00",
+  "tiers": [{"minimum_quantity":500,"unit_price":10500},{"minimum_quantity":1000,"unit_price":10000}],
+  "variants": [{"name":"Sak 5 Kg","package_quantity":5,"sku":"BM-5"},{"name":"Sak 10 Kg","package_quantity":10,"sku":"BM-10"}],
+  "areas": [{"city":"Surabaya"}]
+}
+```
+
+Harga tier adalah harga per base unit. Variant hanya packaging dan menggunakan pool kapasitas base unit yang sama.
+
+### 5.10 GET /offers dan GET /offers/{uuid}
+
+Filter: supplier, product, category, city, district, status, valid_at, min_capacity. Inisiator hanya melihat offer active yang valid; Seller melihat supplier sendiri; Admin seluruh status. Response memuat `available_quantity`, `reserved_quantity`, `committed_quantity`, version, tiers, variants, dan areas sesuai authorization.
+
+### 5.11 PATCH /offers/{uuid}
+
+Owner/sales mengubah draft/rejected. Untuk offer active, perubahan komersial membuat versi baru draft; versi lama tetap melayani snapshot campaign dan tidak berubah.
+
+### 5.12 POST /offers/{uuid}/submit|pause|resume|expire
+
+- `submit`: draft/rejected → pending_review.
+- `pause`: active → paused; tidak memengaruhi campaign snapshot, mencegah campaign baru.
+- `resume`: paused → active jika verified, valid, dan kapasitas tersedia.
+- `expire`: sistem/Admin saat melewati validity; tidak mengubah campaign lama.
+
+### 5.13 POST /campaigns/{id}/purchase-orders
+
+Inisiator owner; campaign wajib `target_reached`, payment threshold terpenuhi, dan belum memiliki PO aktif. Server membuat item snapshot, subtotal, delivery cost, total; transisi atomik `draft→submitted`, campaign menjadi `po_submitted`.
+
+### 5.14 GET /seller/purchase-orders dan GET /purchase-orders/{uuid}
+
+Seller hanya PO supplier membership; Inisiator hanya campaign sendiri; Admin read/audit. Seller menerima item agregat tanpa identitas/proof Pembeli. Filter status/date/campaign; ETag dari version.
+
+### 5.15 PATCH /seller/purchase-orders/{uuid}/decision
+
+Owner/sales memutuskan `accepted|rejected` maksimal 12 jam. Reject wajib `reason`. Accept atomik menjalankan `submitted→accepted→awaiting_payment`, memindahkan offer reserved menjadi committed, dan mengubah campaign ke `fulfillment`.
+
+### 5.16 POST /purchase-orders/{uuid}/payment-proof
+
+Inisiator upload proof transfer supplier private S3, max 5 MB, mime jpg/png/pdf, SHA-256. Ini bukan proof Buyer.
+
+### 5.17 PATCH /seller/purchase-orders/{uuid}/payment-confirmation
+
+Owner/sales memilih confirmed/rejected dengan alasan. Confirmed menjalankan `awaiting_payment→paid`; rejected mempertahankan awaiting_payment dan mengirim notifikasi Inisiator.
+
+### 5.18 PATCH /seller/purchase-orders/{uuid}/status
+
+Owner/sales: `paid→processing`; owner/sales/warehouse: `processing→shipped`. Shipped wajib invoice, delivery note, dan tracking/reference. Invalid transition 409.
+
+### 5.19 POST /purchase-orders/{uuid}/documents
+
+Jenis: `invoice`, `delivery_note`, `initiator_payment_proof`, `delivery_evidence`, `dispute_evidence`. Authorization per tipe, private S3, max 5 MB, checksum, malware scan, metadata sanitasi.
+
+### 5.20 PATCH /purchase-orders/{uuid}/delivered
+
+Inisiator mengirim expected/received/damaged quantity dan evidence. Sesuai → PO delivered, campaign distribution. Selisih → PO tetap shipped dan fulfillment dispute otomatis dibuka.
+
+### 5.21 POST /purchase-orders/{uuid}/disputes
+
+Inisiator membuka dispute maksimal 1×24 jam setelah penerimaan.
+
+```json
+{"reason":"quantity_shortage","expected_quantity":1000,"received_quantity":950,"damaged_quantity":0,"notes":"Kurang 50 kg","document_ids":[12]}
+```
+
+### 5.22 GET /purchase-orders/{uuid}/disputes dan POST /fulfillment-disputes/{uuid}/responses
+
+Pihak PO dan Admin dapat membaca. Seller merespons maksimal 1×24 jam dengan notes, proposed resolution, dan evidence. Data Buyer tidak tersedia.
+
+### 5.23 PATCH /admin/fulfillment-disputes/{uuid}/resolve
+
+Admin re-authenticated memilih `replacement|partial_refund|full_refund|accepted_as_is|cancelled`, nominal/quantity resolusi, alasan, dan bukti. Semua pihak diberi notifikasi; audit append-only.
+
+### 5.24 Kegagalan, Refund, dan Reservation
+
+| Kejadian | Campaign/PO | Kapasitas | Tindakan |
+| --- | --- | --- | --- |
+| Offer stale/expired sebelum campaign | Tidak dibuat | Tidak berubah | 409/412, refresh offer |
+| Kapasitas habis saat create | Tidak dibuat | Tidak berubah | 409 atomic |
+| Campaign expired/cancelled sebelum accept | terminal | reserved dilepas | Inisiator refund Buyer paid 2×24 jam |
+| Seller reject PO | campaign perlu keputusan; PO rejected | reserved dilepas | pilih offer baru melalui campaign baru atau cancel/refund |
+| Seller tidak respons 12 jam | PO tetap submitted, eskalasi | reserved tetap | Admin reminder/escalation; Inisiator boleh cancel |
+| Seller cancel setelah accept | dispute kritis | committed ditahan sampai resolusi | Admin, supplier sanction, refund/replacement |
+| Partial/damaged delivery | PO shipped + dispute | committed tetap | replacement/refund supplier; refund Buyer oleh Inisiator bila perlu |
+
+### 5.25 Error Supply Domain
+
+Gunakan katalog canonical `ERR_060`–`ERR_075` untuk seluruh kegagalan supply domain.
+
+---
+
+## 6. Campaign (PO)
+
+### 6.1 GET /campaigns
 
 **Deskripsi:** Ambil daftar campaign (PO) aktif di cluster user.
 
@@ -619,7 +1216,7 @@ X-API-Deprecation-Notice: Use GET /campaigns/{id}/recap instead.
 | ------------ | ------ | -------------------------------------------------- |
 | `page`       | int    | Halaman (default 1)                                |
 | `per_page`   | int    | Item per halaman (default 15, max 100)             |
-| `status`     | string | `active`, `completed`, `expired`, `cancelled`      |
+| `status`     | string | `draft`, `active`, `target_reached`, `po_submitted`, `fulfillment`, `distribution`, `completed`, `expired`, `cancelled`      |
 | `cluster_id` | int    | Admin override (hanya admin)                       |
 | `search`     | string | Pencarian nama campaign                            |
 | `sort`       | string | `deadline_asc`, `deadline_desc`, `created_at_desc` |
@@ -641,13 +1238,20 @@ ETag: W/"33a64df551425fcc55e4d42a148795d9f25f89d4"
       "id": 1,
       "cluster_id": 1,
       "slug": "beras-mahkota-premium-abc123",
+    "supplier_offer_id": 123,
+    "offer_version": 4,
+    "supplier_unit_price": 10000,
+    "buyer_unit_price": 12000,
+    "supplier_subtotal": 10000000,
+    "delivery_cost": 0,
+    "reserved_quantity": 1000,
       "name": "Beras Mahkota Premium",
       "description": "Pulen langsung dari pabrik Makmur Jaya",
       "image_url": "https://s3.../campaigns/uuid.jpg",
-      "target_kg": 1000,
-      "current_kg": 750,
+      "target_quantity": 1000,
+      "current_quantity": 750,
       "progress_percent": 75,
-      "price_total_supplier": 10000000,
+      "supplier_subtotal": 10000000,
       "deadline": "2026-07-22T10:00:00+07:00",
       "status": "active",
       "pickup_location": "Rumah Pak RT Jl Mawar 12",
@@ -663,7 +1267,7 @@ ETag: W/"33a64df551425fcc55e4d42a148795d9f25f89d4"
       "variants": [
         {
           "id": 1,
-          "size_kg": 5,
+          "package_quantity": 5,
           "price": 60000,
           "quota": 100,
           "sold": 75,
@@ -671,7 +1275,7 @@ ETag: W/"33a64df551425fcc55e4d42a148795d9f25f89d4"
         },
         {
           "id": 2,
-          "size_kg": 10,
+          "package_quantity": 10,
           "price": 115000,
           "quota": 50,
           "sold": 37,
@@ -690,7 +1294,7 @@ ETag: W/"33a64df551425fcc55e4d42a148795d9f25f89d4"
 }
 ```
 
-### 5.2 GET /campaigns/{id}
+### 6.2 GET /campaigns/{id}
 
 **Deskripsi:** Ambil detail campaign.
 
@@ -712,12 +1316,19 @@ HTTP/1.1 304 Not Modified
     "id": 1,
     "cluster_id": 1,
     "slug": "beras-mahkota-premium-abc123",
+    "supplier_offer_id": 123,
+    "offer_version": 4,
+    "supplier_unit_price": 10000,
+    "buyer_unit_price": 12000,
+    "supplier_subtotal": 10000000,
+    "delivery_cost": 0,
+    "reserved_quantity": 1000,
     "name": "Beras Mahkota Premium",
     "description": "Pulen langsung dari pabrik Makmur Jaya",
     "image_url": "https://s3.../campaigns/uuid.jpg",
-    "target_kg": 1000,
-    "current_kg": 750,
-    "price_total_supplier": 10000000,
+    "target_quantity": 1000,
+    "current_quantity": 750,
+    "supplier_subtotal": 10000000,
     "deadline": "2026-07-22T10:00:00+07:00",
     "status": "active",
     "pickup_location": "Rumah Pak RT Jl Mawar 12",
@@ -734,7 +1345,7 @@ HTTP/1.1 304 Not Modified
     "variants": [
       {
         "id": 1,
-        "size_kg": 5,
+        "package_quantity": 5,
         "price": 60000,
         "quota": 100,
         "sold": 75
@@ -753,7 +1364,7 @@ HTTP/1.1 304 Not Modified
 }
 ```
 
-### 5.3 GET /campaigns/{id}/activities
+### 6.3 GET /campaigns/{id}/activities
 
 **Deskripsi:** Ambil aktivitas terbaru campaign (social ticker).
 
@@ -778,9 +1389,9 @@ HTTP/1.1 304 Not Modified
 }
 ```
 
-### 5.4 POST /campaigns
+### 6.4 POST /campaigns
 
-**Deskripsi:** Buat campaign baru (hanya initiator).
+**Deskripsi:** Endpoint canonical untuk membuat campaign berbasis penawaran. Inisiator wajib memilih satu penawaran aktif melalui `supplier_offer_id`. Campaign tanpa penawaran ditolak.
 
 **Auth:** Initiator role required
 
@@ -790,43 +1401,26 @@ HTTP/1.1 304 Not Modified
 | ---------------------- | ------- | ----- | ------------------------------------------------- |
 | `name`                 | string  | ✅    | Nama campaign (max 150 chars)                     |
 | `description`          | string  | ❌    | Deskripsi campaign                                |
-| `target_kg`            | integer | ✅    | Target kilogram (harus kelipatan varian terkecil) |
-| `price_total_supplier` | integer | ✅    | Total harga dari supplier (untuk rekap)           |
+| `target_quantity`            | integer | ✅    | Target kilogram (harus kelipatan varian terkecil) |
+| `supplier_offer_id`     | integer | ✅    | Penawaran aktif sumber campaign; immutable setelah dibuat |
+| `buyer_unit_price`      | integer | ✅    | Harga per unit kepada Pembeli; harus memenuhi validasi margin |
 | `deadline`             | string  | ✅    | Tenggat waktu (min +24 jam dari sekarang)         |
 | `pickup_location`      | string  | ❌    | Lokasi pengambilan barang                         |
 | `image`                | file    | ❌    | Foto campaign (max 5MB, jpg/png)                  |
-| `variants`             | array   | ✅    | Array varian (min 1, max 5)                       |
-
-**Variant Schema:**
-
-| Field     | Tipe    | Wajib | Keterangan                       |
-| --------- | ------- | ----- | -------------------------------- |
-| `size_kg` | decimal | ✅    | Ukuran varian (5.00, 10.00, dst) |
-| `price`   | integer | ✅    | Harga per varian (Rp)            |
-| `quota`   | integer | ✅    | Kuota tersedia                   |
+| `selected_offer_variant_ids` | array | ✅ | ID packaging milik offer yang dipilih (min 1) |
 
 **Request Contoh (JSON):**
 
 ```json
 {
+  "supplier_offer_id": 123,
   "name": "Beras Mahkota Premium",
   "description": "Pulen langsung dari pabrik Makmur Jaya",
-  "target_kg": 1000,
-  "price_total_supplier": 10000000,
+  "target_quantity": 1000,
+  "buyer_unit_price": 12000,
   "deadline": "2026-07-22T10:00:00+07:00",
   "pickup_location": "Rumah Pak RT Jl Mawar 12",
-  "variants": [
-    {
-      "size_kg": 5.0,
-      "price": 60000,
-      "quota": 100
-    },
-    {
-      "size_kg": 10.0,
-      "price": 115000,
-      "quota": 50
-    }
-  ]
+  "selected_offer_variant_ids": [501, 502]
 }
 ```
 
@@ -838,6 +1432,13 @@ HTTP/1.1 304 Not Modified
   "data": {
     "id": 1,
     "slug": "beras-mahkota-premium-abc123",
+    "supplier_offer_id": 123,
+    "offer_version": 4,
+    "supplier_unit_price": 10000,
+    "buyer_unit_price": 12000,
+    "supplier_subtotal": 10000000,
+    "delivery_cost": 0,
+    "reserved_quantity": 1000,
     "image_url": "https://s3.../campaigns/uuid.jpg",
     "share_link": "https://grosirun.id/c/beras-mahkota-premium-abc123",
     "deep_link": "grosirun://campaign/1"
@@ -845,17 +1446,17 @@ HTTP/1.1 304 Not Modified
 }
 ```
 
-### 5.5 PUT /campaigns/{id}
+### 6.5 PUT /campaigns/{id}
 
 **Deskripsi:** Update campaign (hanya initiator pemilik).
 
 **Auth:** Initiator owner required
 
-**Request:** Sama seperti POST (semua field opsional)
+**Request:** Hanya metadata campaign yang dapat diubah. `supplier_offer_id`, `offer_snapshot`, `supplier_unit_price`, `supplier_subtotal`, dan reservasi kapasitas bersifat immutable. Penggantian offer menggunakan prosedur pembatalan dan pembuatan campaign baru sebelum purchase order diterima.
 
 **Response 200:** Sama seperti GET detail.
 
-### 5.6 POST /campaigns/{id}/extend
+### 6.6 POST /campaigns/{id}/extend
 
 **Deskripsi:** Perpanjang deadline campaign (+24 jam, max 2 kali).
 
@@ -888,7 +1489,7 @@ HTTP/1.1 304 Not Modified
 }
 ```
 
-### 5.7 POST /campaigns/{id}/cancel
+### 6.7 POST /campaigns/{id}/cancel
 
 **Deskripsi:** Batalkan campaign (hanya jika belum 100%).
 
@@ -906,7 +1507,7 @@ HTTP/1.1 304 Not Modified
 }
 ```
 
-### 5.8 GET /campaigns/{id}/recap
+### 6.8 GET /campaigns/{id}/recap
 
 **Deskripsi:** Ambil rekap campaign (PDF + JSON).
 
@@ -922,12 +1523,12 @@ HTTP/1.1 304 Not Modified
     "campaign": {
       "id": 1,
       "name": "Beras Mahkota Premium",
-      "target_kg": 1000,
-      "current_kg": 750
+      "target_quantity": 1000,
+      "current_quantity": 750
     },
     "summary": {
       "total_buyers": 35,
-      "total_kg": 700,
+      "total_quantity": 700,
       "total_revenue": 8400000,
       "total_supplier_cost": 7350000,
       "margin_bruto": 1050000,
@@ -951,9 +1552,9 @@ HTTP/1.1 304 Not Modified
 
 ---
 
-## 6. Varian
+## 7. Varian
 
-### 6.1 GET /campaigns/{id}/variants
+### 7.1 GET /campaigns/{id}/variants
 
 **Deskripsi:** Ambil varian campaign.
 
@@ -966,7 +1567,7 @@ HTTP/1.1 304 Not Modified
   "data": [
     {
       "id": 1,
-      "size_kg": 5.0,
+      "package_quantity": 5.0,
       "price": 60000,
       "quota": 100,
       "sold": 75,
@@ -976,7 +1577,7 @@ HTTP/1.1 304 Not Modified
 }
 ```
 
-### 6.2 GET /variants/{id}
+### 7.2 GET /variants/{id}
 
 **Deskripsi:** Ambil detail varian.
 
@@ -986,9 +1587,9 @@ HTTP/1.1 304 Not Modified
 
 ---
 
-## 7. Order + Batch + Idempotency
+## 8. Order + Batch + Idempotency
 
-### 7.1 POST /campaigns/{id}/orders
+### 8.1 POST /campaigns/{id}/orders
 
 **Deskripsi:** Buat order baru (checkout).
 
@@ -1028,7 +1629,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
       "campaign_id": 1,
       "variant_size": 5,
       "quantity": 1,
-      "total_kg": 5,
+      "total_quantity": 5,
       "total_price": 60000,
       "payment_method": "cash",
       "payment_status": "pending",
@@ -1036,7 +1637,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
       "created_at": "2026-07-20T10:00:00+07:00"
     },
     "campaign": {
-      "current_kg": 755,
+      "current_quantity": 755,
       "progress_percent": 75.5
     }
   }
@@ -1066,7 +1667,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 7.2 POST /campaigns/{id}/orders/batch-create
+### 8.2 POST /campaigns/{id}/orders/batch-create
 
 **Deskripsi:** Buat order massal (untuk initiator mencatatkan warga tanpa HP).
 
@@ -1114,7 +1715,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 7.3 GET /my/orders
+### 8.3 GET /my/orders
 
 **Deskripsi:** Ambil daftar order user sendiri.
 
@@ -1141,7 +1742,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
       },
       "variant_size": 5,
       "quantity": 1,
-      "total_kg": 5,
+      "total_quantity": 5,
       "total_price": 60000,
       "payment_method": "cash",
       "payment_status": "pending",
@@ -1158,7 +1759,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 7.4 GET /campaigns/{id}/orders
+### 8.4 GET /campaigns/{id}/orders
 
 **Deskripsi:** Ambil daftar order campaign (hanya initiator).
 
@@ -1175,7 +1776,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 
 **Response 200:** Sama seperti GET /my/orders.
 
-### 7.5 GET /orders/{uuid}
+### 8.5 GET /orders/{uuid}
 
 **Deskripsi:** Ambil detail order.
 
@@ -1198,7 +1799,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
     },
     "variant_size": 5,
     "quantity": 1,
-    "total_kg": 5,
+    "total_quantity": 5,
     "total_price": 60000,
     "payment_method": "cash",
     "payment_status": "pending",
@@ -1210,7 +1811,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 7.6 PATCH /orders/{uuid}/validate
+### 8.6 PATCH /orders/{uuid}/validate
 
 **Deskripsi:** Validasi pembayaran order (hanya initiator).
 
@@ -1257,7 +1858,7 @@ If-Match: W/"etag-version" (opsional)
 }
 ```
 
-### 7.7 PATCH /orders/{uuid}/reject
+### 8.7 PATCH /orders/{uuid}/reject
 
 **Deskripsi:** Tolak bukti QRIS blur.
 
@@ -1283,7 +1884,7 @@ If-Match: W/"etag-version" (opsional)
 }
 ```
 
-### 7.8 PATCH /orders/{uuid}/undo-validation
+### 8.8 PATCH /orders/{uuid}/undo-validation
 
 **Deskripsi:** Batalkan validasi dalam 5 menit.
 
@@ -1310,7 +1911,7 @@ If-Match: W/"etag-version" (opsional)
 }
 ```
 
-### 7.9 PATCH /orders/{uuid}/override-validate
+### 8.9 PATCH /orders/{uuid}/override-validate
 
 **Deskripsi:** Validasi paksa dengan catatan (untuk kasus khusus).
 
@@ -1328,7 +1929,7 @@ If-Match: W/"etag-version" (opsional)
 
 **Response 200:** Sama seperti validate.
 
-### 7.10 PATCH /orders/{uuid}/cancel
+### 8.10 PATCH /orders/{uuid}/cancel
 
 **Deskripsi:** Batalkan order (hanya buyer pemilik).
 
@@ -1346,7 +1947,7 @@ If-Match: W/"etag-version" (opsional)
 }
 ```
 
-### 7.11 POST /orders/{uuid}/transfer
+### 8.11 POST /orders/{uuid}/transfer
 
 **Deskripsi:** Transfer order ke user lain (admin only).
 
@@ -1372,7 +1973,7 @@ If-Match: W/"etag-version" (opsional)
 }
 ```
 
-### 7.12 POST /campaigns/{id}/orders/batch-validate
+### 8.12 POST /campaigns/{id}/orders/batch-validate
 
 **Deskripsi:** Validasi massal multiple orders (checkbox UI).
 
@@ -1412,9 +2013,9 @@ If-Match: W/"etag-version" (opsional)
 
 ---
 
-## 8. Upload Bukti (Proof) S3 tempUrl
+## 9. Upload Bukti (Proof) S3 tempUrl
 
-### 8.1 POST /orders/{uuid}/proof
+### 9.1 POST /orders/{uuid}/proof
 
 **Deskripsi:** Upload bukti pembayaran QRIS.
 
@@ -1439,8 +2040,8 @@ Content-Type: multipart/form-data
 2. Server validasi mime jpg/png
 3. Server kompres 80% dengan Intervention
 4. Upload ke S3 private bucket: `order_proofs/{uuid}.jpg`
-5. Generate tempUrl 1 jam
-6. Update order: `proof_path`, `payment_status` = `waiting`
+6. Generate tempUrl 1 jam
+7. Update order: `proof_path`, `payment_status` = `waiting`
 
 **Response 200:**
 
@@ -1455,7 +2056,7 @@ Content-Type: multipart/form-data
 }
 ```
 
-### 8.2 GET /orders/{uuid}/proof-url
+### 9.2 GET /orders/{uuid}/proof-url
 
 **Deskripsi:** Generate fresh tempUrl untuk bukti yang sudah diupload.
 
@@ -1484,9 +2085,9 @@ Content-Type: multipart/form-data
 
 ---
 
-## 9. Distribusi
+## 10. Distribusi
 
-### 9.1 GET /campaigns/{id}/distribution
+### 10.1 GET /campaigns/{id}/distribution
 
 **Deskripsi:** Ambil daftar order untuk distribusi (hanya initiator).
 
@@ -1519,7 +2120,7 @@ Content-Type: multipart/form-data
         },
         "variant_size": 5,
         "quantity": 1,
-        "total_kg": 5,
+        "total_quantity": 5,
         "is_taken": false,
         "taken_at": null
       }
@@ -1528,7 +2129,7 @@ Content-Type: multipart/form-data
 }
 ```
 
-### 9.2 PATCH /orders/{uuid}/taken
+### 10.2 PATCH /orders/{uuid}/taken
 
 **Deskripsi:** Tandai order sudah diambil buyer.
 
@@ -1553,7 +2154,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 9.3 POST /campaigns/{id}/complete-distribution
+### 10.3 POST /campaigns/{id}/complete-distribution
 
 **Deskripsi:** Selesaikan distribusi (tutup campaign).
 
@@ -1591,9 +2192,9 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 
 ---
 
-## 10. Notifikasi Fallback (FCM Fallback)
+## 11. Notifikasi Fallback (FCM Fallback)
 
-### 10.1 GET /notifications
+### 11.1 GET /notifications
 
 **Deskripsi:** Ambil notifikasi fallback (polling saat FCM down).
 
@@ -1646,7 +2247,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 10.2 PATCH /notifications/{id}/read
+### 11.2 PATCH /notifications/{id}/read
 
 **Deskripsi:** Tandai notifikasi sudah dibaca.
 
@@ -1663,7 +2264,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 10.3 POST /notifications/read-all
+### 11.3 POST /notifications/read-all
 
 **Deskripsi:** Tandai semua notifikasi sudah dibaca.
 
@@ -1680,7 +2281,7 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-### 10.4 POST /notifications/test (Admin Only)
+### 11.4 POST /notifications/test (Admin Only)
 
 **Deskripsi:** Kirim test notifikasi (dev only).
 
@@ -1713,9 +2314,9 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 
 ---
 
-## 11. Feature Flags
+## 12. Feature Flags
 
-### 11.1 GET /features
+### 12.1 GET /features
 
 **Deskripsi:** Ambil daftar feature flags aktif untuk user.
 
@@ -1730,12 +2331,28 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
     "extend-deadline": true,
     "batch-validate": true,
     "dark-mode": false,
-    "webhook-supplier": false
+    "seller-onboarding": false,
+    "supplier-offers": false,
+    "purchase-orders": false
   }
 }
 ```
 
-### 11.2 POST /admin/features/{feature}/activate (Admin Only)
+Endpoint client hanya mengembalikan flag yang memengaruhi UI user tersebut. Flag backend-only tidak dikirim.
+
+| Flag | Exposure | Scope | Default sebelum implementasi | Tujuan |
+| --- | --- | --- | --- | --- |
+| `qris-upload` | Client | global/user | false | Upload proof QRIS |
+| `extend-deadline` | Client | cluster | false | Perpanjang campaign |
+| `batch-validate` | Client | cluster | false | Validasi order massal |
+| `dark-mode` | Client | user | false | Tema gelap |
+| `seller-onboarding` | Client | user/global | false | Registrasi Seller/Supplier |
+| `supplier-offers` | Client | supplier/global | false | Offer marketplace dan management |
+| `purchase-orders` | Client | supplier/cluster/global | false | PO dan fulfillment berbasis penawaran |
+| `supplier-erp-webhook` | Backend-only | supplier | false | Integrasi ERP opsional |
+| `canary-new-order-service` | Backend-only | percentage | false | Canary service order; tidak dikirim ke mobile |
+
+### 12.2 POST /admin/features/{feature}/activate (Admin Only)
 
 **Deskripsi:** Aktifkan/nonaktifkan feature flag.
 
@@ -1754,8 +2371,8 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 | Field      | Tipe    | Wajib | Keterangan                                |
 | ---------- | ------- | ----- | ----------------------------------------- |
 | `active`   | boolean | ✅    | Aktif/nonaktif                            |
-| `scope`    | string  | ❌    | `global`, `cluster`, `user`               |
-| `scope_id` | integer | ❌    | ID cluster/user (jika scope bukan global) |
+| `scope`    | string  | ❌    | `global`, `cluster`, `user`, `supplier`, `percentage`               |
+| `scope_id` | integer | ❌    | ID cluster/user/supplier atau nilai percentage sesuai scope |
 
 **Response 200:**
 
@@ -1772,11 +2389,11 @@ Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 
 ---
 
-## 12. Webhook & Batch Operations
+## 13. Webhook & Batch Operations
 
-### 12.1 POST /webhooks/supplier/order-status (Future V2)
+### 13.1 POST /webhooks/supplier-erp/order-status (Future V2)
 
-**Deskripsi:** Webhook untuk supplier update status pesanan.
+**Deskripsi:** Webhook opsional untuk integrasi ERP supplier. Seller workspace dan endpoint purchase order tetap menjadi kontrak utama untuk perubahan status.
 
 **Headers Wajib:**
 
@@ -1807,9 +2424,9 @@ X-Webhook-Signature: hmac_sha256_signature
 }
 ```
 
-**Feature Flag:** `webhook-supplier` harus aktif.
+**Feature Flag:** `supplier-erp-webhook` harus aktif.
 
-### 12.2 Batch Operations Summary
+### 13.2 Batch Operations Summary
 
 | Endpoint                                     | Deskripsi         | Auth      |
 | -------------------------------------------- | ----------------- | --------- |
@@ -1818,9 +2435,9 @@ X-Webhook-Signature: hmac_sha256_signature
 
 ---
 
-## 13. Health & Version
+## 14. Health & Version
 
-### 13.1 GET /health
+### 14.1 GET /health
 
 **Deskripsi:** Health check aplikasi.
 
@@ -1854,7 +2471,7 @@ X-Webhook-Signature: hmac_sha256_signature
 }
 ```
 
-### 13.2 GET /version
+### 14.2 GET /version
 
 **Deskripsi:** Informasi versioning untuk client check.
 
@@ -1888,9 +2505,9 @@ X-Webhook-Signature: hmac_sha256_signature
 
 ---
 
-## 14. OpenAPI / Scribe
+## 15. OpenAPI / Scribe
 
-### 14.1 Generate Dokumentasi
+### 15.1 Generate Dokumentasi
 
 ```bash
 # Generate V1
@@ -1900,7 +2517,7 @@ php artisan scribe:generate --config=scribe.v1.config
 php artisan scribe:generate --config=scribe.v2.config
 ```
 
-### 14.2 Akses Dokumentasi
+### 15.2 Akses Dokumentasi
 
 | Environment | URL                                    |
 | ----------- | -------------------------------------- |
@@ -1908,9 +2525,9 @@ php artisan scribe:generate --config=scribe.v2.config
 | Staging     | `https://api.staging.grosirun.id/docs` |
 | Production  | `https://api.grosirun.id/docs`         |
 
-### 14.3 Postman Collection
+### 15.3 Postman Collection
 
-File: `backend/postman/Grosirun_API_V1.1_GAP_Closed.postman_collection.json`
+File: `backend/postman/Grosirun_API_V1.1.postman_collection.json`
 
 **Include Semua Endpoint:**
 
@@ -1926,7 +2543,8 @@ File: `backend/postman/Grosirun_API_V1.1_GAP_Closed.postman_collection.json`
 
 ---
 
-## 15. Ringkasan Perubahan dari V3.0
+## 16. Ringkasan Perubahan dari V3.0
+17. Admin Application Operations
 
 | No  | Perubahan                  | Keterangan                                        |
 | --- | -------------------------- | ------------------------------------------------- |
@@ -1941,8 +2559,36 @@ File: `backend/postman/Grosirun_API_V1.1_GAP_Closed.postman_collection.json`
 | 9   | **Notifications Fallback** | Endpoint baru GET /notifications polling          |
 | 10  | **Feature Flags**          | Endpoint baru GET /features, admin activate       |
 | 11  | **Versioning Strategy**    | Deprecation header, Sunset, upgrade guide         |
-| 12  | **Webhook**                | Placeholder untuk supplier integration V2         |
+| 12  | **Webhook**                | Integrasi ERP supplier opsional; bukan pengganti Seller workspace         |
 
 ---
 
-**Spesifikasi API V3.1 GAP Closed - Siap Implementasi** 🚀
+---
+
+## 17. Admin Application Operations
+
+Semua endpoint memakai active role Admin, re-authentication untuk mutation sensitif, Idempotency-Key, If-Match, reason, audit log, dan rate limit 30/min.
+
+### 17.1 GET /admin/suppliers/pending dan PATCH /admin/suppliers/{uuid}/verification
+
+Queue verifikasi; keputusan `approved|rejected`, checklist dokumen, notes wajib untuk reject. Identitas legal terenkripsi dan tidak masuk log.
+
+### 17.2 GET /admin/offers/pending dan PATCH /admin/offers/{uuid}/moderation
+
+Moderasi unit, tier, variant, kapasitas, area, validity, serta konten. Approved → active; rejected wajib reason.
+
+### 17.3 POST /admin/users/{uuid}/roles dan DELETE /admin/users/{uuid}/roles/{role}
+
+Grant/revoke role. Admin tidak dapat self-escalate, menghapus role owner terakhir, atau menghapus role yang masih memiliki operasi aktif tanpa transfer ownership.
+
+### 17.4 PATCH /admin/users/{uuid}/status dan PATCH /admin/suppliers/{uuid}/status
+
+Status `active|suspended|blocked`. Wajib reason, expiry opsional, revoke session, notifikasi, dan audit.
+
+### 17.5 Cluster, Feature Flag, Audit, dan Emergency Override
+
+Admin mengelola cluster dan feature flags melalui endpoint existing. Audit viewer filter actor/resource/action/trace/date tanpa dapat mengubah log. Emergency override tersedia hanya untuk incident terdaftar, re-authentication, reason, ticket ID, before/after values, serta notifikasi pihak terdampak.
+
+### 17.6 Dashboard Admin
+
+Metrik: verification queue age, offer moderation SLA, seller response SLA, PO shipment SLA, dispute backlog, security events, failed jobs, dan feature rollout. Data Buyer ditampilkan minimum dan dimasking secara default.

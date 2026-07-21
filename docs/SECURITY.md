@@ -2,7 +2,11 @@
 
 **Tanggal:** 20 Juli 2026  
 **Versi:** 3.1  
-**Status:** Production Ready
+**Owner:** Security
+**Review Cycle:** Setiap release
+**Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+**Status Dokumen:** Final
+**Status Implementasi:** Belum Dimulai
 
 ---
 
@@ -57,7 +61,7 @@ Grosirun adalah platform patungan yang menangani transaksi uang riil dan data pr
 | S3 bucket public               | Bukti QRIS bocor ke publik                |
 | Akun diretas                   | Transaksi fiktif, kerugian finansial      |
 
-### 1.2 Referensi BUSINESS_ANALYSIS.md
+### 1.2 Referensi [BUSINESS_ANALYSIS.md](BUSINESS_ANALYSIS.md)
 
 | Komponen              | Nilai               |
 | --------------------- | ------------------- |
@@ -103,7 +107,7 @@ Grosirun adalah platform patungan yang menangani transaksi uang riil dan data pr
 
 **Data Bisnis:**
 
-- `campaigns`: target_kg, current_kg, price_total_supplier
+- `campaigns`: target_quantity, current_quantity, supplier_unit_price, buyer_unit_price, offer_snapshot
 - `campaign_variants`: quota, sold
 - `orders`: total_price, payment_status
 
@@ -177,7 +181,7 @@ class OrderPolicy
         }
 
         // Initiator: hanya order campaign sendiri + cluster sendiri
-        if ($user->role === 'initiator' &&
+        if ($user->activeRoleIs('initiator') && $user->hasRole('initiator') &&
             $order->campaign->initiator_id === $user->id &&
             $order->cluster_id === $user->cluster_id) {
             return true;
@@ -188,7 +192,7 @@ class OrderPolicy
 
     public function validate(User $user, Order $order): bool
     {
-        return $user->role === 'initiator' &&
+        return $user->activeRoleIs('initiator') && $user->hasRole('initiator') &&
                $order->campaign->initiator_id === $user->id &&
                $order->cluster_id === $user->cluster_id;
     }
@@ -529,7 +533,7 @@ redis-cli KEYS "rl:*"
 
 ### 7.1 Role & Middleware
 
-**Role enum:** `buyer`, `initiator`, `admin`
+**Role names:** `buyer`, `initiator`, `seller`, `admin`; assignment disimpan di `user_roles`
 
 **RoleMiddleware:**
 
@@ -539,7 +543,7 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string $role): mixed
     {
-        if (!$request->user() || $request->user()->role !== $role) {
+        if (!$request->user() || !$request->user()->hasRole($role) || !$request->user()->activeRoleIs($role)) {
             throw new HttpException(403, 'ERR_006 FORBIDDEN_ROLE');
         }
         return $next($request);
@@ -591,7 +595,7 @@ class OrderPolicy
         }
 
         // Initiator: hanya order campaign sendiri + cluster sendiri
-        if ($user->role === 'initiator' &&
+        if ($user->activeRoleIs('initiator') && $user->hasRole('initiator') &&
             $order->campaign->initiator_id === $user->id &&
             $order->cluster_id === $user->cluster_id) {
             return true;
@@ -702,6 +706,32 @@ HtmlWidget(campaign.description) // Berbahaya!
 ```
 
 ---
+
+### 8.6 Matriks Otorisasi Empat Role
+
+| Resource/Aksi | Buyer | Initiator | Seller | Admin |
+| --- | --- | --- | --- | --- |
+| Campaign cluster | Baca & order | CRUD milik sendiri | Baca agregat terkait PO | Moderasi/audit |
+| Supplier profile | Tidak | Baca supplier aktif | Kelola supplier sendiri | Verifikasi/suspend |
+| Product/offer | Baca melalui campaign | Baca offer aktif | CRUD supplier sendiri | Moderasi |
+| Purchase order | Milik buyer tidak tersedia | Buat dan lihat milik campaign | Proses milik supplier | Audit/override beralasan |
+| Bukti bayar buyer | Milik sendiri | Campaign sendiri | **Dilarang** | Akses dukungan teraudit |
+| Invoice/surat jalan | Tidak | Campaign sendiri | Upload supplier sendiri | Audit |
+
+Server tidak mempercayai `active_role` dari client. Middleware memastikan role dimiliki user; Policy tetap memeriksa supplier membership, cluster, dan ownership. Pergantian role merekam `role_switch` tanpa menerbitkan token dengan privilege tambahan. Admin override membutuhkan alasan, re-authentication, dan audit log.
+
+---
+
+### 8.7 Kontrol Unit, Reservation, Lifecycle, dan Admin
+
+- Controlled vocabulary unit mencegah manipulasi konversi; package quantity positive decimal dan immutable setelah offer active.
+- Harga supplier tidak diterima dari client campaign; server memilih tier dan menghitung package/subtotal.
+- Reservation, release, dan commit selalu transaction + row lock + invariant database.
+- State machine menolak skip/replay; Idempotency-Key dan If-Match wajib.
+- Seller tidak dapat mengakses Buyer identity/proof melalui serializer, query, temporary URL, atau log.
+- Admin mutation sensitif memerlukan active role, re-authentication, reason, ticket untuk override, rate limit, before/after audit, dan notifikasi.
+- Membership invitation single-use/48 jam; owner terakhir dilindungi.
+- Dokumen PO private, MIME/magic-byte checked, malware-scanned, checksum, random path, dan temporary URL maksimum 1 jam.
 
 ## 9. Keamanan Upload (S3 Private, tempUrl, Mime, UUID, Lifecycle)
 
@@ -845,9 +875,12 @@ class Campaign extends Model
         'name',
         'description',
         'image_path',
-        'target_kg',
-        'current_kg',
-        'price_total_supplier',
+        'target_quantity',
+        'current_quantity',
+        'supplier_unit_price',
+        'supplier_subtotal',
+        'delivery_cost',
+        'offer_snapshot',
         'deadline',
         'status',
         'pickup_location',
@@ -1181,7 +1214,7 @@ aws s3api get-object --bucket grosirun-prod-private --key order_proofs/uuid.jpg 
 | #   | Test Case                | Prosedur         | Ekspektasi                         | Level    | Hasil           | Bukti                 |
 | --- | ------------------------ | ---------------- | ---------------------------------- | -------- | --------------- | --------------------- |
 | 43  | Consent checkbox ada     | Login flow       | Checkbox "Setuju UU PDP"           | Critical | ☐ Pass / ☐ Fail | Screenshot            |
-| 44  | Privacy Policy link ada  | Login flow       | Link ke PRIVACY_POLICY.md          | Critical | ☐ Pass / ☐ Fail | Screenshot            |
+| 44  | Privacy Policy link ada  | Login flow       | Link ke [PRIVACY_POLICY.md](PRIVACY_POLICY.md)          | Critical | ☐ Pass / ☐ Fail | Screenshot            |
 | 45  | DELETE account anonymize | Hapus akun       | 202 Accepted, job AnonymizeUserJob | Critical | ☐ Pass / ☐ Fail | Manual test           |
 | 46  | Proof lifecycle 90d      | Cek S3 lifecycle | S3 rule 90d + CleanOldProofsJob    | High     | ☐ Pass / ☐ Fail | Screenshot S3 console |
 
@@ -1223,10 +1256,10 @@ aws s3api get-object --bucket grosirun-prod-private --key order_proofs/uuid.jpg 
 | --- | --------------------------------- | -------------------------------------------------------------------------------------------- | -------- | --------------- | ---------------------- |
 | 57  | Consent checkbox ada              | UI checkbox + POST `/auth/consent` log `consent_at`                                          | Critical | ☐ Pass / ☐ Fail | Screenshot UI          |
 | 58  | ToS non-escrow scroll + checkbox  | UI scroll + checkbox + POST `/auth/tos-accept` log `tos_accepted_at`                         | Critical | ☐ Pass / ☐ Fail | Screenshot UI          |
-| 59  | Privacy Policy screen             | Full text PRIVACY_POLICY.md di app                                                           | Critical | ☐ Pass / ☐ Fail | Screenshot UI          |
+| 59  | Privacy Policy screen             | Full text [PRIVACY_POLICY.md](PRIVACY_POLICY.md) di app                                                           | Critical | ☐ Pass / ☐ Fail | Screenshot UI          |
 | 60  | DELETE /auth/account anonymize    | 202 Accepted + job AnonymizeUserJob + S3 proofs deleted + orders anonymized + tokens revoked | Critical | ☐ Pass / ☐ Fail | Manual test            |
 | 61  | Retensi proof 90d auto delete     | S3 lifecycle rule 90d + CleanOldProofsJob daily                                              | High     | ☐ Pass / ☐ Fail | S3 console + scheduler |
-| 62  | Data retention policy doc         | PRIVACY_POLICY.md tabel retensi                                                              | High     | ☐ Pass / ☐ Fail | PRIVACY_POLICY.md      |
+| 62  | Data retention policy doc         | [PRIVACY_POLICY.md](PRIVACY_POLICY.md) tabel retensi                                                              | High     | ☐ Pass / ☐ Fail | [PRIVACY_POLICY.md](PRIVACY_POLICY.md)      |
 | 63  | Log tidak mengandung PII plain    | `Log::info` phone masked (628\*\*\*\*), tidak ada OTP plain di prod                          | Critical | ☐ Pass / ☐ Fail | Code review            |
 | 64  | Hak akses data via GET /auth/me   | User bisa lihat data pribadi                                                                 | Medium   | ☐ Pass / ☐ Fail | Manual test            |
 | 65  | Hak koreksi via PUT /auth/profile | User bisa update nama                                                                        | Medium   | ☐ Pass / ☐ Fail | Manual test            |
@@ -1242,7 +1275,7 @@ aws s3api get-object --bucket grosirun-prod-private --key order_proofs/uuid.jpg 
 | 68  | S3 lifecycle 90d proofs                  | S3 Management Lifecycle rule 90d                                        | High     | ☐ Pass / ☐ Fail | Screenshot console     |
 | 69  | S3 versioning ON                         | Console versioning ON                                                   | Medium   | ☐ Pass / ☐ Fail | Screenshot console     |
 | 70  | Backup daily S3 retention 7d             | S3 `backups/` folder daily, cron 02:00                                  | High     | ☐ Pass / ☐ Fail | S3 listing + cron      |
-| 71  | Restore drill done <1h RTO               | DISASTER_RECOVERY_DRILL_REPORT.md filled (time <1h)                     | Critical | ☐ Pass / ☐ Fail | Drill report           |
+| 71  | Restore drill done <1h RTO               | [DEPLOYMENT.md](DEPLOYMENT.md) bagian 13 — Disaster Recovery Plan filled (time <1h)                     | Critical | ☐ Pass / ☐ Fail | Drill report           |
 | 72  | SSL expiry >7 days monitoring            | GET `/health` returns `ssl_expires_in_days >7`, `check-ssl.sh` cron     | High     | ☐ Pass / ☐ Fail | Health response + cron |
 | 73  | Blue-green zero-downtime health check    | `deploy-blue-green.sh` health check before switch, no 503 during deploy | High     | ☐ Pass / ☐ Fail | Deploy log             |
 | 74  | Rollback automation `rollback.sh`        | Tested switch back, supervisor restart, Slack notify                    | High     | ☐ Pass / ☐ Fail | Rollback log           |
@@ -1400,5 +1433,3 @@ aws s3api get-object --bucket grosirun-prod-private --key order_proofs/uuid.jpg 
 | [ ] Vulnerability Disclosure Policy | ☐      |
 
 ---
-
-**Dokumen Keamanan & Checklist Review V3.1 Production Ready - Threat Model, OWASP API+Mobile, S3 Private, UU PDP, Audit Log, Key Rotation, Review Checklist!** 🔒✅
