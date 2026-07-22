@@ -158,7 +158,7 @@ grosirun/
 ├── docs/ (18 dokumen domain + 1 indeks)
 │   ├── PRD.md, TECHNICAL_SPEC.md, API_SPEC.md
 │   ├── ADR, SECURITY.md, OBSERVABILITY.md, [Deployment §2](docs/DEPLOYMENT.md#2-ci-quality-gates--build-pipelines)
-│   ├── OBSERVABILITY.md bagian 3 dan 7 — Performance Engineering, DEVELOPMENT_GUIDE.md, API_SPEC.md bagian 1.4 — Format dan Katalog Error
+│   ├── OBSERVABILITY.md bagian 3 (Performance Engineering) dan 7 (Referensi Performance), DEVELOPMENT_GUIDE.md, API_SPEC.md bagian 1.4 — Format dan Katalog Error
 │   ├── [User Guide §7–8](docs/USER_GUIDE.md#7-komplain-refund-dan-dispute-operations), USER_GUIDE.md, etc.
 ├── docker-compose.yml            # Laravel + MySQL + Redis + Nginx local
 ├── .github/workflows/            # test.yml, deploy.yml, build-apk.yml
