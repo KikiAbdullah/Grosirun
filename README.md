@@ -1,7 +1,8 @@
-# 🛒 Grosirun — Belanja Patungan Super Ringan
+# 🛒 Grosirun — *Yuk, Grosirun Bareng!*
 
 **Platform:** Android (Flutter) + REST API (Laravel 11) + Web Admin (Livewire/Inertia optional V1.1)  
-**Tagline:** *Grosir + Run — Gotong Royong Ekonomi Digital Mikro*  
+**Tagline utama:** *"Yuk, Grosirun Bareng!"* — **Deskriptif:** *Belanja Patungan Super Ringan*  
+**Asal nama:** Grosir (beli banyak, harga pabrik) + Run (bergerak, beroperasi) = **Grosir yang jalan terus**  
 **Versi Dokumen:** 3.1 - Enterprise GAP Closed Edition  
 **Tanggal Efektif:** 20 Juli 2026  
 **Status Dokumentasi:** Final
@@ -154,7 +155,7 @@ grosirun/
 │   ├── lib/logic/cubits/
 │   ├── lib/presentation/screens/
 │   └── integration_test/
-├── docs/ (18 dokumen domain + 1 indeks)
+├── docs/ (19 dokumen domain + 1 indeks)
 │   ├── PRD.md, TECHNICAL_SPEC.md, API_SPEC.md
 │   ├── ADR, SECURITY.md, OBSERVABILITY.md, [Deployment §2](docs/DEPLOYMENT.md#2-ci-quality-gates--build-pipelines)
 │   ├── OBSERVABILITY.md bagian 3 dan 7 — Performance Engineering, DEVELOPMENT_GUIDE.md, API_SPEC.md bagian 1.4 — Format dan Katalog Error
@@ -234,6 +235,7 @@ ls -lh build/app/outputs/apk/release/*.apk
 | **[PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md](docs/PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md)** | Proposal persuasif dan materi validasi untuk tiga stakeholder | Final communication material |
 | **[PRESENTASI_GROSIRUN.md](docs/PRESENTASI_GROSIRUN.md)** | Naskah slide akurat untuk presentasi stakeholder dan pilot | Final presentation material |
 | **[BRAND_GUIDELINES.md](docs/BRAND_GUIDELINES.md)** | Identitas visual, warna, tipografi, nada brand, do's and don'ts | Final brand specification |
+| **[BRAND_PHILOSOPHY.md](docs/BRAND_PHILOSOPHY.md)** | Filosofi, asal-usul nama, kepribadian, tagline, arah visual brand | Final brand philosophy |
 | **[ARCHITECTURE_DECISION_RECORDS.md](docs/ARCHITECTURE_DECISION_RECORDS.md)** | 8 accepted architecture decisions | Final decision record |
 | **[SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** | Local environment, dependencies, Firebase, S3, WA gateway | Final specification |
 | **[CHANGELOG.md](docs/CHANGELOG.md)** | Version strategy and release history | Maintained per release |

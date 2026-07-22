@@ -1,12 +1,14 @@
 # Brand Guidelines — Grosirun
 
-**Tanggal:** 21 Juli 2026  
-**Versi:** 1.0  
+**Tanggal:** 22 Juli 2026  
+**Versi:** 1.1  
 **Owner:** Product & Design  
 **Review Cycle:** Setiap release  
 **Status Dokumen:** Final  
 **Status Implementasi:** Belum Dimulai  
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
+
+> **Catatan:** Filosofi dan fondasi identitas brand ada di [Brand Philosophy](BRAND_PHILOSOPHY.md). Dokumen ini adalah panduan implementasi visual, verbal, dan teknis.
 
 ---
 
@@ -30,7 +32,9 @@
 
 ### 1.1 Nama Brand
 
-**Grosirun** — kombinasi dari "Grosir" (pembelian dalam jumlah besar dengan harga lebih murah) dan "Run" (gerakan cepat, aksi). Nama ini mencerminkan esensi platform: belanja bersama yang cepat, mudah, dan menguntungkan.
+> **Asal-usul nama:** Lihat [Brand Philosophy §1](BRAND_PHILOSOPHY.md#1-asal-usul-nama) untuk penjelasan lengkap filosofi "Grosir" + "Run".
+
+**Grosirun** — kombinasi dari "Grosir" (pembelian dalam jumlah besar dengan harga lebih murah) dan "Run" (gerakan, aktif, beroperasi). Secara harfiah: **"Grosir yang jalan terus."** Bunyi "-un" di akhir membuat nama terasa akrab, ringan, dan mudah diucapkan dalam bahasa Indonesia.
 
 **Aturan penulisan:**
 
@@ -38,7 +42,8 @@
 | --- | --- | --- |
 | Nama brand | Grosirun (huruf kapital di awal) | Grosirun membantu warga RT |
 | Domain | grosirun.id | https://grosirun.id |
-| Tagline dalam kalimat | huruf kecil semua | grosir + run — gotong royong ekonomi digital mikro |
+| Tagline utama | "Yuk, Grosirun Bareng!" | Ajakan natural, nyambung bunyi nama |
+| Tagline deskriptif | Belanja Patungan Super Ringan | Untuk konteks formal/teknis |
 | Hashtag | #GrosirRun | #GrosirRun |
 
 **Larangan penulisan:**
@@ -47,13 +52,31 @@
 - ❌ grosir un (dua kata terpisah)
 - ❌ Grosir Un
 - ❌ Grosir-un
-- ❌ grosrun, grosrun, GROSIR-UN
+- ❌ grosrun, GROSIR-UN
 
 ### 1.2 Tagline
 
+**Tagline utama (rekomendasi):**
+
+> **"Yuk, Grosirun Bareng!"**
+
+Paling simpel, paling nyambung dengan bunyi nama, dan terasa seperti ajakan dari tetangga sebelah. Digunakan pada materi pemasaran, splash screen, kampanye, dan komunikasi publik.
+
+**Tagline deskriptif (konteks formal/teknis):**
+
 > **Belanja Patungan Super Ringan**
 
-Tagline ini digunakan pada materi pemasaran, splash screen, dan sampul presentasi. Ringkas, langsung menyampaikan nilai utama: belanja bersama (patungan), hemat biaya, dan mudah digunakan (super ringan).
+Digunakan pada dokumentasi teknis, README, dan konteks yang memerlukan deskripsi singkat tentang fungsi produk.
+
+**Pilihan tagline lainnya:**
+
+| Tagline | Penggunaan |
+| --- | --- |
+| "Belanja Rame, Harga Lega" | Kampanye komunitas, ibu-ibu RT |
+| "Hemat Bareng, Untung Bareng" | Materi edukasi keuangan, proposal seller |
+| "Satu RT, Satu Harga Grosir" | Targeting spesifik komunitas RT/RW |
+
+> Lihat [Brand Philosophy §4](BRAND_PHILOSOPHY.md#4-pilihan-tagline) untuk penjelasan lengkap setiap pilihan.
 
 ### 1.3 Motto Internal
 
@@ -71,6 +94,8 @@ Menyediakan platform group-buying yang ringan, transparan, dan terpercaya bagi k
 
 ### 1.6 Nilai-Nilai Brand
 
+> **Filosofi lengkap:** Lihat [Brand Philosophy §2](BRAND_PHILOSOPHY.md#2-filosofi-dasar).
+
 | Nilai | Deskripsi | Manifestasi |
 | --- | --- | --- |
 | **Gotong Royong** | Semangat kebersamaan dan saling membantu dalam komunitas | UI yang mendorong kolaborasi, progress bersama, social ticker |
@@ -81,13 +106,20 @@ Menyediakan platform group-buying yang ringan, transparan, dan terpercaya bagi k
 
 ### 1.7 Kepribadian Brand
 
-Grosirun memiliki kepribadian seperti **tetangga yang pintar dan suka membantu**:
+> **Definisi lengkap:** Lihat [Brand Philosophy §3](BRAND_PHILOSOPHY.md#3-kepribadian-brand).
 
-- **Ramah** — Bahasa sederhana, tidak teknikal, hangat
-- **Cerdas** — Solusi tepat, efisien, tanpa berbelit
-- **Jujur** — Tidak menjanjikan yang tidak bisa dipenuhi, transparan soal status
-- **Sederhana** — Tidak berlebihan, fokus pada fungsi dan manfaat
-- **Dapat diandalkan** — Konsisten, stabil, selalu ada saat dibutuhkan
+Grosirun memiliki kepribadian seperti **tetangga yang bisa dipercaya**:
+
+- **Ramah** — Gampang didekati, bahasa sederhana, tidak teknikal, hangat
+- **Jujur** — Bicara apa adanya, tidak bertele-tele, tidak overpromise
+- **Mengajak** — Lebih suka ngajak daripada maksa, persuasif bukan agresif
+- **Praktis** — Solusi tepat, efisien, tanpa ribet, tidak sok-sok an
+
+### 1.8 Elevator Pitch
+
+> *"Grosirun itu kayak arisan belanja zaman sekarang. Kumpul bareng tetangga, pesen bareng, dapat harga grosir. Transparan, langsung dari HP, bisa hemat sampai 21%. Praktis dan nggak pake ribet."*
+
+Gunakan pada perkenalan singkat ke calon mitra, investor, atau user baru. Lihat [Brand Philosophy §6](BRAND_PHILOSOPHY.md#6-perkenalan-singkat-elevator-pitch).
 
 ---
 
@@ -308,17 +340,19 @@ Gunakan **Material Icons** (built-in Flutter) untuk menjaga ukuran APK tetap rin
 
 ## 6. Gaya Visual dan Fotografi
 
+> **Arah visual brand:** Lihat [Brand Philosophy §5](BRAND_PHILOSOPHY.md#5-arah-visual). Arah jangka panjang: warna hangat (oranye/kuning) dipadu hijau, ikon keranjang diangkat beberapa tangan (gotong royong), dan font bulat bersahabat.
+
 ### 6.1 Gaya Ilustrasi
 
 Ilustrasi digunakan pada empty state, onboarding, dan halaman promosi.
 
 | Atribut | Spesifikasi |
 | --- | --- |
-| Gaya | Flat design dengan aksen minimal |
-| Warna dominan | Putih + hijau brand + aksen kuning |
+| Gaya | Flat design dengan aksen minimal, bulat dan bersahabat |
+| Warna dominan | Putih + hijau brand + aksen kuning/oranye hangat |
 | Karakter | Sederhana, ramah, merepresentasikan warga Indonesia |
-| Objek | Keranjang, pasar, rumah, komunitas |
-| Hindari | 3D render, gradien kompleks, foto stok generik |
+| Objek | Keranjang belanja, pasar, rumah, komunitas, tangan saling membantu |
+| Hindari | 3D render, gradien kompleks, foto stok generik, font kaku korporat |
 
 ### 6.2 Fotografi
 
@@ -583,6 +617,7 @@ Seluruh aset brand Grosirun adalah milik Grosirun. Penggunaan oleh pihak ketiga 
 
 | Dokumen | Hubungan |
 | --- | --- |
+| **[Brand Philosophy](BRAND_PHILOSOPHY.md)** | **Sumber kebenaran filosofis:** asal nama, nilai, kepribadian, tagline, arah visual, elevator pitch |
 | [Mobile Specification](MOBILE_SPEC.md) | Detail teknis komponen UI, warna token, tipografi dalam Flutter |
 | [PRD](PRD.md) | Persona, value proposition, positioning brand |
 | [User Guide](USER_GUIDE.md) | Nada dan gaya bahasa untuk komunikasi ke user |
@@ -592,6 +627,6 @@ Seluruh aset brand Grosirun adalah milik Grosirun. Penggunaan oleh pihak ketiga 
 
 ---
 
-*Dokumen ini adalah panduan resmi identitas visual dan verbal Grosirun. Setiap materi komunikasi, baik internal maupun eksternal, harus mengikuti panduan ini. Perubahan hanya melalui persetujuan Product Owner.*
+*Dokumen ini adalah panduan implementasi visual dan verbal Grosirun. Fondasi filosofis ada di [Brand Philosophy](BRAND_PHILOSOPHY.md). Setiap materi komunikasi, baik internal maupun eksternal, harus mengikuti kedua panduan ini. Perubahan hanya melalui persetujuan Product Owner.*
 
-**Versi 1.0 — 21 Juli 2026**
+**Versi 1.1 — 22 Juli 2026**
