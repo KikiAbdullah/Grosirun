@@ -22,7 +22,7 @@
 - Bagian **Catatan presenter** tidak perlu ditampilkan.
 - Gunakan screenshot hanya setelah aplikasi tersedia; sebelum itu gunakan diagram sederhana dengan label **Konsep**.
 - Gunakan istilah Penjual untuk user yang login dan Supplier untuk organisasi usaha.
-- Gunakan logo, warna, dan kontak resmi hanya setelah disetujui Product Owner.
+- Gunakan logo, warna, dan kontak resmi hanya setelah disetujui Product Owner. Lihat [Brand Guidelines](BRAND_GUIDELINES.md) untuk filosofi, palet, tipografi, kepribadian, dan aturan penggunaan brand.
 
 ---
 

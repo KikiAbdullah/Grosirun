@@ -44,7 +44,7 @@
 
 | Stakeholder | Role | Kepentingan | Power | Strategi |
 | :--- | :--- | :--- | :--- | :--- |
-| Bu Siti (Buyer) | End User | Hemat 15-20%, checkout <2 menit | High interest, Low power | Fokus UX tombol 56dp, tutorial 60s, FAQ |
+| Bu Siti (Buyer) | End User | Hemat 14-21%, checkout <2 menit | High interest, Low power | Fokus UX tombol 56dp, tutorial 60s, FAQ |
 | Pak Agus (Initiator) | Inisiator | Hemat 80% waktu admin | High interest, High power | Libatkan di dogfooding, SOP onboarding, ToS |
 | Ketua RW | Sponsor | Transparansi dana RT | Medium interest, High power | Laporan PDF rekap, observability dashboard |
 | Dev Team | Builder | Code coverage, no oversell | High interest, Medium power | CI/CD, ADR, security review |
@@ -172,7 +172,7 @@ Semua fitur lama (login OTP, beranda, varian paten, progress, ticker, checkout c
 
 - **API Gateway Rate Limit Centralized:** Bukan hanya throttle middleware per controller. Buat `RateLimiter` custom di `AppServiceProvider`: global 60/min per user, per IP 100/min, per-route override: `request-otp 5/min per phone + IP`, `validate 30/min initiator`, `override-validate 10/min initiator` (sensitif). Gunakan Redis limiter. Lihat [SECURITY.md](SECURITY.md).
 
-- **Offline Proof Upload Queue:** Sebelumnya hanya order queue offline. Sekarang tambah proof upload queue juga: jika buyer QRIS offline saat mau upload bukti, simpan file path lokal di pending queue type `upload_proof`, sync saat online (mirip order). Lihat MOBILE_SPEC bagian 3–9 + OBSERVABILITY bagian 3 dan 7 — Performance Engineering.
+- **Offline Proof Upload Queue:** Sebelumnya hanya order queue offline. Sekarang tambah proof upload queue juga: jika buyer QRIS offline saat mau upload bukti, simpan file path lokal di pending queue type `upload_proof`, sync saat online (mirip order). Lihat MOBILE_SPEC bagian 3–9 + OBSERVABILITY bagian 3 (Performance Engineering) dan 7 (Referensi Performance Terperinci).
 
 - **Batch Operations:** Endpoint `POST /api/v1/campaigns/{id}/orders/batch-validate` untuk validasi 10 orders sekaligus (checkbox di dashboard). Kurangi N+1 request admin saat distribusi 100 buyer.
 
@@ -335,7 +335,7 @@ Semua endpoint filter by `auth()->user()->cluster_id` scope.
 | Sprint 1 Foundation | 20 Jul - 3 Ags 2026 | Laravel 11 + Docker compose MySQL Redis Nginx + cluster table + OtpService + UU PDP consent fields | Flutter Dio Hive SecureStorage + AuthCubit + consent checkbox | CI test.yml gate Pest + flutter analyze + Docker ready | Auth E2E + cluster |
 | Sprint 2 Core | 4 Ags - 18 Ags | Offer marketplace + campaign snapshot + variant + cache Redis + S3 primary | Home Detail progress ticker polling + share WA + deep link | ADR docs + TECHNICAL_SPEC + [SECURITY.md](SECURITY.md) | PO listing live |
 | Sprint 3 Transaction | 19 Ags - 2 Sep | OrderService lockForUpdate + proof S3 tempUrl + batch validate + notifications fallback table | Checkout + proof queue offline + upload compress | k6 load test deadline rush 100 concurrent + API_SPEC bagian 1.4 — Format dan Katalog Error | Checkout live |
-| Sprint 4 Admin & Obs | 3 Sep - 10 Sep | Recap PDF + distribution + FCM + fallback /notifications + feature flags + rate limit centralized | Admin dashboard 3 tabs + recap viewer + checklist + FCM background handler | [OBSERVABILITY.md](OBSERVABILITY.md) Pulse Prometheus Grafana + OBSERVABILITY bagian 3 dan 7 — Performance Engineering | Admin full |
+| Sprint 4 Admin & Obs | 3 Sep - 10 Sep | Recap PDF + distribution + FCM + fallback /notifications + feature flags + rate limit centralized | Admin dashboard 3 tabs + recap viewer + checklist + FCM background handler | [OBSERVABILITY.md](OBSERVABILITY.md) Pulse Prometheus Grafana + OBSERVABILITY bagian 3 (Performance Engineering) dan 7 (Referensi Performance) | Admin full |
 | Dogfooding + Security Review | 11 Sep - 17 Sep | Load test thundering herd + admin race test + restore drill RTO 1h | Test 3 device low-end + APK <10MB + error boundary | SECURITY bagian Checklist Review Keamanan OWASP Top 10 API+Mobile checklist | RC + sec review |
 | Alpha Pilot 1 RT | 18 Sep - 25 Sep | Deploy blue-green zero-downtime + backup daily S3 + canary 10% | Firebase App Distribution + onboarding pilot guide Pak Agus + FAQ | Monitoring alert Slack P95>300ms | Pilot 1 RT |
 | Go-Live V1.0 | 26 Sep - 30 Sep | Go-live if adoption>70% crash-free>99.5% | Feedback form analytics dictionary | Post-launch hotfix plan | Prod V1.0 |
@@ -403,8 +403,8 @@ Order tidak bisa dibuat jika cluster mismatch: buyer cluster harus sama dengan c
 - [ ] Migration `clusters` + add FK `users.cluster_id`, `campaigns.cluster_id`
 - [ ] Migration `notifications` fallback FCM
 - [ ] Change filesystem disk S3 primary prod, local dev (consistency fix)
-- [ ] RateLimiter centralized Redis per-route (auth 5/min, override 10/min)
-- [ ] Feature Flags package + flags: qris_upload, extend_deadline
+- [ ] RateLimiter centralized Redis per-route (OTP 5/min per phone+IP, override 10/min, global 60/min user + 100/min per IP)
+- [ ] Feature Flags package (Pennant) + 9 flags: `qris-upload`, `extend-deadline`, `batch-validate`, `dark-mode`, `seller-onboarding`, `supplier-offers`, `purchase-orders` (client); `supplier-erp-webhook`, `canary-new-order-service` (backend-only)
 - [ ] Endpoint `DELETE /auth/account` + `POST /auth/tos-accept` + `POST /auth/consent`
 - [ ] Batch validate endpoint
 - [ ] Error Catalog constants + response `code` like ERR_024

@@ -23,4 +23,3 @@ mobile/android/app/build.gradle @mobile-lead
 
 # Security
 /docs/SECURITY.md @backend-lead @security
-/docs/SECURITY_REVIEW.md @backend-lead @security
