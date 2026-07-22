@@ -53,6 +53,14 @@ class AppConstants {
   // ─── Deep Link ───
   static const String deepLinkScheme = 'grosirun';
   static const String deepLinkHost = 'campaign';
+
+  // ─── Price Formatting ───
+  static String formatPrice(int price) {
+    return price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+  }
 }
 
 /// User Roles
@@ -85,11 +93,3 @@ class PaymentStatus {
   static const String paid = 'paid';
   static const String rejected = 'rejected';
 }
-
-  // ─── Price Formatting ───
-  static String formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
-    );
-  }

@@ -195,9 +195,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     onPressed: isLoading
                         ? null
                         : () {
-                            context.read<AuthCubit>().requestOtp(
-                                  phoneNumber: widget.phoneNumber,
-                                );
+                            context.read<AuthCubit>().requestOtp(widget.phoneNumber);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('OTP dikirim ulang'),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/campaign_model.dart';
-import "../../../data/repositories/campaign_repository.dart";';
+import '../../../data/repositories/campaign_repository.dart';
 import '../../../logic/cubits/campaign/campaign_cubit.dart';
 
 /// Campaign detail screen with progress, variants, and checkout.
