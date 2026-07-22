@@ -96,7 +96,7 @@ dependencies:
   open_filex: ^4.5.0          # Open files with system apps
 
   # ─── Analytics & Monitoring ───
-  sentry_flutter: ^8.9.0      # Error tracking & performance
+  # sentry_flutter: ^9.0.0      # Error tracking & performance (temporarily disabled due to Kotlin 2.0 requirement)
 
   # ─── Localization ───
   easy_localization: ^3.0.7   # Easy i18n (ID/EN support)
