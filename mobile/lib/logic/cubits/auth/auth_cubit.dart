@@ -1,132 +1,120 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:logger/logger.dart';
+import 'package:get_it/get_it.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../data/models/user_model.dart';
-import '../../../data/repositories/repositories.dart';
 
-// ─── States ───
-
-abstract class AuthState extends Equatable {
-  const AuthState();
-  @override
-  List<Object?> get props => [];
-}
-
-class AuthInitial extends AuthState {}
-
-class AuthLoading extends AuthState {}
-
-class AuthOtpSent extends AuthState {
-  final String phoneNumber;
-  const AuthOtpSent(this.phoneNumber);
-  @override
-  List<Object?> get props => [phoneNumber];
-}
-
-class AuthAuthenticated extends AuthState {
-  final UserModel user;
-  const AuthAuthenticated(this.user);
-  @override
-  List<Object?> get props => [user.id, user.activeRole];
-}
-
-class AuthError extends AuthState {
-  final String message;
-  const AuthError(this.message);
-  @override
-  List<Object?> get props => [message];
-}
-
-// ─── Events ───
-
-abstract class AuthEvent extends Equatable {
-  const AuthEvent();
-  @override
-  List<Object?> get props => [];
-}
-
-class AuthRequestOtp extends AuthEvent {
-  final String phoneNumber;
-  const AuthRequestOtp(this.phoneNumber);
-  @override
-  List<Object?> get props => [phoneNumber];
-}
-
-class AuthVerifyOtp extends AuthEvent {
-  final String phoneNumber;
-  final String otpCode;
-  const AuthVerifyOtp(this.phoneNumber, this.otpCode);
-  @override
-  List<Object?> get props => [phoneNumber, otpCode];
-}
-
-class AuthSwitchRole extends AuthEvent {
-  final String role;
-  const AuthSwitchRole(this.role);
-  @override
-  List<Object?> get props => [role];
-}
-
-class AuthLogout extends AuthEvent {}
-
-class AuthCheckStatus extends AuthEvent {}
-
-// ─── Cubit ───
+part 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _repository;
+  final Logger _logger = GetIt.I<Logger>();
 
-  AuthCubit(this._repository) : super(AuthInitial());
+  AuthCubit({required AuthRepository repository})
+      : _repository = repository,
+        super(AuthInitial());
+
+  Future<void> checkAuthStatus() async {
+    try {
+      _logger.d('Checking auth status');
+      emit(AuthLoading());
+
+      final token = await _repository.getToken();
+      if (token != null) {
+        final user = await _repository.getCurrentUser();
+        emit(AuthAuthenticated(user));
+        _logger.i('User authenticated: ${user.name}');
+      } else {
+        emit(AuthInitial());
+        _logger.i('No token found, user not authenticated');
+      }
+    } catch (e) {
+      _logger.e('Error checking auth status: $e');
+      emit(AuthInitial());
+    }
+  }
 
   Future<void> requestOtp(String phoneNumber) async {
-    emit(AuthLoading());
     try {
-      // Mock: just simulate success
-      await Future.delayed(const Duration(seconds: 1));
+      _logger.d('Requesting OTP for $phoneNumber');
+      emit(AuthLoading());
+      
+      await _repository.requestOtp(phoneNumber);
+      
       emit(AuthOtpSent(phoneNumber));
+      _logger.i('OTP sent successfully');
     } catch (e) {
-      emit(AuthError('Gagal mengirim OTP. Coba lagi ya.'));
+      _logger.e('Error requesting OTP: $e');
+      emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> verifyOtp(String phoneNumber, String otpCode) async {
-    emit(AuthLoading());
+  Future<void> verifyOtp({
+    required String phoneNumber,
+    required String otpCode,
+  }) async {
     try {
-      final user = await _repository.loginWithOtp(phoneNumber, otpCode);
+      _logger.d('Verifying OTP for $phoneNumber');
+      emit(AuthLoading());
+      
+      final user = await _repository.verifyOtp(
+        phoneNumber: phoneNumber,
+        otpCode: otpCode,
+      );
+      
       emit(AuthAuthenticated(user));
+      _logger.i('OTP verified, user authenticated');
     } catch (e) {
-      emit(AuthError('Kode OTP salah atau kadaluarsa.'));
+      _logger.e('Error verifying OTP: $e');
+      emit(AuthError(e.toString()));
     }
   }
 
-  /// Login as demo user with specific role
   Future<void> loginAsDemoUser(String role) async {
-    emit(AuthLoading());
     try {
+      _logger.d('Logging in as demo user: $role');
+      emit(AuthLoading());
+      
       final user = await _repository.loginAsDemoUser(role);
+      
       emit(AuthAuthenticated(user));
+      _logger.i('Demo login successful: ${user.name}');
     } catch (e) {
-      emit(AuthError('Gagal login sebagai demo user.'));
-    }
-  }
-
-  Future<void> switchRole(String role) async {
-    try {
-      final user = await _repository.switchActiveRole(role);
-      emit(AuthAuthenticated(user));
-    } catch (e) {
-      emit(AuthError('Gagal mengganti role.'));
+      _logger.e('Error in demo login: $e');
+      emit(AuthError(e.toString()));
     }
   }
 
   Future<void> logout() async {
-    await _repository.logout();
-    emit(AuthInitial());
+    try {
+      _logger.d('Logging out');
+      emit(AuthLoading());
+      
+      await _repository.logout();
+      
+      emit(AuthInitial());
+      _logger.i('Logout successful');
+    } catch (e) {
+      _logger.e('Error during logout: $e');
+      emit(AuthError(e.toString()));
+    }
   }
 
-  Future<void> checkStatus() async {
-    if (_repository.isLoggedIn) {
-      final user = await _repository.getCurrentUser();
-      emit(AuthAuthenticated(user));
+  Future<void> updateActiveRole(String role) async {
+    try {
+      _logger.d('Updating active role: $role');
+      
+      if (state is AuthAuthenticated) {
+        final currentUser = (state as AuthAuthenticated).user;
+        final updatedUser = await _repository.updateActiveRole(role);
+        
+        emit(AuthAuthenticated(updatedUser));
+        _logger.i('Active role updated: $role');
+      }
+    } catch (e) {
+      _logger.e('Error updating active role: $e');
+      emit(AuthError(e.toString()));
     }
   }
 }

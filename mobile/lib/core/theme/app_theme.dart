@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 /// Grosirun App Theme
 /// 
@@ -31,144 +33,220 @@ class AppTheme {
   static const Color offlineBannerBg = Color(0xFFFEF9C3);
   static const Color offlineBannerText = Color(0xFF854D0E);
 
-  // ─── Light Theme ───
+  // ─── Light Theme (using FlexColorScheme) ───
   static ThemeData get lightTheme {
-    return ThemeData(
+    return FlexThemeData.light(
+      scheme: FlexScheme.green,
+      surfaceMode: FlexSurfaceMode.highScaffoldLevelSurface,
+      blendLevel: 20,
+      appBarStyle: FlexAppBarStyle.surface,
+      appBarOpacity: 0.95,
+      transparentStatusBar: true,
+      tabBarStyle: FlexTabBarStyle.forAppBar,
+      visualDensity: FlexColorScheme.comfortablePlatformDensity,
       useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: const ColorScheme.light(
+      // Use Google Fonts
+      textTheme: GoogleFonts.nunitoTextTheme(),
+      // Custom color overrides
+      colors: FlexSchemeColor(
         primary: primary,
-        onPrimary: Colors.white,
-        primaryContainer: primaryLight,
+        primaryContainer: primaryDark,
         secondary: warning,
-        error: error,
-        surface: background,
-        onSurface: textPrimary,
+        secondaryContainer: const Color(0xFFF59E0B),
+        tertiary: success,
+        tertiaryContainer: const Color(0xFF16A34A),
+        errorColor: error,
+        errorContainer: const Color(0xFFEF4444),
+        appBarColor: primary,
+        onScheme: Colors.white,
       ),
-      scaffoldBackgroundColor: background,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: background,
-        foregroundColor: textPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        centerTitle: true,
+      subThemesData: const FlexSubThemesData(
+        blendOnLevel: 20,
+        blendOnColors: true,
+        useTextTheme: true,
+        defaultRadius: 12.0,
+        // Button themes
+        elevatedButtonRadius: 12.0,
+        elevatedButtonElevation: 2.0,
+        outlinedButtonRadius: 12.0,
+        textButtonRadius: 12.0,
+        inputDecoratorRadius: 8.0,
+        inputDecoratorBorderWidth: 1.5,
+        inputDecoratorIsFilled: true,
+        cardRadius: 16.0,
+        popupMenuRadius: 12.0,
+        dialogRadius: 20.0,
+        snackbarRadius: 12.0,
+        bottomSheetRadius: 20.0,
+        chipRadius: 8.0,
+        segmentedButtonRadius: 12.0,
+        // Floating action button
+        fabRadius: 16.0,
+        fabUseShape: true,
+        // Navigation
+        navigationBarHeight: 64.0,
+        navigationBarItemIndicatorRadius: 12.0,
+        navigationBarIndicatorOpacity: 0.2,
+        navigationRailWidth: 72.0,
+        navigationRailLabelType: NavigationRailLabelType.all,
+        // Tooltip
+        tooltipRadius: 8.0,
+        tooltipWaitDuration: Duration(milliseconds: 500),
+        // Switch & Slider
+        switchThumbSize: 24.0,
+        switchDesignWidth: 52.0,
+        switchDesignHeight: 32.0,
       ),
-      cardTheme: CardThemeData(
-        color: surface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: border, width: 1),
+      keyColors: const FlexKeyColors(
+        usePrimary: true,
+        useSecondary: true,
+        useTertiary: true,
+        keepPrimary: true,
+      ),
+      tones: FlexSchemeVariant(
+        name: 'Grosirun Green',
+        description: 'Custom green theme for Grosirun',
+        primary: FlexTonality(
+          primary: primary,
+          secondary: warning,
+          tertiary: success,
+          error: error,
         ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: primary,
-          minimumSize: const Size(double.infinity, 48),
-          side: const BorderSide(color: primary),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: primary,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: error),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: background,
-        selectedItemColor: primary,
-        unselectedItemColor: textSecondary,
-        type: BottomNavigationBarType.fixed,
-        elevation: 8,
-      ),
-      dividerTheme: const DividerThemeData(
-        color: border,
-        thickness: 1,
       ),
     );
   }
 
-  // ─── Typography Helpers ───
-  static const TextStyle headlineLarge = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: textPrimary,
-    height: 1.3,
+  // ─── Typography Helpers (Google Fonts Nunito) ───
+  static TextStyle get headlineLarge => GoogleFonts.nunito(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        color: textPrimary,
+        height: 1.3,
+      );
+
+  static TextStyle get headlineMedium => GoogleFonts.nunito(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: textPrimary,
+        height: 1.3,
+      );
+
+  static TextStyle get titleLarge => GoogleFonts.nunito(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: textPrimary,
+        height: 1.4,
+      );
+
+  static TextStyle get titleMedium => GoogleFonts.nunito(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: textPrimary,
+        height: 1.4,
+      );
+
+  static TextStyle get bodyLarge => GoogleFonts.nunito(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: textPrimary,
+        height: 1.5,
+      );
+
+  static TextStyle get bodyMedium => GoogleFonts.nunito(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: textSecondary,
+        height: 1.5,
+      );
+
+  static TextStyle get bodySmall => GoogleFonts.nunito(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: textSecondary,
+        height: 1.5,
+      );
+
+  static TextStyle get labelLarge => GoogleFonts.nunito(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        height: 1.4,
+      );
+
+  static TextStyle get labelMedium => GoogleFonts.nunito(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        height: 1.4,
+      );
+
+  static TextStyle get labelSmall => GoogleFonts.nunito(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        height: 1.4,
+      );
+
+  // ─── Common Decorations ───
+  static BoxDecoration cardDecoration = BoxDecoration(
+    color: surface,
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: border, width: 1),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.05),
+        blurRadius: 10,
+        offset: const Offset(0, 4),
+      ),
+    ],
   );
 
-  static const TextStyle titleMedium = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
-    color: textPrimary,
-    height: 1.4,
+  static BoxDecoration elevatedCardDecoration = BoxDecoration(
+    color: background,
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: border, width: 1),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.1),
+        blurRadius: 20,
+        offset: const Offset(0, 8),
+      ),
+    ],
   );
 
-  static const TextStyle bodyLarge = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: textPrimary,
-    height: 1.4,
-  );
-
-  static const TextStyle bodyMedium = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: textSecondary,
-    height: 1.4,
-  );
-
-  static const TextStyle labelLarge = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-  );
+  static InputDecoration inputDecoration({
+    String? labelText,
+    String? hintText,
+    IconData? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+      suffixIcon: suffixIcon,
+      labelStyle: bodyMedium,
+      hintStyle: bodyMedium.copyWith(color: textDisabled),
+      filled: true,
+      fillColor: surface,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: border, width: 1.5),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: border, width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: error, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: error, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
+  }
 }

@@ -8,19 +8,19 @@ import 'package:get_it/get_it.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../logic/cubits/auth/auth_cubit.dart';
 
-class LoginScreen extends StatefulWidget {
+class OtpScreen extends StatefulWidget {
   final String phoneNumber;
 
-  const LoginScreen({
+  const OtpScreen({
     super.key,
     required this.phoneNumber,
   });
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _OtpScreenState extends State<OtpScreen> {
   final TextEditingController _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _logger = GetIt.I<Logger>();

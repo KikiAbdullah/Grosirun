@@ -1,98 +1,145 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:logger/logger.dart';
+import 'package:get_it/get_it.dart';
+import '../../../data/repositories/campaign_repository.dart';
 import '../../../data/models/campaign_model.dart';
-import '../../../data/repositories/repositories.dart';
 
-// ─── States ───
+part 'campaign_state.dart';
 
-abstract class CampaignListState extends Equatable {
-  const CampaignListState();
-  @override
-  List<Object?> get props => [];
-}
-
-class CampaignListInitial extends CampaignListState {}
-class CampaignListLoading extends CampaignListState {}
-
-class CampaignListLoaded extends CampaignListState {
-  final List<CampaignModel> campaigns;
-  const CampaignListLoaded(this.campaigns);
-  @override
-  List<Object?> get props => [campaigns.length];
-}
-
-class CampaignListError extends CampaignListState {
-  final String message;
-  const CampaignListError(this.message);
-  @override
-  List<Object?> get props => [message];
-}
-
-// ─── Cubit ───
-
-class CampaignListCubit extends Cubit<CampaignListState> {
+class CampaignCubit extends Cubit<CampaignState> {
   final CampaignRepository _repository;
+  final Logger _logger = GetIt.I<Logger>();
 
-  CampaignListCubit(this._repository) : super(CampaignListInitial());
+  CampaignCubit({required CampaignRepository repository})
+      : _repository = repository,
+        super(CampaignInitial());
 
-  Future<void> loadCampaigns() async {
-    emit(CampaignListLoading());
+  Future<void> loadCampaigns({
+    String? status,
+    int page = 1,
+    int limit = 20,
+  }) async {
     try {
-      final campaigns = await _repository.getActiveCampaigns();
-      emit(CampaignListLoaded(campaigns));
+      _logger.d('Loading campaigns');
+      emit(CampaignLoading());
+      
+      final campaigns = await _repository.getCampaigns(
+        status: status,
+        page: page,
+        limit: limit,
+      );
+      
+      emit(CampaignLoaded(campaigns));
+      _logger.i('Campaigns loaded: ${campaigns.length} items');
     } catch (e) {
-      emit(const CampaignListError('Gagal memuat campaign. Cek koneksi internet.'));
+      _logger.e('Error loading campaigns: $e');
+      emit(CampaignError(e.toString()));
     }
   }
 
-  Future<void> refresh() async {
+  Future<void> refreshCampaigns() async {
     await loadCampaigns();
   }
-}
 
-// ─── Campaign Detail States ───
-
-abstract class CampaignDetailState extends Equatable {
-  const CampaignDetailState();
-  @override
-  List<Object?> get props => [];
-}
-
-class CampaignDetailInitial extends CampaignDetailState {}
-class CampaignDetailLoading extends CampaignDetailState {}
-
-class CampaignDetailLoaded extends CampaignDetailState {
-  final CampaignModel campaign;
-  const CampaignDetailLoaded(this.campaign);
-  @override
-  List<Object?> get props => [campaign.id, campaign.currentQuantity];
-}
-
-class CampaignDetailError extends CampaignDetailState {
-  final String message;
-  const CampaignDetailError(this.message);
-  @override
-  List<Object?> get props => [message];
-}
-
-// ─── Campaign Detail Cubit ───
-
-class CampaignDetailCubit extends Cubit<CampaignDetailState> {
-  final CampaignRepository _repository;
-
-  CampaignDetailCubit(this._repository) : super(CampaignDetailInitial());
-
-  Future<void> loadDetail(int campaignId) async {
-    emit(CampaignDetailLoading());
+  Future<void> loadCampaignDetail(int id) async {
     try {
-      final campaign = await _repository.getCampaignDetail(campaignId);
+      _logger.d('Loading campaign detail: $id');
+      emit(CampaignLoading());
+      
+      final campaign = await _repository.getCampaignDetail(id);
+      
       emit(CampaignDetailLoaded(campaign));
+      _logger.i('Campaign detail loaded: ${campaign.title}');
     } catch (e) {
-      emit(const CampaignDetailError('Gagal memuat detail campaign.'));
+      _logger.e('Error loading campaign detail: $e');
+      emit(CampaignError(e.toString()));
     }
   }
 
-  Future<void> refresh(int campaignId) async {
-    await loadDetail(campaignId);
+  Future<void> createCampaign({
+    required String title,
+    required String description,
+    required int productId,
+    required int targetQuantity,
+    required int deadlineDays,
+    required String unit,
+  }) async {
+    try {
+      _logger.d('Creating campaign: $title');
+      emit(CampaignLoading());
+      
+      final campaign = await _repository.createCampaign(
+        title: title,
+        description: description,
+        productId: productId,
+        targetQuantity: targetQuantity,
+        deadlineDays: deadlineDays,
+        unit: unit,
+      );
+      
+      emit(CampaignCreated(campaign));
+      _logger.i('Campaign created: ${campaign.title}');
+      
+      // Reload campaigns
+      await loadCampaigns();
+    } catch (e) {
+      _logger.e('Error creating campaign: $e');
+      emit(CampaignError(e.toString()));
+    }
+  }
+
+  Future<void> updateCampaign(int id, Map<String, dynamic> data) async {
+    try {
+      _logger.d('Updating campaign: $id');
+      emit(CampaignLoading());
+      
+      await _repository.updateCampaign(id, data);
+      
+      emit(CampaignUpdated());
+      _logger.i('Campaign updated: $id');
+      
+      // Reload campaigns
+      await loadCampaigns();
+    } catch (e) {
+      _logger.e('Error updating campaign: $e');
+      emit(CampaignError(e.toString()));
+    }
+  }
+
+  Future<void> cancelCampaign(int id) async {
+    try {
+      _logger.d('Cancelling campaign: $id');
+      emit(CampaignLoading());
+      
+      await _repository.cancelCampaign(id);
+      
+      emit(CampaignCancelled());
+      _logger.i('Campaign cancelled: $id');
+      
+      // Reload campaigns
+      await loadCampaigns();
+    } catch (e) {
+      _logger.e('Error cancelling campaign: $e');
+      emit(CampaignError(e.toString()));
+    }
+  }
+
+  Future<void> completeCampaign(int id) async {
+    try {
+      _logger.d('Completing campaign: $id');
+      emit(CampaignLoading());
+      
+      await _repository.completeCampaign(id);
+      
+      emit(CampaignCompleted());
+      _logger.i('Campaign completed: $id');
+      
+      // Reload campaigns
+      await loadCampaigns();
+    } catch (e) {
+      _logger.e('Error completing campaign: $e');
+      emit(CampaignError(e.toString()));
+    }
   }
 }
