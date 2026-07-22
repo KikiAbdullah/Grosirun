@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
-/// User model matching API_SPEC response
 class UserModel extends Equatable {
   final int id;
   final String name;
@@ -36,7 +37,7 @@ class UserModel extends Equatable {
       fcmToken: json['fcm_token'] as String?,
       clusterId: json['cluster_id'] as int?,
       clusterName: json['cluster_name'] as String?,
-      roles: (json['roles'] as List<dynamic>?)?.cast<String>() ?? [],
+      roles: (json['roles'] as List<dynamic>?)?.cast<String>() ?? const [],
       activeRole: json['active_role'] as String?,
       consentGiven: json['consent_at'] != null,
       tosAccepted: json['tos_accepted_at'] != null,
@@ -44,6 +45,10 @@ class UserModel extends Equatable {
           ? DateTime.parse(json['created_at'] as String)
           : null,
     );
+  }
+
+  factory UserModel.fromJsonString(String source) {
+    return UserModel.fromJson(jsonDecode(source) as Map<String, dynamic>);
   }
 
   Map<String, dynamic> toJson() {
@@ -58,8 +63,11 @@ class UserModel extends Equatable {
       'active_role': activeRole,
       'consent_at': consentGiven ? DateTime.now().toIso8601String() : null,
       'tos_accepted_at': tosAccepted ? DateTime.now().toIso8601String() : null,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
+
+  String toJsonString() => jsonEncode(toJson());
 
   UserModel copyWith({
     int? id,

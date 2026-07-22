@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
-/// Notification model matching API_SPEC fallback notifications
 class NotificationModel extends Equatable {
   final int id;
   final int userId;
@@ -35,6 +36,20 @@ class NotificationModel extends Equatable {
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'title': title,
+      'body': body,
+      'data': data,
+      'read_at': readAt?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  String toJsonString() => jsonEncode(toJson());
 
   @override
   List<Object?> get props => [id, isRead];

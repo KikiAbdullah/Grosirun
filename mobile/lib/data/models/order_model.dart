@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
-/// Order model matching API_SPEC response
 class OrderModel extends Equatable {
   final int id;
   final int campaignId;
@@ -11,7 +12,7 @@ class OrderModel extends Equatable {
   final String variantName;
   final int quantity;
   final int totalPrice;
-  final String paymentMethod; // 'cash' or 'qris'
+  final String paymentMethod;
   final String paymentStatus;
   final String? proofUrl;
   final String? validationNotes;
@@ -60,6 +61,29 @@ class OrderModel extends Equatable {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'campaign_id': campaignId,
+      'campaign_title': campaignTitle,
+      'user_id': userId,
+      'user_name': userName,
+      'variant_id': variantId,
+      'variant_name': variantName,
+      'quantity': quantity,
+      'total_price': totalPrice,
+      'payment_method': paymentMethod,
+      'payment_status': paymentStatus,
+      'proof_url': proofUrl,
+      'validation_notes': validationNotes,
+      'validated_by_id': validatedById,
+      'created_at': createdAt.toIso8601String(),
+      'validated_at': validatedAt?.toIso8601String(),
+    };
+  }
+
+  String toJsonString() => jsonEncode(toJson());
 
   @override
   List<Object?> get props => [id, campaignId, userId, paymentStatus];

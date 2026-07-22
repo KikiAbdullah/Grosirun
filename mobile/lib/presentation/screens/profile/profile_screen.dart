@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
+
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../logic/cubits/auth/auth_cubit.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../widgets/big_button.dart';
 
-/// Profile screen — shows user info, role switcher, and logout.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -13,173 +15,151 @@ class ProfileScreen extends StatelessWidget {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         if (state is! AuthAuthenticated) {
-          return const Center(child: Text('Belum login'));
+          return const Center(child: CircularProgressIndicator());
         }
+
         final user = state.user;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
-              // Avatar
-              CircleAvatar(
-                radius: 48,
-                backgroundColor: AppTheme.primaryLight,
-                child: Text(
-                  user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppTheme.primary),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(user.name, style: AppTheme.headlineLarge),
-              Text(user.phoneNumber, style: AppTheme.bodyMedium),
-              if (user.clusterName != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(user.clusterName!, style: AppTheme.bodyMedium),
-                ),
-              const SizedBox(height: 24),
-
-              // Role info
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Role Aktif', style: AppTheme.titleMedium),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: user.roles.map((role) {
-                        final isActive = role == user.activeRole;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(_roleLabel(role)),
-                            selected: isActive,
-                            onSelected: isActive
-                                ? null
-                                : (_) => context.read<AuthCubit>().updateActiveRole(role),
-                            selectedColor: AppTheme.primary,
-                            labelStyle: TextStyle(
-                              color: isActive ? Colors.white : AppTheme.textPrimary,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+              const Gap(12),
+              Center(
+                child: CircleAvatar(
+                  radius: 44,
+                  backgroundColor: AppTheme.primaryLight,
+                  child: Text(
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                    style: const TextStyle(
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primary,
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Info cards
-              _InfoTile(
-                icon: Icons.shield,
-                title: 'Privasi & Keamanan',
-                subtitle: 'Consent UU PDP ✅ • ToS Non-Escrow ✅',
-              ),
-              _InfoTile(
-                icon: Icons.info_outline,
-                title: 'Versi Aplikasi',
-                subtitle: 'Grosirun v1.0.0 (Mock Data)',
-              ),
-              _InfoTile(
-                icon: Icons.help_outline,
-                title: 'Bantuan & FAQ',
-                subtitle: 'Panduan penggunaan',
-                onTap: () {},
-              ),
-              const SizedBox(height: 24),
-
-              // Logout
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Keluar?'),
-                        content: const Text('Kamu perlu login ulang untuk masuk kembali.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text('Batal'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              context.read<AuthCubit>().logout();
-                            },
-                            child: Text('Keluar', style: TextStyle(color: AppTheme.error)),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  icon: Icon(Icons.logout, color: AppTheme.error),
-                  label: Text('Keluar', style: TextStyle(color: AppTheme.error)),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppTheme.error),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const Gap(16),
+              Center(child: Text(user.name, style: AppTheme.headlineMedium)),
+              const Gap(4),
+              Center(child: Text(user.phoneNumber, style: AppTheme.bodyMedium)),
+              if (user.clusterName != null) ...[
+                const Gap(4),
+                Center(
+                  child: Chip(
+                    label: Text(user.clusterName!),
+                    backgroundColor: AppTheme.surface,
+                  ),
+                ),
+              ],
+              const Gap(20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Status Kepatuhan', style: AppTheme.titleMedium),
+                      const Gap(12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _StatusChip(
+                            label: 'Consent',
+                            isActive: user.consentGiven,
+                          ),
+                          _StatusChip(
+                            label: 'ToS',
+                            isActive: user.tosAccepted,
+                          ),
+                          _StatusChip(
+                            label: 'Role: ${user.activeRole ?? '-'}',
+                            isActive: true,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Gap(12),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Text('FAQ'),
+                children: const [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('Bagaimana kalau saya offline?'),
+                    subtitle: Text('Data cache tetap tampil, dan transaksi tertentu bisa masuk antrian lokal.'),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('Apakah Grosirun menahan dana?'),
+                    subtitle: Text('Tidak. Grosirun bukan escrow dan hanya mencatat status pembayaran.'),
+                  ),
+                ],
+              ),
+              const Gap(8),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Text('Privacy Policy'),
+                children: const [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('Versi kebijakan'),
+                    subtitle: Text('Data digunakan untuk login, pencatatan transaksi, dan retensi yang diwajibkan.'),
+                  ),
+                ],
+              ),
+              const Gap(20),
+              BigButton(
+                label: 'Hapus Akun',
+                icon: Icons.delete_outline,
+                backgroundColor: AppTheme.error,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Endpoint hapus akun perlu disambungkan ke backend.'),
+                    ),
+                  );
+                },
+              ),
+              const Gap(12),
+              OutlinedButton.icon(
+                onPressed: () => context.read<AuthCubit>().logout(),
+                icon: const Icon(Icons.logout),
+                label: const Text('Keluar'),
+              ),
+              const Gap(12),
+              Text(
+                'Versi aplikasi: Grosirun ${AppConstants.tosVersion}',
+                textAlign: TextAlign.center,
+                style: AppTheme.bodySmall,
+              ),
             ],
           ),
         );
       },
     );
   }
-
-  String _roleLabel(String role) {
-    switch (role) {
-      case UserRole.buyer:
-        return 'Pembeli';
-      case UserRole.initiator:
-        return 'Inisiator';
-      case UserRole.seller:
-        return 'Penjual';
-      case UserRole.admin:
-        return 'Admin';
-      default:
-        return role;
-    }
-  }
 }
 
-class _InfoTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
 
-  const _InfoTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.onTap,
+  const _StatusChip({
+    required this.label,
+    required this.isActive,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(icon, color: AppTheme.primary),
-        title: Text(title, style: AppTheme.bodyLarge),
-        subtitle: Text(subtitle, style: AppTheme.bodyMedium),
-        trailing: onTap != null ? const Icon(Icons.chevron_right) : null,
-        onTap: onTap,
-      ),
+    return Chip(
+      label: Text(label),
+      backgroundColor: isActive ? AppTheme.primaryLight : AppTheme.border,
     );
   }
 }

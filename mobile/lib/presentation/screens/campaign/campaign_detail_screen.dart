@@ -1,13 +1,20 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/campaign_model.dart';
 import '../../../data/repositories/campaign_repository.dart';
-import '../../../logic/cubits/campaign/campaign_cubit.dart';
+import '../../../logic/cubits/order/order_cubit.dart';
+import '../../widgets/big_button.dart';
+import '../../widgets/offline_banner.dart';
 
-/// Campaign detail screen with progress, variants, and checkout.
 class CampaignDetailScreen extends StatefulWidget {
   final int campaignId;
+
   const CampaignDetailScreen({super.key, required this.campaignId});
 
   @override
@@ -15,287 +22,319 @@ class CampaignDetailScreen extends StatefulWidget {
 }
 
 class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
-  final Map<int, int> _selectedQuantities = {};
+  final Map<int, int> _quantities = {};
   String _paymentMethod = 'cash';
 
   @override
-  void initState() {
-    super.initState();
-    // Use a separate cubit for detail
-    context.read<CampaignCubit>(); // just to ensure parent is alive
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detail Patungan'),
-        actions: [
-          IconButton(icon: const Icon(Icons.share), onPressed: () {}),
-        ],
-      ),
-      body: FutureBuilder<CampaignModel>(
-        future: context.read<CampaignRepository>().getCampaignDetail(widget.campaignId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Gagal memuat: ${snapshot.error}'));
-          }
-          final campaign = snapshot.data!;
-          return _buildContent(context, campaign);
-        },
-      ),
-    );
-  }
-
-  Widget _buildContent(BuildContext context, CampaignModel campaign) {
-    final percent = (campaign.progressPercent * 100).toStringAsFixed(0);
-    final deadlineDays = campaign.deadline.difference(DateTime.now()).inDays;
-    final totalSelected = _selectedQuantities.values.fold<int>(0, (s, q) => s + q);
-    final totalPrice = totalSelected * campaign.buyerUnitPrice;
-
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title & initiator
-                Text(campaign.title, style: AppTheme.headlineLarge),
-                const SizedBox(height: 4),
-                Text(
-                  'oleh ${campaign.initiatorName}',
-                  style: AppTheme.bodyMedium,
+    return BlocConsumer<OrderCubit, OrderState>(
+      listener: (context, state) {
+        if (state is OrderCreated) {
+          showDialog<void>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('Pesanan tersimpan'),
+              content: Text(
+                state.order.paymentMethod == 'cash'
+                    ? 'Pesanan kamu tercatat. Silakan bayar tunai ke inisiator.'
+                    : 'Pesanan kamu tercatat. Bukti transfer bisa diunggah dari workspace pesanan.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Tutup'),
                 ),
-                const SizedBox(height: 16),
+              ],
+            ),
+          );
+        }
+        if (state is OrderError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      builder: (context, orderState) {
+        return FutureBuilder<CampaignModel>(
+          future: context.read<CampaignRepository>().getCampaignDetail(widget.campaignId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
 
-                // Progress section
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.border),
-                  ),
+            if (snapshot.hasError || !snapshot.hasData) {
+              return Scaffold(
+                appBar: AppBar(title: const Text('Detail Campaign')),
+                body: Center(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Progress bar
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: LinearProgressIndicator(
-                          value: campaign.progressPercent,
-                          minHeight: 28,
-                          backgroundColor: AppTheme.border,
-                          valueColor: AlwaysStoppedAnimation(
-                            campaign.progressPercent >= 0.7
-                                ? AppTheme.warning
-                                : AppTheme.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${campaign.currentQuantity} / ${campaign.targetQuantity} ${campaign.unit}',
-                            style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            '$percent%',
-                            style: AppTheme.titleMedium.copyWith(color: AppTheme.primary),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.schedule, size: 16, color: AppTheme.textSecondary),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Deadline: $deadlineDays hari lagi',
-                            style: AppTheme.bodyMedium,
-                          ),
-                          const Spacer(),
-                          Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textSecondary),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              campaign.locationDistribution ?? '-',
-                              style: AppTheme.bodyMedium,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      const Icon(Icons.error_outline, size: 56, color: AppTheme.error),
+                      const Gap(12),
+                      Text('Gagal memuat campaign', style: AppTheme.titleLarge),
+                      const Gap(12),
+                      BigButton(
+                        label: 'Coba lagi',
+                        icon: Icons.refresh_rounded,
+                        onPressed: () => setState(() {}),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+              );
+            }
 
-                // Description
-                Text('Deskripsi', style: AppTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(campaign.description, style: AppTheme.bodyLarge),
-                const SizedBox(height: 16),
+            final campaign = snapshot.data!;
+            final selectedEntries = _quantities.entries.where((entry) => entry.value > 0).toList();
+            final totalQuantity = selectedEntries.fold<int>(0, (sum, entry) => sum + entry.value);
+            final totalPrice = selectedEntries.fold<int>(0, (sum, entry) {
+              final variant = campaign.variants.firstWhere(
+                (item) => item.id == entry.key,
+                orElse: () => campaign.variants.first,
+              );
+              return sum + (entry.value * variant.quantityPerVariant * campaign.buyerUnitPrice);
+            });
 
-                // Variants
-                Text('Pilih Varian', style: AppTheme.titleMedium),
-                const SizedBox(height: 8),
-                ...campaign.variants.map((variant) => _VariantSelector(
-                      variant: variant,
-                      unit: campaign.unit,
-                      unitPrice: campaign.buyerUnitPrice,
-                      selectedQty: _selectedQuantities[variant.id] ?? 0,
-                      onChanged: (qty) {
-                        setState(() {
-                          if (qty <= 0) {
-                            _selectedQuantities.remove(variant.id);
-                          } else {
-                            _selectedQuantities[variant.id] = qty;
-                          }
-                        });
-                      },
-                    )),
-                const SizedBox(height: 16),
-
-                // Payment method
-                Text('Metode Pembayaran', style: AppTheme.titleMedium),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _PaymentMethodChip(
-                      label: 'Tunai',
-                      icon: Icons.money,
-                      selected: _paymentMethod == 'cash',
-                      onTap: () => setState(() => _paymentMethod = 'cash'),
-                    ),
-                    const SizedBox(width: 8),
-                    _PaymentMethodChip(
-                      label: 'QRIS',
-                      icon: Icons.qr_code_2,
-                      selected: _paymentMethod == 'qris',
-                      onTap: () => setState(() => _paymentMethod = 'qris'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 80), // Space for bottom bar
-              ],
-            ),
-          ),
-        ),
-
-        // Bottom checkout bar
-        if (totalSelected > 0)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: AppTheme.border)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Total',
-                          style: AppTheme.bodyMedium,
-                        ),
-                        Text(
-                          'Rp${_formatPrice(totalPrice)}',
-                          style: AppTheme.headlineLarge.copyWith(fontSize: 20),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _checkout(context, campaign),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(160, 56),
-                    ),
-                    child: const Text('Konfirmasi'),
+            return Scaffold(
+              appBar: AppBar(
+                leading: const BackButton(),
+                title: const Text('Detail Campaign'),
+                actions: [
+                  IconButton(
+                    tooltip: 'Share WhatsApp',
+                    icon: const Icon(Icons.share_outlined),
+                    onPressed: () {
+                      final shareText =
+                          'Lihat campaign "${campaign.title}" di Grosirun: ${AppConstants.deepLinkPrefix}${campaign.id}';
+                      Share.share(shareText);
+                    },
                   ),
                 ],
               ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  void _checkout(BuildContext context, CampaignModel campaign) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Patungan Berhasil! 🎉'),
-        content: Text(
-          _paymentMethod == 'cash'
-              ? 'Pesanan kamu tercatat. Bayar tunai ke ${campaign.initiatorName} ya.'
-              : 'Pesanan kamu tercatat. Upload bukti transfer QRIS.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
+              body: Column(
+                children: [
+                  const OfflineBanner(),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        _CampaignHeader(campaign: campaign),
+                        const Gap(16),
+                        _ProgressCard(campaign: campaign),
+                        const Gap(16),
+                        Text('Deskripsi', style: AppTheme.titleLarge),
+                        const Gap(8),
+                        Text(campaign.description, style: AppTheme.bodyLarge),
+                        const Gap(16),
+                        Text('Pilih Varian', style: AppTheme.titleLarge),
+                        const Gap(8),
+                        ...campaign.variants.map(
+                          (variant) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: _VariantSelector(
+                              variant: variant,
+                              selectedQty: _quantities[variant.id] ?? 0,
+                              onChanged: (qty) {
+                                setState(() {
+                                  if (qty <= 0) {
+                                    _quantities.remove(variant.id);
+                                  } else {
+                                    _quantities[variant.id] = qty;
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        const Gap(16),
+                        Text('Metode Pembayaran', style: AppTheme.titleLarge),
+                        const Gap(8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _PaymentChip(
+                                label: 'Tunai',
+                                icon: Icons.payments_outlined,
+                                selected: _paymentMethod == 'cash',
+                                onTap: () => setState(() => _paymentMethod = 'cash'),
+                              ),
+                            ),
+                            const Gap(8),
+                            Expanded(
+                              child: _PaymentChip(
+                                label: 'QRIS',
+                                icon: Icons.qr_code_2_outlined,
+                                selected: _paymentMethod == 'qris',
+                                onTap: () => setState(() => _paymentMethod = 'qris'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Gap(100),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              bottomNavigationBar: SafeArea(
+                minimum: const EdgeInsets.all(16),
+                child: _CheckoutBar(
+                  totalPrice: totalPrice,
+                  quantity: totalQuantity,
+                  isLoading: orderState is OrderLoading,
+                  onCheckout: totalQuantity == 0
+                      ? null
+                      : () {
+                          final selectedEntry = _quantities.entries.firstWhere(
+                            (entry) => entry.value > 0,
+                          );
+                          context.read<OrderCubit>().createOrder(
+                                campaignId: widget.campaignId,
+                                variantId: selectedEntry.key,
+                                quantity: selectedEntry.value,
+                                paymentMethod: _paymentMethod,
+                              );
+                        },
+                ),
+              ),
+            );
+          },
         );
+      },
+    );
   }
 }
 
-// ─── Variant Selector Widget ───
+class _CampaignHeader extends StatelessWidget {
+  final CampaignModel campaign;
+
+  const _CampaignHeader({required this.campaign});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: campaign.imageUrl == null
+                ? Container(
+                    color: AppTheme.surface,
+                    child: const Icon(Icons.image_outlined, size: 52, color: AppTheme.primary),
+                  )
+                : CachedNetworkImage(
+                    imageUrl: campaign.imageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: AppTheme.surface,
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: AppTheme.surface,
+                      child: const Icon(Icons.broken_image_outlined),
+                    ),
+                  ),
+          ),
+        ),
+        const Gap(16),
+        Text(campaign.title, style: AppTheme.headlineLarge),
+        const Gap(4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            Chip(label: Text(campaign.clusterName)),
+            Chip(label: Text(campaign.initiatorName)),
+            Chip(label: Text(campaign.status), backgroundColor: AppTheme.primaryLight),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgressCard extends StatelessWidget {
+  final CampaignModel campaign;
+
+  const _ProgressCard({required this.campaign});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = campaign.progressPercent.clamp(0.0, 1.0);
+    final progressColor = progress >= 0.7 ? AppTheme.warning : AppTheme.primary;
+    final daysLeft = campaign.deadline.difference(DateTime.now()).inDays;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.local_shipping_outlined, color: AppTheme.primary),
+                const Gap(8),
+                Expanded(
+                  child: Text('Progress campaign', style: AppTheme.titleMedium),
+                ),
+                Text('${(progress * 100).toStringAsFixed(0)}%', style: AppTheme.titleMedium),
+              ],
+            ),
+            const Gap(12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 24,
+                backgroundColor: AppTheme.border,
+                valueColor: AlwaysStoppedAnimation(progressColor),
+              ),
+            ),
+            const Gap(12),
+            Text(
+              'Terkumpul ${campaign.currentQuantity} ${campaign.unit} dari target ${campaign.targetQuantity} ${campaign.unit}',
+              style: AppTheme.bodyMedium,
+            ),
+            const Gap(4),
+            Text(
+              daysLeft <= 0 ? 'Sisa hari ini' : 'Sisa $daysLeft hari',
+              style: AppTheme.labelMedium.copyWith(
+                color: daysLeft < 1 ? AppTheme.error : AppTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _VariantSelector extends StatelessWidget {
   final CampaignVariantModel variant;
-  final String unit;
-  final int unitPrice;
   final int selectedQty;
   final ValueChanged<int> onChanged;
 
   const _VariantSelector({
     required this.variant,
-    required this.unit,
-    required this.unitPrice,
     required this.selectedQty,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final totalPrice = selectedQty * unitPrice * variant.quantityPerVariant;
+    final canDecrease = selectedQty > 0;
+    final canIncrease = variant.remaining > selectedQty;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: selectedQty > 0 ? AppTheme.primaryLight.withOpacity(0.2) : AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: selectedQty > 0 ? AppTheme.primary : AppTheme.border,
-        ),
+        color: selectedQty > 0 ? AppTheme.primaryLight.withOpacity(0.18) : AppTheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: selectedQty > 0 ? AppTheme.primary : AppTheme.border),
       ),
       child: Row(
         children: [
@@ -303,53 +342,29 @@ class _VariantSelector extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(variant.name, style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.w600)),
-                Text(
-                  'Rp${_formatPrice(unitPrice * variant.quantityPerVariant)}/paket',
-                  style: AppTheme.bodyMedium,
-                ),
-                Text(
-                  'Sisa ${variant.remaining}',
-                  style: AppTheme.bodyMedium.copyWith(
-                    color: variant.remaining < 5 ? AppTheme.error : AppTheme.textSecondary,
-                  ),
-                ),
+                Text(variant.name, style: AppTheme.titleMedium),
+                const Gap(4),
+                Text('Sisa ${variant.remaining}', style: AppTheme.bodySmall),
               ],
             ),
           ),
-          // Quantity controls
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _QtyButton(
-                icon: Icons.remove,
-                enabled: selectedQty > 0,
-                onTap: () => onChanged(selectedQty - 1),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  '$selectedQty',
-                  style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-              _QtyButton(
-                icon: Icons.add,
-                enabled: selectedQty < variant.remaining,
-                onTap: () => onChanged(selectedQty + 1),
-              ),
-            ],
+          _QtyButton(
+            icon: Icons.remove,
+            enabled: canDecrease,
+            onTap: () => onChanged(selectedQty - 1),
+          ),
+          SizedBox(
+            width: 40,
+            child: Center(child: Text('$selectedQty', style: AppTheme.titleMedium)),
+          ),
+          _QtyButton(
+            icon: Icons.add,
+            enabled: canIncrease,
+            onTap: () => onChanged(selectedQty + 1),
           ),
         ],
       ),
     );
-  }
-
-  String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
   }
 }
 
@@ -358,7 +373,11 @@ class _QtyButton extends StatelessWidget {
   final bool enabled;
   final VoidCallback onTap;
 
-  const _QtyButton({required this.icon, required this.enabled, required this.onTap});
+  const _QtyButton({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -369,8 +388,8 @@ class _QtyButton extends StatelessWidget {
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(8),
         child: SizedBox(
-          width: 36,
-          height: 36,
+          width: 48,
+          height: 48,
           child: Icon(icon, size: 20, color: enabled ? Colors.white : AppTheme.textDisabled),
         ),
       ),
@@ -378,15 +397,13 @@ class _QtyButton extends StatelessWidget {
   }
 }
 
-// ─── Payment Method Chip ───
-
-class _PaymentMethodChip extends StatelessWidget {
+class _PaymentChip extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
-  const _PaymentMethodChip({
+  const _PaymentChip({
     required this.label,
     required this.icon,
     required this.selected,
@@ -395,37 +412,73 @@ class _PaymentMethodChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Material(
-        color: selected ? AppTheme.primary.withOpacity(0.1) : AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? AppTheme.primary : AppTheme.border,
-                width: selected ? 2 : 1,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.primaryLight.withOpacity(0.18) : AppTheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: selected ? AppTheme.primary : AppTheme.border),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: selected ? AppTheme.primary : AppTheme.textSecondary),
+            const Gap(8),
+            Text(label, style: AppTheme.titleMedium),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckoutBar extends StatelessWidget {
+  final int totalPrice;
+  final int quantity;
+  final bool isLoading;
+  final VoidCallback? onCheckout;
+
+  const _CheckoutBar({
+    required this.totalPrice,
+    required this.quantity,
+    required this.isLoading,
+    required this.onCheckout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Total $quantity item', style: AppTheme.bodyMedium),
+                  Text(
+                    'Rp${AppConstants.formatPrice(totalPrice)}',
+                    style: AppTheme.headlineMedium,
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: selected ? AppTheme.primary : AppTheme.textSecondary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: selected ? AppTheme.primary : AppTheme.textPrimary,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: 150,
+              child: BigButton(
+                label: 'Checkout',
+                icon: Icons.check_circle_outline,
+                isLoading: isLoading,
+                onPressed: onCheckout,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
-/// Campaign model matching API_SPEC response
 class CampaignModel extends Equatable {
   final int id;
   final String title;
@@ -44,8 +45,7 @@ class CampaignModel extends Equatable {
     this.distributionCompletedAt,
   });
 
-  double get progressPercent =>
-      targetQuantity > 0 ? currentQuantity / targetQuantity : 0;
+  double get progressPercent => targetQuantity > 0 ? currentQuantity / targetQuantity : 0;
 
   bool get isTargetReached => currentQuantity >= targetQuantity;
 
@@ -68,16 +68,43 @@ class CampaignModel extends Equatable {
       imageUrl: json['image_url'] as String?,
       locationDistribution: json['location_distribution'] as String?,
       variants: (json['variants'] as List<dynamic>?)
-              ?.map((v) =>
-                  CampaignVariantModel.fromJson(v as Map<String, dynamic>))
+              ?.map((variant) => CampaignVariantModel.fromJson(
+                    variant as Map<String, dynamic>,
+                  ))
               .toList() ??
-          [],
+          const [],
       createdAt: DateTime.parse(json['created_at'] as String),
       distributionCompletedAt: json['distribution_completed_at'] != null
           ? DateTime.parse(json['distribution_completed_at'] as String)
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'status': status,
+      'cluster_id': clusterId,
+      'cluster_name': clusterName,
+      'initiator_id': initiatorId,
+      'initiator_name': initiatorName,
+      'unit': unit,
+      'target_quantity': targetQuantity,
+      'current_quantity': currentQuantity,
+      'buyer_unit_price': buyerUnitPrice,
+      'supplier_unit_price': supplierUnitPrice,
+      'deadline': deadline.toIso8601String(),
+      'image_url': imageUrl,
+      'location_distribution': locationDistribution,
+      'variants': variants.map((variant) => variant.toJson()).toList(),
+      'created_at': createdAt.toIso8601String(),
+      'distribution_completed_at': distributionCompletedAt?.toIso8601String(),
+    };
+  }
+
+  String toJsonString() => jsonEncode(toJson());
 
   @override
   List<Object?> get props => [
@@ -90,7 +117,6 @@ class CampaignModel extends Equatable {
       ];
 }
 
-/// Campaign Variant model
 class CampaignVariantModel extends Equatable {
   final int id;
   final String name;
@@ -119,6 +145,22 @@ class CampaignVariantModel extends Equatable {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'quantity_per_variant': quantityPerVariant,
+      'max_quantity': maxQuantity,
+      'sold_quantity': soldQuantity,
+    };
+  }
+
   @override
-  List<Object?> get props => [id, name, quantityPerVariant, maxQuantity, soldQuantity];
+  List<Object?> get props => [
+        id,
+        name,
+        quantityPerVariant,
+        maxQuantity,
+        soldQuantity,
+      ];
 }

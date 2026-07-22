@@ -1,14 +1,17 @@
-import 'package:logger/logger.dart';
 import 'package:get_it/get_it.dart';
-import '../models/campaign_model.dart';
+import 'package:hive/hive.dart';
+import 'package:logger/logger.dart';
+
+import '../../core/constants/app_constants.dart';
 import '../datasources/remote/mock_data.dart';
-import '../../core/network/dio_client.dart';
+import '../models/campaign_model.dart';
 
 class CampaignRepository {
-  final DioClient _dioClient;
   final Logger _logger = GetIt.I<Logger>();
 
-  CampaignRepository({required DioClient dioClient}) : _dioClient = dioClient;
+  CampaignRepository();
+
+  Box get _campaignBox => Hive.box(AppConstants.boxCampaigns);
 
   Future<List<CampaignModel>> getCampaigns({
     String? status,
@@ -16,50 +19,46 @@ class CampaignRepository {
     int limit = 20,
   }) async {
     try {
-      _logger.d('Fetching campaigns - status: $status, page: $page');
-      
-      // TODO: Implement real API call
-      // final response = await _dioClient.dio.get(
-      //   '/campaigns',
-      //   queryParameters: {
-      //     if (status != null) 'status': status,
-      //     'page': page,
-      //     'limit': limit,
-      //   },
-      // );
-      // return (response.data['data'] as List)
-      //     .map((json) => CampaignModel.fromJson(json))
-      //     .toList();
+      await Future.delayed(const Duration(milliseconds: 350));
+      final campaigns = MockData.campaigns.where((campaign) {
+        if (status == null) {
+          return true;
+        }
+        return campaign.status == status;
+      }).toList();
 
-      // Mock response
-      await Future.delayed(const Duration(milliseconds: 600));
-      final campaigns = MockData.campaigns;
-      
-      _logger.i('Campaigns fetched: ${campaigns.length} items');
+      await _campaignBox.put(
+        'campaign_list',
+        campaigns.map((campaign) => campaign.toJson()).toList(),
+      );
+
+      _logger.i('Campaign cache refreshed: ${campaigns.length} items');
       return campaigns;
-    } catch (e) {
-      _logger.e('Error fetching campaigns: $e');
-      throw Exception('Gagal memuat campaign');
+    } catch (error) {
+      _logger.w('Campaign remote failed, using cache: $error');
+      final cached = _campaignBox.get('campaign_list') as List<dynamic>?;
+      if (cached == null) {
+        rethrow;
+      }
+      return cached
+          .whereType<Map>()
+          .map((json) => CampaignModel.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
     }
   }
 
   Future<CampaignModel> getCampaignDetail(int id) async {
     try {
-      _logger.d('Fetching campaign detail: $id');
-      
-      // TODO: Implement real API call
-      // final response = await _dioClient.dio.get('/campaigns/$id');
-      // return CampaignModel.fromJson(response.data['data']);
-
-      // Mock response
-      await Future.delayed(const Duration(milliseconds: 400));
-      final campaign = MockData.campaigns.firstWhere((c) => c.id == id);
-      
-      _logger.i('Campaign detail fetched: ${campaign.title}');
+      await Future.delayed(const Duration(milliseconds: 250));
+      final campaign = MockData.campaigns.firstWhere((item) => item.id == id);
+      await _campaignBox.put('campaign_$id', campaign.toJson());
       return campaign;
-    } catch (e) {
-      _logger.e('Error fetching campaign detail: $e');
-      throw Exception('Gagal memuat detail campaign');
+    } catch (error) {
+      final cached = _campaignBox.get('campaign_$id');
+      if (cached is Map) {
+        return CampaignModel.fromJson(Map<String, dynamic>.from(cached));
+      }
+      rethrow;
     }
   }
 
@@ -71,83 +70,71 @@ class CampaignRepository {
     required int deadlineDays,
     required String unit,
   }) async {
-    try {
-      _logger.d('Creating campaign: $title');
-      
-      // TODO: Implement real API call
-      // final response = await _dioClient.dio.post(
-      //   '/campaigns',
-      //   data: {
-      //     'title': title,
-      //     'description': description,
-      //     'product_id': productId,
-      //     'target_quantity': targetQuantity,
-      //     'deadline_days': deadlineDays,
-      //     'unit': unit,
-      //   },
-      // );
-      // return CampaignModel.fromJson(response.data['data']);
-
-      // Mock response
-      await Future.delayed(const Duration(milliseconds: 800));
-      final campaign = MockData.campaigns.first;
-      
-      _logger.i('Campaign created: ${campaign.title}');
-      return campaign;
-    } catch (e) {
-      _logger.e('Error creating campaign: $e');
-      throw Exception('Gagal membuat campaign');
-    }
+    await Future.delayed(const Duration(milliseconds: 500));
+    final created = MockData.campaigns.first.copyWith(
+      title: title,
+      description: description,
+      targetQuantity: targetQuantity,
+      unit: unit,
+    );
+    return created;
   }
 
   Future<void> updateCampaign(int id, Map<String, dynamic> data) async {
-    try {
-      _logger.d('Updating campaign: $id');
-      
-      // TODO: Implement real API call
-      // await _dioClient.dio.patch('/campaigns/$id', data: data);
-
-      // Mock response
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      _logger.i('Campaign updated: $id');
-    } catch (e) {
-      _logger.e('Error updating campaign: $e');
-      throw Exception('Gagal memperbarui campaign');
-    }
+    _logger.i('Campaign updated: $id');
   }
 
   Future<void> cancelCampaign(int id) async {
-    try {
-      _logger.d('Cancelling campaign: $id');
-      
-      // TODO: Implement real API call
-      // await _dioClient.dio.post('/campaigns/$id/cancel');
-
-      // Mock response
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      _logger.i('Campaign cancelled: $id');
-    } catch (e) {
-      _logger.e('Error cancelling campaign: $e');
-      throw Exception('Gagal membatalkan campaign');
-    }
+    _logger.i('Campaign cancelled: $id');
   }
 
   Future<void> completeCampaign(int id) async {
-    try {
-      _logger.d('Completing campaign: $id');
-      
-      // TODO: Implement real API call
-      // await _dioClient.dio.post('/campaigns/$id/complete');
+    _logger.i('Campaign completed: $id');
+  }
+}
 
-      // Mock response
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      _logger.i('Campaign completed: $id');
-    } catch (e) {
-      _logger.e('Error completing campaign: $e');
-      throw Exception('Gagal menyelesaikan campaign');
-    }
+extension CampaignCopy on CampaignModel {
+  CampaignModel copyWith({
+    int? id,
+    String? title,
+    String? description,
+    String? status,
+    int? clusterId,
+    String? clusterName,
+    int? initiatorId,
+    String? initiatorName,
+    String? unit,
+    int? targetQuantity,
+    int? currentQuantity,
+    int? buyerUnitPrice,
+    int? supplierUnitPrice,
+    DateTime? deadline,
+    String? imageUrl,
+    String? locationDistribution,
+    List<CampaignVariantModel>? variants,
+    DateTime? createdAt,
+    DateTime? distributionCompletedAt,
+  }) {
+    return CampaignModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      clusterId: clusterId ?? this.clusterId,
+      clusterName: clusterName ?? this.clusterName,
+      initiatorId: initiatorId ?? this.initiatorId,
+      initiatorName: initiatorName ?? this.initiatorName,
+      unit: unit ?? this.unit,
+      targetQuantity: targetQuantity ?? this.targetQuantity,
+      currentQuantity: currentQuantity ?? this.currentQuantity,
+      buyerUnitPrice: buyerUnitPrice ?? this.buyerUnitPrice,
+      supplierUnitPrice: supplierUnitPrice ?? this.supplierUnitPrice,
+      deadline: deadline ?? this.deadline,
+      imageUrl: imageUrl ?? this.imageUrl,
+      locationDistribution: locationDistribution ?? this.locationDistribution,
+      variants: variants ?? this.variants,
+      createdAt: createdAt ?? this.createdAt,
+      distributionCompletedAt: distributionCompletedAt ?? this.distributionCompletedAt,
+    );
   }
 }

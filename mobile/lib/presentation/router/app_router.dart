@@ -1,112 +1,147 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive/hive.dart';
 
+import '../../core/constants/app_constants.dart';
 import '../../logic/cubits/auth/auth_cubit.dart';
-import '../../presentation/screens/role_selection/role_selection_screen.dart';
+import '../../presentation/screens/auth/consent_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/otp_screen.dart';
-import '../../presentation/screens/home/home_screen.dart';
+import '../../presentation/screens/auth/tos_screen.dart';
 import '../../presentation/screens/campaign/campaign_detail_screen.dart';
+import '../../presentation/screens/home/home_screen.dart';
+import '../../presentation/screens/profile/profile_screen.dart';
+import '../../presentation/screens/role_selection/role_selection_screen.dart';
+import '../../presentation/screens/splash/splash_screen.dart';
 
-/// Global navigation key for go_router
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+class _GoRouterRefreshStream extends ChangeNotifier {
+  _GoRouterRefreshStream(Stream<dynamic> stream) {
+    _subscription = stream.asBroadcastStream().listen((_) {
+      notifyListeners();
+    });
+  }
 
-/// App router configuration using go_router
-final appRouter = GoRouter(
-  navigatorKey: _rootNavigatorKey,
-  initialLocation: '/',
-  debugLogDiagnostics: true,
-  redirect: (context, state) {
-    // Get auth state
-    final authCubit = context.read<AuthCubit>();
-    final authState = authCubit.state;
+  late final StreamSubscription<dynamic> _subscription;
 
-    final isLoggedIn = authState is AuthAuthenticated;
-    final isOtpSent = authState is AuthOtpSent;
-    final currentPath = state.uri.path;
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
 
-    // If not logged in and not on login/otp screens, redirect to login
-    if (!isLoggedIn && !isOtpSent) {
-      if (currentPath == '/' || currentPath.startsWith('/home')) {
-        return '/login';
+GoRouter createAppRouter(AuthCubit authCubit) {
+  final refreshNotifier = _GoRouterRefreshStream(authCubit.stream);
+
+  return GoRouter(
+    initialLocation: '/',
+    debugLogDiagnostics: false,
+    refreshListenable: refreshNotifier,
+    redirect: (context, state) {
+      final currentPath = state.uri.path;
+      final authState = authCubit.state;
+      final appStateBox = Hive.box(AppConstants.boxAppState);
+
+      if (authState is AuthLoading) {
+        return null;
       }
-    }
 
-    // If OTP sent but not verified, redirect to OTP screen
-    if (isOtpSent && currentPath != '/otp') {
-      return '/otp';
-    }
+      final isAuthRoute = currentPath == '/' ||
+          currentPath == '/login' ||
+          currentPath == '/otp' ||
+          currentPath == '/consent' ||
+          currentPath == '/tos' ||
+          currentPath == '/roles';
 
-    // If logged in and on login/otp screens, redirect to home
-    if (isLoggedIn && (currentPath == '/login' || currentPath == '/otp')) {
-      return '/home';
-    }
-
-    return null;
-  },
-  routes: [
-    // Root route - redirects based on auth state
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const RoleSelectionScreen(),
-    ),
-
-    // Login route
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const RoleSelectionScreen(),
-    ),
-
-    // OTP verification route
-    GoRoute(
-      path: '/otp',
-      builder: (context, state) {
-        final authState = context.read<AuthCubit>().state;
-        if (authState is AuthOtpSent) {
-          return OtpScreen(phoneNumber: authState.phoneNumber);
+      if (authState is! AuthAuthenticated) {
+        if (!isAuthRoute && currentPath.startsWith('/campaign/')) {
+          appStateBox.put(AppConstants.keyPendingDeepLink, currentPath);
+          return '/login';
         }
-        return const RoleSelectionScreen();
-      },
-    ),
 
-    // Home with shell navigator for tabs
-    ShellRoute(
-      navigatorKey: _shellNavigatorKey,
-      builder: (context, state, child) {
-        return HomeScreen(child: child);
-      },
-      routes: [
-        GoRoute(
-          path: '/home',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: HomeScreen(child: SizedBox.shrink()),
-          ),
+        if (currentPath == '/') {
+          return '/login';
+        }
+
+        if (!isAuthRoute) {
+          return '/login';
+        }
+
+        return null;
+      }
+
+      final user = authState.user;
+      if (!user.consentGiven) {
+        return currentPath == '/consent' ? null : '/consent';
+      }
+
+      if (!user.tosAccepted) {
+        return currentPath == '/tos' ? null : '/tos';
+      }
+
+      if (currentPath == '/' || currentPath == '/login' || currentPath == '/otp' || currentPath == '/consent' || currentPath == '/tos') {
+        return '/roles';
+      }
+
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/otp',
+        builder: (context, state) {
+          final authState = authCubit.state;
+          final phoneNumber = authState is AuthOtpSent
+              ? authState.phoneNumber
+              : '';
+          return OtpScreen(phoneNumber: phoneNumber);
+        },
+      ),
+      GoRoute(
+        path: '/consent',
+        builder: (context, state) => const ConsentScreen(),
+      ),
+      GoRoute(
+        path: '/tos',
+        builder: (context, state) => const TosScreen(),
+      ),
+      GoRoute(
+        path: '/roles',
+        builder: (context, state) => const RoleSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/home',
+        builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/campaign/:id',
+        builder: (context, state) {
+          final campaignId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return CampaignDetailScreen(campaignId: campaignId);
+        },
+      ),
+    ],
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Text(
+          'Page not found: ${state.uri.path}',
+          style: const TextStyle(fontSize: 16),
         ),
-        GoRoute(
-          path: '/campaigns/:id',
-          builder: (context, state) {
-            final id = int.parse(state.pathParameters['id']!);
-            return CampaignDetailScreen(campaignId: id);
-          },
-        ),
-      ],
-    ),
-  ],
-  errorBuilder: (context, state) => Scaffold(
-    body: Center(
-      child: Text(
-        'Page not found: ${state.uri.path}',
-        style: const TextStyle(fontSize: 18),
       ),
     ),
-  ),
-);
-
-/// Extension to simplify navigation
-extension GoRouterHelper on GoRouter {
-  void pushCampaignDetail(int campaignId) {
-    push('/campaigns/$campaignId');
-  }
+  );
 }
