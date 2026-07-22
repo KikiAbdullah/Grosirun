@@ -18,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController(text: '081234567890');
+  bool _accepted = false;
 
   @override
   void dispose() {
@@ -27,6 +28,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (!_accepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Centang persetujuan UU PDP terlebih dahulu.')),
+      );
       return;
     }
     context.read<AuthCubit>().requestOtp(_phoneController.text.trim());
@@ -118,6 +125,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+                    const Gap(12),
+                    CheckboxListTile(
+                      value: _accepted,
+                      onChanged: (value) => setState(() => _accepted = value ?? false),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text('Setuju UU PDP No.27/2022'),
+                    ),
                     const Gap(24),
                     BigButton(
                       label: 'Kirim OTP',
@@ -127,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const Gap(12),
                     TextButton(
-                      onPressed: isLoading
+                      onPressed: isLoading || !_accepted
                           ? null
                           : () => context.read<AuthCubit>().loginAsDemoUser(
                                 UserRole.buyer,

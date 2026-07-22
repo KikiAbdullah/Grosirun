@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import 'core/constants/app_constants.dart';
 import 'core/network/dio_client.dart';
@@ -79,6 +80,7 @@ Future<void> initDependencies() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  timeago.setLocaleMessages('id', timeago.IdMessages());
   await initDependencies();
   await getIt<AuthCubit>().checkAuthStatus();
   runApp(GrosirunApp(router: createAppRouter(getIt<AuthCubit>())));

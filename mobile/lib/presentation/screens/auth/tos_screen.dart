@@ -23,7 +23,7 @@ class _TosScreenState extends State<TosScreen> {
         final isLoading = state is AuthLoading;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Syarat Layanan')),
+          appBar: AppBar(title: const Text('Syarat Layanan Non-Escrow')),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),

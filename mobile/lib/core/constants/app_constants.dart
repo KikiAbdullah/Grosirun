@@ -15,7 +15,7 @@ class AppConstants {
   static const String tosVersion = 'v1.0';
 
   static const int tokenExpiryDays = 30;
-  static const int otpLength = 6;
+  static const int otpLength = 4;
 
   static const int campaignDetailPollingSeconds = 15;
   static const int notificationPollingSeconds = 60;
@@ -88,4 +88,5 @@ class PaymentStatus {
   static const String waitingQris = 'waiting_qris';
   static const String paid = 'paid';
   static const String rejected = 'rejected';
+  static const String cancelled = 'cancelled';
 }

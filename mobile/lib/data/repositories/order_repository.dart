@@ -22,9 +22,28 @@ class OrderRepository {
     int limit = 20,
   }) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    final orders = MockData.myOrders;
-    await _orderBox.put('order_list', orders.map((order) => order.toJson()).toList());
-    return orders;
+    final cached = _orderBox.get('order_list') as List<dynamic>?;
+    final cachedOrders = cached
+        ?.whereType<Map>()
+        .map((json) => OrderModel.fromJson(Map<String, dynamic>.from(json)))
+        .toList();
+    final latest = _orderBox.get('latest_order');
+    final latestOrder = latest is Map
+        ? OrderModel.fromJson(Map<String, dynamic>.from(latest))
+        : null;
+
+    final orders = <OrderModel>[
+      if (latestOrder != null) latestOrder,
+      ...?cachedOrders,
+      ...MockData.myOrders,
+    ];
+    final uniqueOrders = <int, OrderModel>{};
+    for (final order in orders) {
+      uniqueOrders[order.id] = order;
+    }
+    final result = uniqueOrders.values.toList();
+    await _orderBox.put('order_list', result.map((order) => order.toJson()).toList());
+    return result;
   }
 
   Future<OrderModel> getOrderDetail(int id) async {
@@ -45,17 +64,31 @@ class OrderRepository {
     required int variantId,
     required int quantity,
     required String paymentMethod,
+    required int totalPrice,
+    required String variantName,
+    required String campaignTitle,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    final order = MockData.myOrders.first.copyWith(
+    final existingOrders = await getOrders();
+    final order = OrderModel(
       id: DateTime.now().millisecondsSinceEpoch,
       campaignId: campaignId,
+      campaignTitle: campaignTitle,
+      userId: MockData.myOrders.first.userId,
+      userName: MockData.myOrders.first.userName,
       variantId: variantId,
+      variantName: variantName,
       quantity: quantity,
+      totalPrice: totalPrice,
       paymentMethod: paymentMethod,
       paymentStatus: paymentMethod == 'cash'
           ? PaymentStatus.pending
           : PaymentStatus.waitingQris,
+      proofUrl: null,
+      validationNotes: null,
+      validatedById: null,
+      createdAt: DateTime.now(),
+      validatedAt: null,
     );
 
     await _queueBox.put(
@@ -68,6 +101,13 @@ class OrderRepository {
     );
 
     await _orderBox.put('latest_order', order.toJson());
+    await _orderBox.put(
+      'order_list',
+      [
+        order.toJson(),
+        ...existingOrders.map((item) => item.toJson()).toList(),
+      ],
+    );
     _logger.i('Order queued locally: ${order.id}');
     return order;
   }
@@ -94,6 +134,17 @@ class OrderRepository {
         'created_at': DateTime.now().toIso8601String(),
       },
     );
+    final current = await getOrders();
+    final updated = current.map((order) {
+      if (order.id != orderId) {
+        return order;
+      }
+      return order.copyWith(
+        proofUrl: filePath,
+        paymentStatus: PaymentStatus.waitingQris,
+      );
+    }).toList();
+    await _orderBox.put('order_list', updated.map((order) => order.toJson()).toList());
     _logger.i('Proof queued locally for order: $orderId');
   }
 
@@ -106,6 +157,14 @@ class OrderRepository {
   }
 
   Future<void> cancelOrder(int orderId) async {
+    final current = await getOrders();
+    final updated = current.map((order) {
+      if (order.id != orderId) {
+        return order;
+      }
+      return order.copyWith(paymentStatus: PaymentStatus.cancelled);
+    }).toList();
+    await _orderBox.put('order_list', updated.map((order) => order.toJson()).toList());
     _logger.i('Cancel order: $orderId');
   }
 

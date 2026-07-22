@@ -23,18 +23,24 @@ import '../../widgets/offline_banner.dart';
 import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialIndex;
+
+  const HomeScreen({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -43,6 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<OrderCubit>().loadOrders();
       context.read<NotificationCubit>().loadNotifications();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialIndex != widget.initialIndex) {
+      _currentIndex = widget.initialIndex;
+    }
   }
 
   @override
@@ -116,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _HomeHeader(
               user: user,
               unreadCount: context.select((NotificationCubit cubit) => cubit.getUnreadCount()),
+              onCreatePoTap: role == UserRole.initiator ? () => context.go('/initiator/create') : null,
               onNotificationsTap: () => setState(() {
                 _currentIndex = tabs.length > 3 ? 2 : 1;
               }),
@@ -142,11 +157,13 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HomeHeader extends StatelessWidget {
   final UserModel user;
   final int unreadCount;
+  final VoidCallback? onCreatePoTap;
   final VoidCallback onNotificationsTap;
 
   const _HomeHeader({
     required this.user,
     required this.unreadCount,
+    required this.onCreatePoTap,
     required this.onNotificationsTap,
   });
 
@@ -159,19 +176,28 @@ class _HomeHeader extends StatelessWidget {
       UserRole.admin => ('Admin', AppTheme.error),
       _ => ('Buyer', AppTheme.info),
     };
+    final initials = user.name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .take(2)
+        .map((part) => part[0].toUpperCase())
+        .join();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppTheme.primary,
-              borderRadius: BorderRadius.circular(12),
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: AppTheme.primary,
+            child: Text(
+              initials.isEmpty ? '?' : initials,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-            child: const Icon(Icons.shopping_cart_rounded, color: Colors.white),
           ),
           const Gap(12),
           Expanded(
@@ -184,6 +210,11 @@ class _HomeHeader extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 4,
                   children: [
+                    Chip(
+                      label: const Text('Grosirun'),
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: AppTheme.primaryLight.withOpacity(0.18),
+                    ),
                     Chip(
                       label: Text(AppConstants.defaultClusterCode),
                       visualDensity: VisualDensity.compact,
@@ -209,6 +240,12 @@ class _HomeHeader extends StatelessWidget {
               icon: const Icon(Icons.notifications_outlined),
             ),
           ),
+          if (onCreatePoTap != null)
+            IconButton(
+              tooltip: 'Buat PO',
+              onPressed: onCreatePoTap,
+              icon: const Icon(Icons.add_circle_outline),
+            ),
           IconButton(
             tooltip: 'Profil',
             onPressed: () => context.go('/profile'),
@@ -257,6 +294,12 @@ class _CampaignListTab extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
             children: [
+              const _InfoBanner(
+                icon: Icons.receipt_long_outlined,
+                title: 'Patungan non-escrow',
+                subtitle: 'Buyer hanya melihat campaign cluster sendiri dan status order pribadi.',
+              ),
+              const Gap(12),
               const _SocialTicker(),
               const Gap(12),
               ...campaigns.map(
@@ -506,53 +549,128 @@ class _MyOrdersTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OrderCubit, OrderState>(
-      builder: (context, state) {
-        if (state is OrderLoading || state is OrderInitial) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return RefreshIndicator(
+      onRefresh: () => context.read<OrderCubit>().loadOrders(),
+      child: BlocBuilder<OrderCubit, OrderState>(
+        builder: (context, state) {
+          if (state is OrderLoading || state is OrderInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (state is OrderError) {
-          return _EmptyState(
-            icon: Icons.error_outline,
-            title: 'Gagal memuat pesanan',
-            subtitle: state.message,
-            actionLabel: 'Coba lagi',
-            onAction: () => context.read<OrderCubit>().loadOrders(),
-          );
-        }
-
-        final orders = state is OrderLoaded ? state.orders : MockData.myOrders;
-        if (orders.isEmpty) {
-          return const _EmptyState(
-            icon: Icons.receipt_long_outlined,
-            title: 'Belum ada pesanan',
-            subtitle: 'Pesanan kamu akan tampil di sini.',
-          );
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: orders.length,
-          separatorBuilder: (_, __) => const Gap(12),
-          itemBuilder: (context, index) {
-            final order = orders[index];
-            return Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppTheme.primaryLight,
-                  child: Text(order.quantity.toString()),
-                ),
-                title: Text(order.campaignTitle),
-                subtitle: Text(
-                  '${order.variantName} • ${order.paymentMethod.toUpperCase()} • ${order.paymentStatus}',
-                ),
-                trailing: Text('Rp${AppConstants.formatPrice(order.totalPrice)}'),
-              ),
+          if (state is OrderError) {
+            return _EmptyState(
+              icon: Icons.error_outline,
+              title: 'Gagal memuat pesanan',
+              subtitle: state.message,
+              actionLabel: 'Coba lagi',
+              onAction: () => context.read<OrderCubit>().loadOrders(),
             );
-          },
-        );
-      },
+          }
+
+          final orders = state is OrderLoaded ? state.orders : MockData.myOrders;
+          if (orders.isEmpty) {
+            return const _EmptyState(
+              icon: Icons.receipt_long_outlined,
+              title: 'Belum ada pesanan',
+              subtitle: 'Pesanan kamu akan tampil di sini.',
+            );
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              const _InfoBanner(
+                icon: Icons.payments_outlined,
+                title: 'Workspace Buyer',
+                subtitle: 'Pesanan tampil per akun, dengan status pembayaran dan metode yang jelas.',
+              ),
+              const Gap(12),
+              ...orders.map(
+                (order) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Card(
+                    child: InkWell(
+                      onTap: () {
+                        showModalBottomSheet<void>(
+                          context: context,
+                          showDragHandle: true,
+                          builder: (_) => _OrderDetailSheet(order: order),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: AppTheme.primaryLight,
+                                  child: Text(order.quantity.toString()),
+                                ),
+                                const Gap(12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(order.campaignTitle, style: AppTheme.titleMedium),
+                                      const Gap(4),
+                                      Text(
+                                        '${order.variantName} • ${order.paymentMethod.toUpperCase()} • ${order.paymentStatus}',
+                                        style: AppTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  'Rp${AppConstants.formatPrice(order.totalPrice)}',
+                                  style: AppTheme.titleMedium.copyWith(color: AppTheme.primary),
+                                ),
+                              ],
+                            ),
+                            const Gap(12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _StatusPill(
+                                  label: order.paymentStatus == 'paid' ? 'Lunas' : 'Menunggu',
+                                  color: order.paymentStatus == 'paid' ? AppTheme.success : AppTheme.warning,
+                                ),
+                                _StatusPill(
+                                  label: order.paymentMethod.toUpperCase(),
+                                  color: AppTheme.primary,
+                                ),
+                                _StatusPill(
+                                  label: '${order.quantity} item',
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ],
+                            ),
+                            if (order.paymentStatus == 'waiting_qris') ...[
+                              const Gap(12),
+                              BigButton(
+                                label: 'Upload Ulang Bukti',
+                                icon: Icons.upload_file_outlined,
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Aksi upload bukti QRIS akan disambungkan ke layar bukti.')),
+                                  );
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -562,41 +680,52 @@ class _NotificationsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotificationCubit, NotificationState>(
-      builder: (context, state) {
-        if (state is NotificationLoading || state is NotificationInitial) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return RefreshIndicator(
+      onRefresh: () => context.read<NotificationCubit>().loadNotifications(),
+      child: BlocBuilder<NotificationCubit, NotificationState>(
+        builder: (context, state) {
+          if (state is NotificationLoading || state is NotificationInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (state is NotificationError) {
-          return _EmptyState(
-            icon: Icons.notifications_off_outlined,
-            title: 'Gagal memuat notifikasi',
-            subtitle: state.message,
-            actionLabel: 'Coba lagi',
-            onAction: () => context.read<NotificationCubit>().loadNotifications(),
+          if (state is NotificationError) {
+            return _EmptyState(
+              icon: Icons.notifications_off_outlined,
+              title: 'Gagal memuat notifikasi',
+              subtitle: state.message,
+              actionLabel: 'Coba lagi',
+              onAction: () => context.read<NotificationCubit>().loadNotifications(),
+            );
+          }
+
+          final notifications = state is NotificationLoaded ? state.notifications : MockData.notifications;
+          if (notifications.isEmpty) {
+            return const _EmptyState(
+              icon: Icons.notifications_none_outlined,
+              title: 'Belum ada notifikasi',
+              subtitle: 'Saat ada update campaign atau transaksi, notifikasi akan muncul di sini.',
+            );
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              const _InfoBanner(
+                icon: Icons.notifications_active_outlined,
+                title: 'Notifikasi real-time',
+                subtitle: 'Tap notifikasi untuk melihat detail alur transaksi dan update campaign.',
+              ),
+              const Gap(12),
+              ...notifications.map(
+                (notification) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _NotificationTile(notification: notification),
+                ),
+              ),
+            ],
           );
-        }
-
-        final notifications = state is NotificationLoaded ? state.notifications : MockData.notifications;
-        if (notifications.isEmpty) {
-          return const _EmptyState(
-            icon: Icons.notifications_none_outlined,
-            title: 'Belum ada notifikasi',
-            subtitle: 'Saat ada update campaign atau transaksi, notifikasi akan muncul di sini.',
-          );
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: notifications.length,
-          separatorBuilder: (_, __) => const Gap(12),
-          itemBuilder: (context, index) {
-            final notification = notifications[index];
-            return _NotificationTile(notification: notification);
-          },
-        );
-      },
+        },
+      ),
     );
   }
 }
@@ -609,17 +738,26 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: notification.isRead ? AppTheme.border : AppTheme.primaryLight,
-          child: Icon(
-            Icons.notifications_active_outlined,
-            color: notification.isRead ? AppTheme.textSecondary : AppTheme.primary,
+      child: InkWell(
+        onTap: () {
+          context.read<NotificationCubit>().markAsRead(notification.id);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notifikasi ditandai sudah dibaca.')),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: notification.isRead ? AppTheme.border : AppTheme.primaryLight,
+            child: Icon(
+              Icons.notifications_active_outlined,
+              color: notification.isRead ? AppTheme.textSecondary : AppTheme.primary,
+            ),
           ),
+          title: Text(notification.title),
+          subtitle: Text(notification.body),
+          trailing: Text(timeago.format(notification.createdAt, locale: 'id')),
         ),
-        title: Text(notification.title),
-        subtitle: Text(notification.body),
-        trailing: Text(timeago.format(notification.createdAt)),
       ),
     );
   }
@@ -630,29 +768,72 @@ class _InitiatorDashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Row(
-          children: const [
-            Expanded(child: _MetricCard(label: 'Pending', value: '2', icon: Icons.pending_actions_outlined)),
-            Gap(12),
-            Expanded(child: _MetricCard(label: 'Paid', value: '14', icon: Icons.verified_outlined)),
-          ],
-        ),
-        const Gap(12),
-        const _SectionTitle('Validasi Cepat'),
-        ...MockData.pendingValidation.map(
-          (order) => Card(
-            child: ListTile(
-              leading: const Icon(Icons.receipt_long_outlined),
-              title: Text(order.userName),
-              subtitle: Text('${order.campaignTitle} • ${order.variantName}'),
-              trailing: const Icon(Icons.chevron_right),
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Column(
+              children: [
+                const _InfoBanner(
+                  icon: Icons.fact_check_outlined,
+                  title: 'Validasi tunai dan QRIS',
+                  subtitle: 'Inisiator hanya melihat order cluster sendiri dan mengelola validasi pembayaran.',
+                ),
+                const Gap(12),
+                BigButton(
+                  label: 'Buat PO',
+                  icon: Icons.add_circle_outline,
+                  onPressed: () => context.go('/initiator/create'),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: const [
+                Expanded(child: _MetricCard(label: 'Pending', value: '2', icon: Icons.pending_actions_outlined)),
+                Gap(12),
+                Expanded(child: _MetricCard(label: 'Lunas', value: '14', icon: Icons.verified_outlined)),
+                Gap(12),
+                Expanded(child: _MetricCard(label: 'QRIS', value: '3', icon: Icons.qr_code_2_outlined)),
+              ],
+            ),
+          ),
+          const Gap(12),
+          const TabBar(
+            tabs: [
+              Tab(text: 'Pending'),
+              Tab(text: 'Tunai'),
+              Tab(text: 'QRIS Waiting'),
+            ],
+          ),
+          const Gap(12),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _ValidationQueueTab(
+                  title: 'Order menunggu validasi',
+                  showProof: false,
+                  orders: MockData.pendingValidation.where((order) => order.paymentStatus == 'pending').toList(),
+                ),
+                _ValidationQueueTab(
+                  title: 'Pembayaran tunai',
+                  showProof: false,
+                  orders: MockData.pendingValidation.where((order) => order.paymentMethod == 'cash').toList(),
+                ),
+                _ValidationQueueTab(
+                  title: 'Bukti QRIS',
+                  showProof: true,
+                  orders: MockData.pendingValidation.where((order) => order.paymentMethod == 'qris').toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -664,16 +845,109 @@ class _SellerDashboardTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: const [
-        _SectionTitle('Workspace Seller'),
-        _MetricCard(label: 'Purchase Order', value: '3', icon: Icons.inventory_2_outlined),
-        Gap(12),
-        _MetricCard(label: 'Fulfillment', value: '87%', icon: Icons.local_shipping_outlined),
-        Gap(16),
-        _EmptyState(
-          icon: Icons.lock_outline,
-          title: 'Data Buyer tetap tersembunyi',
+      children: [
+        const _InfoBanner(
+          icon: Icons.storefront_outlined,
+          title: 'Workspace Seller',
           subtitle: 'Seller hanya melihat agregat kuantitas, dokumen PO, dan status fulfillment.',
+        ),
+        const Gap(12),
+        Row(
+          children: const [
+            Expanded(child: _MetricCard(label: 'Purchase Order', value: '3', icon: Icons.inventory_2_outlined)),
+            Gap(12),
+            Expanded(child: _MetricCard(label: 'Fulfillment', value: '87%', icon: Icons.local_shipping_outlined)),
+          ],
+        ),
+        const Gap(12),
+        Row(
+          children: [
+            Expanded(
+            child: _ActionTile(
+                icon: Icons.add_box_outlined,
+                title: 'Buat Produk',
+                subtitle: 'Tambah katalog supplier',
+                onTap: () => context.go('/seller/offers'),
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+            child: _ActionTile(
+                icon: Icons.local_offer_outlined,
+                title: 'Buat Offer',
+                subtitle: 'Ajukan harga tier',
+                onTap: () => context.go('/seller/offers'),
+              ),
+            ),
+          ],
+        ),
+        const Gap(12),
+        BigButton(
+          label: 'Lihat Purchase Orders',
+          icon: Icons.inventory_2_outlined,
+          onPressed: () => context.go('/seller/purchase-orders'),
+        ),
+        const Gap(16),
+        const _SectionTitle('Purchase Order Masuk'),
+        ..._sellerPurchaseOrders.map(
+          (po) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(po.code, style: AppTheme.titleMedium)),
+                        _StatusPill(
+                          label: po.status,
+                          color: po.status == 'accepted' ? AppTheme.success : AppTheme.warning,
+                        ),
+                      ],
+                    ),
+                    const Gap(8),
+                    Text(po.title, style: AppTheme.titleLarge),
+                    const Gap(4),
+                    Text('${po.quantity} • ${po.subtotal} + ${po.delivery}', style: AppTheme.bodyMedium),
+                    const Gap(12),
+                    const Text(
+                      'Buyer detail disembunyikan dari seller. Yang tampil hanya agregat, dokumen PO, dan status fulfillment.',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                    const Gap(12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () => context.go('/seller/purchase-orders'),
+                          child: const Text('Lihat PO'),
+                        ),
+                        OutlinedButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('PO disetujui dan pindah ke awaiting payment.')),
+                            );
+                          },
+                          child: const Text('Accept'),
+                        ),
+                        OutlinedButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Alasan reject perlu diisi pada flow detail PO.')),
+                            );
+                          },
+                          child: const Text('Reject'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -685,22 +959,373 @@ class _AdminDashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const _InfoBanner(
+          icon: Icons.admin_panel_settings_outlined,
+          title: 'Console Admin',
+          subtitle: 'Moderasi dan audit terpusat agar setiap perubahan sensitif tetap tercatat.',
+        ),
+        const Gap(12),
+        Row(
+          children: const [
+            Expanded(child: _MetricCard(label: 'Queues', value: '5', icon: Icons.queue_outlined)),
+            Gap(12),
+            Expanded(child: _MetricCard(label: 'Audit', value: '99%', icon: Icons.policy_outlined)),
+          ],
+        ),
+        const Gap(16),
+        const _SectionTitle('Quick Actions'),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.4,
+          children: [
+            _ActionTile(
+              icon: Icons.verified_user_outlined,
+              title: 'Verifikasi Supplier',
+              subtitle: 'Review dokumen usaha',
+              onTap: () => context.go('/admin/suppliers/verification'),
+            ),
+            _ActionTile(
+              icon: Icons.fact_check_outlined,
+              title: 'Moderasi Offer',
+              subtitle: 'Cek tier dan masa berlaku',
+              onTap: () => context.go('/admin/offers/moderation'),
+            ),
+            _ActionTile(
+              icon: Icons.manage_accounts_outlined,
+              title: 'Kelola Role',
+              subtitle: 'Grant atau revoke akses',
+              onTap: () => context.go('/admin/dashboard'),
+            ),
+            _ActionTile(
+              icon: Icons.safety_check_outlined,
+              title: 'Mediasi Dispute',
+              subtitle: 'Audit fulfillment dan refund',
+              onTap: () => context.go('/admin/disputes'),
+            ),
+          ],
+        ),
+        const Gap(12),
+        BigButton(
+          label: 'Audit & Monitoring',
+          icon: Icons.history_outlined,
+          onPressed: () => context.go('/admin/audit'),
+        ),
+        const Gap(16),
+        const _SectionTitle('Pending Queue'),
+        const _QueueCard(
+          title: 'CV Makmur Jaya',
+          subtitle: 'Pending supplier verification - 2 jam',
+          icon: Icons.storefront_outlined,
+        ),
+        const _QueueCard(
+          title: 'Beras Premium - CV Makmur Jaya',
+          subtitle: 'Pending moderation - tier harga, kapasitas, area',
+          icon: Icons.local_offer_outlined,
+        ),
+        const _QueueCard(
+          title: 'Audit trail ready',
+          subtitle: 'Semua transaksi terekam append-only',
+          icon: Icons.history_outlined,
+        ),
+      ],
+    );
+  }
+}
+
+class _ValidationQueueTab extends StatelessWidget {
+  final String title;
+  final bool showProof;
+  final List<OrderModel> orders;
+
+  const _ValidationQueueTab({
+    required this.title,
+    required this.showProof,
+    required this.orders,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (orders.isEmpty) {
+      return _EmptyState(
+        icon: Icons.receipt_long_outlined,
+        title: title,
+        subtitle: 'Tidak ada order di antrean ini.',
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      children: [
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Cari nama atau campaign',
+            prefixIcon: const Icon(Icons.search),
+            filled: true,
+            fillColor: AppTheme.surface,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+        ),
+        const Gap(12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ActionChip(label: const Text('Validasi 5 Terpilih'), onPressed: () {}),
+            ActionChip(label: const Text('Tandai Semua'), onPressed: () {}),
+            ActionChip(label: const Text('Export Log'), onPressed: () {}),
+          ],
+        ),
+        const Gap(16),
+        ...orders.map(
+          (order) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: AppTheme.primaryLight,
+                          child: Text(order.userName.isNotEmpty ? order.userName[0].toUpperCase() : '?'),
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(order.userName, style: AppTheme.titleMedium),
+                              const Gap(4),
+                              Text(
+                                '${order.campaignTitle} • ${order.variantName} • ${order.paymentMethod.toUpperCase()}',
+                                style: AppTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text('Rp${AppConstants.formatPrice(order.totalPrice)}', style: AppTheme.titleMedium),
+                      ],
+                    ),
+                    const Gap(12),
+                    if (showProof && order.proofUrl != null) ...[
+                      Container(
+                        height: 160,
+                        decoration: BoxDecoration(
+                          color: AppTheme.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppTheme.border),
+                        ),
+                        child: const Center(child: Icon(Icons.image_outlined, size: 36)),
+                      ),
+                      const Gap(12),
+                    ],
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _StatusPill(
+                          label: order.paymentStatus == 'paid' ? 'Lunas' : 'Pending',
+                          color: order.paymentStatus == 'paid' ? AppTheme.success : AppTheme.warning,
+                        ),
+                        _StatusPill(
+                          label: order.paymentMethod.toUpperCase(),
+                          color: AppTheme.primary,
+                        ),
+                      ],
+                    ),
+                    const Gap(12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: BigButton(
+                            label: 'Validasi',
+                            icon: Icons.check_circle_outline,
+                            onPressed: () {},
+                          ),
+                        ),
+                        const Gap(8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.close),
+                            label: const Text('Tolak'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoBanner extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _InfoBanner({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryLight.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.15)),
+      ),
+      child: Row(
         children: [
-          _SectionTitle('Console Admin'),
-          _MetricCard(label: 'Queues', value: '5', icon: Icons.queue_outlined),
-          Gap(12),
-          _MetricCard(label: 'Audit', value: '99%', icon: Icons.policy_outlined),
-          Gap(16),
-          _EmptyState(
-            icon: Icons.admin_panel_settings_outlined,
-            title: 'Moderasi dan audit terpusat',
-            subtitle: 'Fitur admin dipisahkan agar perubahan sensitif selalu tercatat.',
+          Icon(icon, color: AppTheme.primary),
+          const Gap(12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTheme.titleMedium),
+                const Gap(4),
+                Text(subtitle, style: AppTheme.bodySmall),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _StatusPill({
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(label),
+      backgroundColor: color.withOpacity(0.12),
+      labelStyle: TextStyle(color: color, fontWeight: FontWeight.w600),
+      visualDensity: VisualDensity.compact,
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppTheme.primary),
+              const Gap(12),
+              Text(title, style: AppTheme.titleMedium),
+              const Gap(4),
+              Text(subtitle, style: AppTheme.bodySmall),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QueueCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  const _QueueCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: AppTheme.primaryLight,
+          child: Icon(icon, color: AppTheme.primary),
+        ),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+      ),
+    );
+  }
+}
+
+class _OrderDetailSheet extends StatelessWidget {
+  final OrderModel order;
+
+  const _OrderDetailSheet({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(order.campaignTitle, style: AppTheme.headlineSmall),
+            const Gap(8),
+            Text('${order.variantName} • ${order.paymentMethod.toUpperCase()}', style: AppTheme.bodyMedium),
+            const Gap(12),
+            Text('Total Rp${AppConstants.formatPrice(order.totalPrice)}', style: AppTheme.titleLarge),
+            const Gap(16),
+            BigButton(
+              label: 'Tutup',
+              icon: Icons.close,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -797,3 +1422,48 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
+
+class _PurchaseOrderSummary {
+  final String code;
+  final String title;
+  final String quantity;
+  final String subtotal;
+  final String delivery;
+  final String status;
+
+  const _PurchaseOrderSummary({
+    required this.code,
+    required this.title,
+    required this.quantity,
+    required this.subtotal,
+    required this.delivery,
+    required this.status,
+  });
+}
+
+const _sellerPurchaseOrders = <_PurchaseOrderSummary>[
+  _PurchaseOrderSummary(
+    code: 'PO-1001',
+    title: 'Beras Premium Pulen',
+    quantity: '500 Kg',
+    subtotal: 'Rp5.250.000',
+    delivery: 'Rp200.000',
+    status: 'submitted',
+  ),
+  _PurchaseOrderSummary(
+    code: 'PO-1002',
+    title: 'Minyak Goreng 2L',
+    quantity: '200 L',
+    subtotal: 'Rp6.000.000',
+    delivery: 'Rp180.000',
+    status: 'accepted',
+  ),
+  _PurchaseOrderSummary(
+    code: 'PO-1003',
+    title: 'Gula Pasir',
+    quantity: '300 Kg',
+    subtotal: 'Rp4.800.000',
+    delivery: 'Rp150.000',
+    status: 'shipped',
+  ),
+];

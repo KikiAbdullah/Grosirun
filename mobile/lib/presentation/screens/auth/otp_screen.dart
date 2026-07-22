@@ -30,7 +30,7 @@ class _OtpScreenState extends State<OtpScreen> {
   void _submit() {
     if (_controller.text.trim().length != AppConstants.otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan 6 digit OTP')),
+        SnackBar(content: Text('Masukkan ${AppConstants.otpLength} digit OTP')),
       );
       return;
     }
@@ -86,6 +86,14 @@ class _OtpScreenState extends State<OtpScreen> {
                     Text(
                       'Kode dikirim ke ${widget.phoneNumber}. Setelah verifikasi, kamu akan masuk ke consent dan ToS.',
                       style: AppTheme.bodyMedium,
+                    ),
+                    const Gap(8),
+                    const Text(
+                      'OTP berlaku 5 menit dan terdiri dari 4 digit.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                     const Gap(32),
                     PinCodeTextField(

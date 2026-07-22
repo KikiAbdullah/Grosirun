@@ -23,7 +23,7 @@ class _ConsentScreenState extends State<ConsentScreen> {
         final isLoading = state is AuthLoading;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Kebijakan Privasi')),
+          appBar: AppBar(title: const Text('Persetujuan UU PDP')),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),

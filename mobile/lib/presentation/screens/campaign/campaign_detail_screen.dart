@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -36,13 +37,20 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
               title: const Text('Pesanan tersimpan'),
               content: Text(
                 state.order.paymentMethod == 'cash'
-                    ? 'Pesanan kamu tercatat. Silakan bayar tunai ke inisiator.'
-                    : 'Pesanan kamu tercatat. Bukti transfer bisa diunggah dari workspace pesanan.',
+                    ? 'Pesanan kamu tercatat sebagai Menunggu Bayar. Datang ke rumah inisiator untuk bayar tunai.'
+                    : 'Pesanan kamu tercatat sebagai Menunggu Validasi QRIS. Upload bukti transfer dari detail pesanan.',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
                   child: const Text('Tutup'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    context.go('/my-orders');
+                  },
+                  child: const Text('Lihat Pesanan'),
                 ),
               ],
             ),
@@ -89,13 +97,16 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
             final campaign = snapshot.data!;
             final selectedEntries = _quantities.entries.where((entry) => entry.value > 0).toList();
             final totalQuantity = selectedEntries.fold<int>(0, (sum, entry) => sum + entry.value);
-            final totalPrice = selectedEntries.fold<int>(0, (sum, entry) {
-              final variant = campaign.variants.firstWhere(
-                (item) => item.id == entry.key,
-                orElse: () => campaign.variants.first,
-              );
-              return sum + (entry.value * variant.quantityPerVariant * campaign.buyerUnitPrice);
-            });
+            final selectedEntry = selectedEntries.isNotEmpty ? selectedEntries.first : null;
+            final selectedVariant = selectedEntry == null
+                ? null
+                : campaign.variants.firstWhere(
+                    (item) => item.id == selectedEntry.key,
+                    orElse: () => campaign.variants.first,
+                  );
+            final totalPrice = selectedEntry == null
+                ? 0
+                : selectedEntry.value * (selectedVariant?.quantityPerVariant ?? 1) * campaign.buyerUnitPrice;
 
             return Scaffold(
               appBar: AppBar(
@@ -141,6 +152,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                                   if (qty <= 0) {
                                     _quantities.remove(variant.id);
                                   } else {
+                                    _quantities.clear();
                                     _quantities[variant.id] = qty;
                                   }
                                 });
@@ -184,17 +196,17 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                   totalPrice: totalPrice,
                   quantity: totalQuantity,
                   isLoading: orderState is OrderLoading,
-                  onCheckout: totalQuantity == 0
+                  onCheckout: selectedEntry == null
                       ? null
                       : () {
-                          final selectedEntry = _quantities.entries.firstWhere(
-                            (entry) => entry.value > 0,
-                          );
                           context.read<OrderCubit>().createOrder(
                                 campaignId: widget.campaignId,
                                 variantId: selectedEntry.key,
                                 quantity: selectedEntry.value,
                                 paymentMethod: _paymentMethod,
+                                totalPrice: totalPrice,
+                                variantName: selectedVariant?.name ?? 'Varian',
+                                campaignTitle: campaign.title,
                               );
                         },
                 ),

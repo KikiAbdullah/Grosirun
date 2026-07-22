@@ -107,6 +107,9 @@ class OrderCubit extends Cubit<OrderState> {
     required int variantId,
     required int quantity,
     required String paymentMethod,
+    required int totalPrice,
+    required String variantName,
+    required String campaignTitle,
   }) async {
     try {
       emit(OrderLoading());
@@ -115,6 +118,9 @@ class OrderCubit extends Cubit<OrderState> {
         variantId: variantId,
         quantity: quantity,
         paymentMethod: paymentMethod,
+        totalPrice: totalPrice,
+        variantName: variantName,
+        campaignTitle: campaignTitle,
       );
       emit(OrderCreated(order));
       // Reload orders after creation
