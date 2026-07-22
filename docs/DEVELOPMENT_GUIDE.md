@@ -1315,7 +1315,7 @@ Reviewer wajib memeriksa semua item di bawah ini. Jika ada yang gagal → Reques
 - [ ] **FCM Fallback:** notifications table fallback, GET /notifications polling 60s, mark read
 - [ ] **Batch Validate:** 207 multi-status success+failed, transaction per order, FCM batch
 - [ ] **Feature Flags:** Pennant check, enable/disable tanpa deploy, GET /features
-- [ ] **Rate Limit Centralized:** Redis per-route: 60/min global, 5/min OTP, 10/min override, test 429
+- [ ] **Rate Limit Centralized:** Redis per-route: 60/min global user + 100/min per IP, 5/min OTP, 10/min override, test 429
 - [ ] **Security:** $fillable strict, FormRequest, Policy, S3 mime check random UUID, no SQL injection, XSS escape, audit logs, no hardcoded secrets
 
 ### Mobile

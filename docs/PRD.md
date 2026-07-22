@@ -44,7 +44,7 @@
 
 | Stakeholder | Role | Kepentingan | Power | Strategi |
 | :--- | :--- | :--- | :--- | :--- |
-| Bu Siti (Buyer) | End User | Hemat 15-20%, checkout <2 menit | High interest, Low power | Fokus UX tombol 56dp, tutorial 60s, FAQ |
+| Bu Siti (Buyer) | End User | Hemat 14-21%, checkout <2 menit | High interest, Low power | Fokus UX tombol 56dp, tutorial 60s, FAQ |
 | Pak Agus (Initiator) | Inisiator | Hemat 80% waktu admin | High interest, High power | Libatkan di dogfooding, SOP onboarding, ToS |
 | Ketua RW | Sponsor | Transparansi dana RT | Medium interest, High power | Laporan PDF rekap, observability dashboard |
 | Dev Team | Builder | Code coverage, no oversell | High interest, Medium power | CI/CD, ADR, security review |
@@ -403,8 +403,8 @@ Order tidak bisa dibuat jika cluster mismatch: buyer cluster harus sama dengan c
 - [ ] Migration `clusters` + add FK `users.cluster_id`, `campaigns.cluster_id`
 - [ ] Migration `notifications` fallback FCM
 - [ ] Change filesystem disk S3 primary prod, local dev (consistency fix)
-- [ ] RateLimiter centralized Redis per-route (auth 5/min, override 10/min)
-- [ ] Feature Flags package + flags: qris_upload, extend_deadline
+- [ ] RateLimiter centralized Redis per-route (OTP 5/min per phone+IP, override 10/min, global 60/min user + 100/min per IP)
+- [ ] Feature Flags package (Pennant) + 9 flags: `qris-upload`, `extend-deadline`, `batch-validate`, `dark-mode`, `seller-onboarding`, `supplier-offers`, `purchase-orders` (client); `supplier-erp-webhook`, `canary-new-order-service` (backend-only)
 - [ ] Endpoint `DELETE /auth/account` + `POST /auth/tos-accept` + `POST /auth/consent`
 - [ ] Batch validate endpoint
 - [ ] Error Catalog constants + response `code` like ERR_024

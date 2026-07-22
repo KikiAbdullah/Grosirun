@@ -364,7 +364,7 @@ Jika Bapak/Ibu merasa data disalahgunakan, bisa melapor ke:
 | -------------------- | --------------------------------------------------------------------- |
 | **Token**            | Sanctum, disimpan di `flutter_secure_storage` (bukan Hive)            |
 | **OTP**              | Hash bcrypt, expiry 5 menit, rate limit 5/menit + lock 15 menit       |
-| **Rate Limit**       | Redis: global 60/min, OTP 5/min, override 10/min                      |
+| **Rate Limit**       | Redis: global 60/min user + 100/min per IP, OTP 5/min, override 10/min                      |
 | **RBAC**             | Role buyer/initiator/seller/admin, Policy check cluster_id                   |
 | **Input Validation** | FormRequest, $fillable strict, no SQL injection                       |
 | **Upload Security**  | Mime check, random UUID filename, Intervention compress, max 2MB      |

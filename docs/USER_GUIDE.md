@@ -389,7 +389,7 @@ Jika API Down / 5xx:
 
 ---
 
-**Selamat Pilot! Semangat gotong royong hemat 15-20%!** 🎉🙌
+**Selamat Pilot! Semangat gotong royong hemat 14-21%!** 🎉🙌
 
 ---
 

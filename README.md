@@ -38,7 +38,7 @@
 
 ## 1. Ikhtisar
 
-Grosirun adalah tool group-buying RT/RW untuk menghemat 15-20% harga sembako dengan sistem **Non-Escrow** (dana tidak disiman aplikasi). Dibangun dengan **Laravel 11 API + Flutter Offline-First** untuk sinyal jelek, HP RAM 2GB, storage penuh.
+Grosirun adalah tool group-buying RT/RW untuk menghemat 14-21% harga sembako dengan sistem **Non-Escrow** (dana tidak disiman aplikasi). Dibangun dengan **Laravel 11 API + Flutter Offline-First** untuk sinyal jelek, HP RAM 2GB, storage penuh.
 
 **Masalah:** Rekap manual di WA → 30% salah hitung, uang titipan Rp5-10jt tercecer, ketua RT burnout.
 
@@ -154,7 +154,7 @@ grosirun/
 │   ├── lib/logic/cubits/
 │   ├── lib/presentation/screens/
 │   └── integration_test/
-├── docs/ (17 dokumen domain + 1 indeks)
+├── docs/ (18 dokumen domain + 1 indeks)
 │   ├── PRD.md, TECHNICAL_SPEC.md, API_SPEC.md
 │   ├── ADR, SECURITY.md, OBSERVABILITY.md, [Deployment §2](docs/DEPLOYMENT.md#2-ci-quality-gates--build-pipelines)
 │   ├── OBSERVABILITY.md bagian 3 dan 7 — Performance Engineering, DEVELOPMENT_GUIDE.md, API_SPEC.md bagian 1.4 — Format dan Katalog Error
@@ -233,6 +233,7 @@ ls -lh build/app/outputs/apk/release/*.apk
 | **[USER_GUIDE.md](docs/USER_GUIDE.md)** | Role guide, FAQ, troubleshooting, refund dan dispute operations | Final operations manual |
 | **[PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md](docs/PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md)** | Proposal persuasif dan materi validasi untuk tiga stakeholder | Final communication material |
 | **[PRESENTASI_GROSIRUN.md](docs/PRESENTASI_GROSIRUN.md)** | Naskah slide akurat untuk presentasi stakeholder dan pilot | Final presentation material |
+| **[BRAND_GUIDELINES.md](docs/BRAND_GUIDELINES.md)** | Identitas visual, warna, tipografi, nada brand, do's and don'ts | Final brand specification |
 | **[ARCHITECTURE_DECISION_RECORDS.md](docs/ARCHITECTURE_DECISION_RECORDS.md)** | 8 accepted architecture decisions | Final decision record |
 | **[SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** | Local environment, dependencies, Firebase, S3, WA gateway | Final specification |
 | **[CHANGELOG.md](docs/CHANGELOG.md)** | Version strategy and release history | Maintained per release |
@@ -323,6 +324,7 @@ Lihat **[DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) + [Deployment §2](doc
 - Error Code: `API_SPEC.md bagian 1.4 — Format dan Katalog Error`
 - FAQ Ibu-ibu: `USER_GUIDE.md`
 - Panduan Pak Agus: `USER_GUIDE.md`
+- Brand Guidelines: `BRAND_GUIDELINES.md`
 
 ---
 
