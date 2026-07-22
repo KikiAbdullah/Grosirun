@@ -78,7 +78,7 @@ class CampaignCubit extends Cubit<CampaignState> {
         unit: unit,
       );
       
-      emit(CampaignCreated(campaign));
+      emit(CampaignCreated());
       _logger.i('Campaign created: ${campaign.title}');
       
       // Reload campaigns

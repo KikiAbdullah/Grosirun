@@ -45,6 +45,7 @@ class AppConstants {
 
   // ─── Secure Storage Keys ───
   static const String keyToken = 'auth_token';
+  static const String keyAuthToken = 'auth_token';
   static const String keyRefreshToken = 'refresh_token';
   static const String keyUserId = 'user_id';
   static const String keyActiveRole = 'active_role';

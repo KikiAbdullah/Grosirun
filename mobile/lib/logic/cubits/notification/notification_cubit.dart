@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../data/models/notification_model.dart';
-import '../../../data/repositories/repositories.dart';
+import '../../../data/repositories/notification_repository.dart';
 
 // ─── States ───
 

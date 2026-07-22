@@ -22,7 +22,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
   void initState() {
     super.initState();
     // Use a separate cubit for detail
-    context.read<CampaignListCubit>(); // just to ensure parent is alive
+    context.read<CampaignCubit>(); // just to ensure parent is alive
   }
 
   @override

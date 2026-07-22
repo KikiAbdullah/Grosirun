@@ -9,7 +9,10 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'core/network/dio_client.dart';
-import 'data/repositories/repositories.dart';
+import 'data/repositories/auth_repository.dart';
+import 'data/repositories/campaign_repository.dart';
+import 'data/repositories/order_repository.dart';
+import 'data/repositories/notification_repository.dart';
 import 'logic/cubits/auth/auth_cubit.dart';
 import 'logic/cubits/campaign/campaign_cubit.dart';
 import 'logic/cubits/order/order_cubit.dart';
@@ -92,14 +95,6 @@ void main() async {
   // Initialize dependencies
   await initDependencies();
 
-  // Initialize Sentry (optional, uncomment when you have DSN)
-  // await SentryFlutter.init(
-  //   (options) {
-  //     options.dsn = 'YOUR_SENTRY_DSN';
-  //     options.tracesSampleRate = 1.0;
-  //   },
-  // );
-
   runApp(const GrosirunApp());
 }
 
@@ -118,10 +113,10 @@ class GrosirunApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (_) => AuthCubit(getIt<AuthRepository>())..checkStatus(),
+            create: (_) => AuthCubit(repository: getIt<AuthRepository>())..checkAuthStatus(),
           ),
           BlocProvider(
-            create: (_) => CampaignListCubit(getIt<CampaignRepository>()),
+            create: (_) => CampaignCubit(repository: getIt<CampaignRepository>()),
           ),
           BlocProvider(
             create: (_) => OrderCubit(getIt<OrderRepository>()),

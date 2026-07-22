@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../data/models/order_model.dart';
-import '../../../data/repositories/repositories.dart';
+import '../../../data/repositories/order_repository.dart';
 
 // ─── States ───
 

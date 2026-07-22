@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../logic/cubits/auth/auth_cubit.dart';
-import '../presentation/screens/role_selection/role_selection_screen.dart';
-import '../presentation/screens/auth/login_screen.dart';
-import '../presentation/screens/auth/otp_screen.dart';
-import '../presentation/screens/home/home_screen.dart';
-import '../presentation/screens/campaign/campaign_detail_screen.dart';
+import '../../logic/cubits/auth/auth_cubit.dart';
+import '../../presentation/screens/role_selection/role_selection_screen.dart';
+import '../../presentation/screens/auth/login_screen.dart';
+import '../../presentation/screens/auth/otp_screen.dart';
+import '../../presentation/screens/home/home_screen.dart';
+import '../../presentation/screens/campaign/campaign_detail_screen.dart';
 
 /// Global navigation key for go_router
 final _rootNavigatorKey = GlobalKey<NavigatorState>();

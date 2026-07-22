@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<CampaignListCubit>().loadCampaigns();
+    context.read<CampaignCubit>().loadCampaigns();
     context.read<OrderCubit>().loadOrders();
     context.read<NotificationCubit>().loadNotifications();
     _logger.i('HomeScreen initialized');
@@ -225,8 +225,8 @@ class _CampaignListTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () => context.read<CampaignListCubit>().refreshCampaigns(),
-      child: BlocBuilder<CampaignListCubit, CampaignListState>(
+      onRefresh: () => context.read<CampaignCubit>().refreshCampaigns(),
+      child: BlocBuilder<CampaignCubit, CampaignState>(
         builder: (context, state) {
           if (state is CampaignListLoading) {
             return _CampaignListShimmer();
@@ -241,7 +241,7 @@ class _CampaignListTab extends StatelessWidget {
                   Text(state.message, style: AppTheme.bodyMedium),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => context.read<CampaignListCubit>().loadCampaigns(),
+                    onPressed: () => context.read<CampaignCubit>().loadCampaigns(),
                     child: const Text('Coba Lagi'),
                   ),
                 ],
