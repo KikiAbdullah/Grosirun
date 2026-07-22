@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/theme/app_theme.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../logic/cubits/auth/auth_cubit.dart';
 
 /// OTP verification screen
@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppTheme.primaryLight,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.sms, color: AppTheme.primary, size: 32),
+                  child: Icon(Icons.sms, color: AppTheme.primary, size: 32),
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -81,13 +81,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                      borderSide: BorderSide(color: AppTheme.primary, width: 2),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '💡 Demo: masukkan 6 angka apapun',
+                  'Demo: masukkan 6 angka apapun',
                   style: AppTheme.bodyMedium.copyWith(color: AppTheme.info),
                 ),
                 const SizedBox(height: 32),
@@ -116,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    // Resend OTP
                     context.read<AuthCubit>().requestOtp(widget.phoneNumber);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('OTP dikirim ulang')),

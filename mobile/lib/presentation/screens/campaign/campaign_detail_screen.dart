@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/theme/app_theme.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../data/models/campaign_model.dart';
 import '../../../data/repositories/repositories.dart';
 import '../../../logic/cubits/campaign/campaign_cubit.dart';
@@ -114,14 +114,14 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.schedule, size: 16, color: AppTheme.textSecondary),
+                          Icon(Icons.schedule, size: 16, color: AppTheme.textSecondary),
                           const SizedBox(width: 4),
                           Text(
                             'Deadline: $deadlineDays hari lagi',
                             style: AppTheme.bodyMedium,
                           ),
                           const Spacer(),
-                          const Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textSecondary),
+                          Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textSecondary),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(

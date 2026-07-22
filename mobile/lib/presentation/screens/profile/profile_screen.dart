@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/theme/app_theme.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../logic/cubits/auth/auth_cubit.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -28,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
                 backgroundColor: AppTheme.primaryLight,
                 child: Text(
                   user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                  style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppTheme.primary),
                 ),
               ),
               const SizedBox(height: 16),
@@ -125,7 +125,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.logout, color: AppTheme.error),
+                  icon: Icon(Icons.logout, color: AppTheme.error),
                   label: Text('Keluar', style: TextStyle(color: AppTheme.error)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: AppTheme.error),

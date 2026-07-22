@@ -1,8 +1,8 @@
-import '../../data/models/user_model.dart';
-import '../../data/models/campaign_model.dart';
-import '../../data/models/order_model.dart';
-import '../../data/models/notification_model.dart';
-import '../../data/datasources/remote/mock_data.dart';
+import '../models/user_model.dart';
+import '../models/campaign_model.dart';
+import '../models/order_model.dart';
+import '../models/notification_model.dart';
+import '../datasources/remote/mock_data.dart';
 import '../../core/constants/app_constants.dart';
 
 /// Auth Repository — handles authentication & user state.

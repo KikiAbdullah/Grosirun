@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/constants/app_constants.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../data/models/campaign_model.dart';
+import '../../../data/models/order_model.dart';
+import '../../../data/models/notification_model.dart';
 import '../../../data/datasources/remote/mock_data.dart';
 import '../../../logic/cubits/auth/auth_cubit.dart';
 import '../../../logic/cubits/campaign/campaign_cubit.dart';
@@ -32,13 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Offline banner placeholder
-            // (would show when connectivity_plus detects offline)
-            
-            // App header
             _buildHeader(context),
-            
-            // Content
             Expanded(
               child: IndexedStack(
                 index: _currentIndex,
@@ -93,16 +89,12 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  userName,
-                  style: AppTheme.titleMedium,
-                ),
+                Text(userName, style: AppTheme.titleMedium),
                 if (clusterName != null && clusterName.isNotEmpty)
                   Text(clusterName, style: AppTheme.bodyMedium),
               ],
             ),
           ),
-          // Notification badge
           Stack(
             children: [
               IconButton(
@@ -115,10 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   width: 10,
                   height: 10,
-                  decoration: BoxDecoration(
-                    color: AppTheme.error,
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: AppTheme.error, shape: BoxShape.circle),
                 ),
               ),
             ],
@@ -148,7 +137,7 @@ class _CampaignListTab extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
+                  Icon(Icons.error_outline, size: 48, color: AppTheme.error),
                   const SizedBox(height: 8),
                   Text(state.message, style: AppTheme.bodyMedium),
                   const SizedBox(height: 16),
@@ -162,38 +151,45 @@ class _CampaignListTab extends StatelessWidget {
           }
           if (state is CampaignListLoaded) {
             if (state.campaigns.isEmpty) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.shopping_cart_outlined, size: 48, color: AppTheme.textDisabled),
-                    SizedBox(height: 8),
-                    Text('Belum ada patungan aktif', style: AppTheme.bodyMedium),
-                  ],
-                ),
+              return ListView(
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.shopping_cart_outlined, size: 48, color: AppTheme.textDisabled),
+                          const SizedBox(height: 8),
+                          Text('Belum ada patungan aktif', style: AppTheme.bodyMedium),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               );
             }
-            // Social ticker
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(child: _SocialTicker()),
-                SliverPadding(
+            return ListView(
+              children: [
+                const _SocialTicker(),
+                Padding(
                   padding: const EdgeInsets.all(16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, i) => _CampaignCard(
-                        campaign: state.campaigns[i],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CampaignDetailScreen(campaignId: state.campaigns[i].id),
-                            ),
-                          );
-                        },
-                      ),
-                      childCount: state.campaigns.length,
-                    ),
+                  child: Column(
+                    children: state.campaigns
+                        .map(
+                          (c) => _CampaignCard(
+                            campaign: c,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CampaignDetailScreen(campaignId: c.id),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
               ],
@@ -206,9 +202,11 @@ class _CampaignListTab extends StatelessWidget {
   }
 }
 
-// ─── Social Ticker Widget ───
+// ─── Social Ticker ───
 
 class _SocialTicker extends StatelessWidget {
+  const _SocialTicker();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -217,21 +215,23 @@ class _SocialTicker extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 12),
-          const Icon(Icons.trending_up, size: 16, color: AppTheme.primary),
+          Icon(Icons.trending_up, size: 16, color: AppTheme.primary),
           const SizedBox(width: 8),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: MockData.socialTicker.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 24),
-                    child: Text(
-                      item,
-                      style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimary, fontSize: 12),
-                    ),
-                  );
-                }).toList(),
+                children: MockData.socialTicker
+                    .map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(right: 24),
+                        child: Text(
+                          item,
+                          style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimary, fontSize: 12),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
           ),
@@ -241,7 +241,7 @@ class _SocialTicker extends StatelessWidget {
   }
 }
 
-// ─── Campaign Card Widget ───
+// ─── Campaign Card ───
 
 class _CampaignCard extends StatelessWidget {
   final CampaignModel campaign;
@@ -264,16 +264,10 @@ class _CampaignCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title and deadline
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      campaign.title,
-                      style: AppTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(campaign.title, style: AppTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -295,13 +289,8 @@ class _CampaignCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
-                'oleh ${campaign.initiatorName} • ${campaign.clusterName}',
-                style: AppTheme.bodyMedium,
-              ),
+              Text('oleh ${campaign.initiatorName} • ${campaign.clusterName}', style: AppTheme.bodyMedium),
               const SizedBox(height: 12),
-
-              // Progress bar
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: LinearProgressIndicator(
@@ -309,15 +298,11 @@ class _CampaignCard extends StatelessWidget {
                   minHeight: 24,
                   backgroundColor: AppTheme.border,
                   valueColor: AlwaysStoppedAnimation(
-                    campaign.progressPercent >= 0.7
-                        ? AppTheme.warning
-                        : AppTheme.primary,
+                    campaign.progressPercent >= 0.7 ? AppTheme.warning : AppTheme.primary,
                   ),
                 ),
               ),
               const SizedBox(height: 8),
-
-              // Progress text
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -325,15 +310,10 @@ class _CampaignCard extends StatelessWidget {
                     'Terkumpul ${campaign.currentQuantity} ${campaign.unit} dari ${campaign.targetQuantity} ${campaign.unit}',
                     style: AppTheme.bodyMedium,
                   ),
-                  Text(
-                    '$percent%',
-                    style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppTheme.primary),
-                  ),
+                  Text('$percent%', style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppTheme.primary)),
                 ],
               ),
               const SizedBox(height: 8),
-
-              // Price
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -341,10 +321,7 @@ class _CampaignCard extends StatelessWidget {
                     'Rp${_formatPrice(campaign.buyerUnitPrice)}/${campaign.unit}',
                     style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  TextButton(
-                    onPressed: onTap,
-                    child: const Text('Ikut Patungan'),
-                  ),
+                  TextButton(onPressed: onTap, child: const Text('Ikut Patungan')),
                 ],
               ),
             ],
@@ -355,34 +332,32 @@ class _CampaignCard extends StatelessWidget {
   }
 
   String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
+    return price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
   }
 }
 
-// ─── My Orders Tab (Placeholder) ───
+// ─── My Orders Tab ───
 
 class _MyOrdersTab extends StatelessWidget {
   const _MyOrdersTab();
 
   @override
   Widget build(BuildContext context) {
+    final orders = MockData.myOrders;
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: MockData.myOrders.map((order) {
+      children: List<Widget>.generate(orders.length, (i) {
+        final order = orders[i];
+        final isPaid = order.paymentStatus == 'paid';
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
-              backgroundColor: order.paymentStatus == 'paid'
-                  ? AppTheme.success.withOpacity(0.1)
-                  : AppTheme.warning.withOpacity(0.1),
+              backgroundColor: isPaid ? AppTheme.success.withOpacity(0.1) : AppTheme.warning.withOpacity(0.1),
               child: Icon(
-                order.paymentStatus == 'paid' ? Icons.check_circle : Icons.pending,
-                color: order.paymentStatus == 'paid' ? AppTheme.success : AppTheme.warning,
+                isPaid ? Icons.check_circle : Icons.pending,
+                color: isPaid ? AppTheme.success : AppTheme.warning,
               ),
             ),
             title: Text(order.campaignTitle, style: AppTheme.titleMedium),
@@ -390,18 +365,22 @@ class _MyOrdersTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
-                Text('${order.variantName} × ${order.quantity}', style: AppTheme.bodyMedium),
+                Text('${order.variantName} x ${order.quantity}', style: AppTheme.bodyMedium),
                 Text(
-                  'Rp${order.totalPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')} • ${order.paymentMethod.toUpperCase()}',
+                  'Rp${_formatPrice(order.totalPrice)} • ${order.paymentMethod.toUpperCase()}',
                   style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.w500),
                 ),
               ],
             ),
-            trailing: const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+            trailing: Icon(Icons.chevron_right, color: AppTheme.textSecondary),
           ),
         );
-      }).toList(),
+      }),
     );
+  }
+
+  String _formatPrice(int price) {
+    return price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
   }
 }
 
@@ -412,9 +391,11 @@ class _NotificationsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final notifs = MockData.notifications;
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: MockData.notifications.map((notif) {
+      children: List<Widget>.generate(notifs.length, (i) {
+        final notif = notifs[i];
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           color: notif.isRead ? AppTheme.surface : AppTheme.primaryLight.withOpacity(0.15),
@@ -422,7 +403,7 @@ class _NotificationsTab extends StatelessWidget {
             contentPadding: const EdgeInsets.all(16),
             leading: CircleAvatar(
               backgroundColor: AppTheme.primary.withOpacity(0.1),
-              child: const Icon(Icons.campaign, color: AppTheme.primary, size: 20),
+              child: Icon(Icons.campaign, color: AppTheme.primary, size: 20),
             ),
             title: Text(notif.title, style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.w600)),
             subtitle: Padding(
@@ -431,7 +412,7 @@ class _NotificationsTab extends StatelessWidget {
             ),
           ),
         );
-      }).toList(),
+      }),
     );
   }
 }

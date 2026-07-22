@@ -3,16 +3,16 @@
 /// This file provides dummy data that matches the API_SPEC response format.
 /// When [AppConstants.useMockData] is false, these are replaced by real API calls.
 
-import '../models/user_model.dart';
-import '../models/campaign_model.dart';
-import '../models/order_model.dart';
-import '../models/notification_model.dart';
+import '../../models/user_model.dart';
+import '../../models/campaign_model.dart';
+import '../../models/order_model.dart';
+import '../../models/notification_model.dart';
 
 class MockData {
   MockData._();
 
   // ─── Users ───
-  static const User buyer = UserModel(
+  static const UserModel buyer = UserModel(
     id: 1,
     name: 'Bu Siti',
     phoneNumber: '081234567890',
@@ -24,7 +24,7 @@ class MockData {
     tosAccepted: true,
   );
 
-  static const User initiator = UserModel(
+  static const UserModel initiator = UserModel(
     id: 2,
     name: 'Pak Agus Setiawan',
     phoneNumber: '081987654321',
@@ -36,7 +36,7 @@ class MockData {
     tosAccepted: true,
   );
 
-  static const User seller = UserModel(
+  static const UserModel seller = UserModel(
     id: 3,
     name: 'Andi dari Makmur Jaya',
     phoneNumber: '08111222333',
@@ -258,4 +258,3 @@ class MockData {
 }
 
 // Alias for convenience
-typedef User = UserModel;

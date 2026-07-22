@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/constants/app_constants.dart';
-import '../../logic/cubits/auth/auth_cubit.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../logic/cubits/auth/auth_cubit.dart';
 
 /// First screen: choose phone number role (mock: pick from demo users)
 class RoleSelectionScreen extends StatefulWidget {
@@ -62,10 +62,10 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Nomor WhatsApp',
                   hintText: '08123456789',
-                  prefixIcon: const Icon(Icons.phone),
+                  prefixIcon: Icon(Icons.phone),
                   prefixText: '+62 ',
                 ),
               ),
@@ -153,7 +153,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   void _requestOtp() {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) {
-      // Use default demo
       context.read<AuthCubit>().requestOtp('081234567890');
     } else {
       context.read<AuthCubit>().requestOtp(phone);
