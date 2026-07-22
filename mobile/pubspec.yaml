@@ -43,7 +43,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets:
-    - assets/images/
-    - assets/icons/
-    - assets/lottie/
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+  #   - assets/lottie/
+  # Uncomment di atas setelah menambahkan file asset nyata
