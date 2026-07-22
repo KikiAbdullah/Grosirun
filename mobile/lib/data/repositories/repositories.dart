@@ -24,6 +24,24 @@ class AuthRepository {
     return _currentUser!;
   }
 
+  /// Login as demo user with specific role
+  Future<UserModel> loginAsDemoUser(String role) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    switch (role) {
+      case 'initiator':
+        _currentUser = MockData.initiator;
+        break;
+      case 'seller':
+        _currentUser = MockData.seller;
+        break;
+      case 'buyer':
+      default:
+        _currentUser = MockData.buyer;
+        break;
+    }
+    return _currentUser!;
+  }
+
   /// Get current logged-in user
   Future<UserModel> getCurrentUser() async {
     if (_currentUser != null) return _currentUser!;

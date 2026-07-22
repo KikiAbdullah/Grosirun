@@ -98,6 +98,17 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Login as demo user with specific role
+  Future<void> loginAsDemoUser(String role) async {
+    emit(AuthLoading());
+    try {
+      final user = await _repository.loginAsDemoUser(role);
+      emit(AuthAuthenticated(user));
+    } catch (e) {
+      emit(AuthError('Gagal login sebagai demo user.'));
+    }
+  }
+
   Future<void> switchRole(String role) async {
     try {
       final user = await _repository.switchActiveRole(role);

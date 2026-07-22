@@ -147,7 +147,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       );
       return;
     }
-    context.read<AuthCubit>().verifyOtp('081234567890', '123456');
+    context.read<AuthCubit>().loginAsDemoUser(role);
   }
 
   void _requestOtp() {
