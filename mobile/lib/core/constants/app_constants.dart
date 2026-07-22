@@ -85,3 +85,11 @@ class PaymentStatus {
   static const String paid = 'paid';
   static const String rejected = 'rejected';
 }
+
+  // ─── Price Formatting ───
+  static String formatPrice(int price) {
+    return price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+  }

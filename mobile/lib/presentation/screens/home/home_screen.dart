@@ -228,17 +228,17 @@ class _CampaignListTab extends StatelessWidget {
       onRefresh: () => context.read<CampaignCubit>().refreshCampaigns(),
       child: BlocBuilder<CampaignCubit, CampaignState>(
         builder: (context, state) {
-          if (state is CampaignListLoading) {
+          if (state is CampaignLoading) {
             return _CampaignListShimmer();
           }
-          if (state is CampaignListError) {
+          if (state is CampaignError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error_outline, size: 48, color: AppTheme.error),
                   const SizedBox(height: 8),
-                  Text(state.message, style: AppTheme.bodyMedium),
+                  Text((state as CampaignError).message, style: AppTheme.bodyMedium),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => context.read<CampaignCubit>().loadCampaigns(),
@@ -248,8 +248,8 @@ class _CampaignListTab extends StatelessWidget {
               ),
             );
           }
-          if (state is CampaignListLoaded) {
-            if (state.campaigns.isEmpty) {
+          if (state is CampaignLoaded) {
+            if ((state as CampaignLoaded).campaigns.isEmpty) {
               return ListView(
                 children: [
                   SizedBox(
@@ -274,7 +274,7 @@ class _CampaignListTab extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    children: state.campaigns
+                    children: (state as CampaignLoaded).campaigns
                         .asMap()
                         .entries
                         .map(
@@ -328,7 +328,7 @@ class _CampaignListShimmer extends StatelessWidget {
               const SizedBox(height: 8),
               Container(width: 150, height: 14, color: Colors.white),
               const SizedBox(height: 16),
-              Container(width: double.infinity, height: 24, color: Colors.white, borderRadius: BorderRadius.circular(12)),
+              Container(width: double.infinity, height: 24, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

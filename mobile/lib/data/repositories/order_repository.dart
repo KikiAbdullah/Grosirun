@@ -31,7 +31,7 @@ class OrderRepository {
 
       // Mock response
       await Future.delayed(const Duration(milliseconds: 600));
-      final orders = MockData.orders;
+      final orders = MockData.myOrders;
       
       _logger.i('Orders fetched: ${orders.length} items');
       return orders;
@@ -51,7 +51,7 @@ class OrderRepository {
 
       // Mock response
       await Future.delayed(const Duration(milliseconds: 400));
-      final order = MockData.orders.firstWhere((o) => o.id == id);
+      final order = MockData.myOrders.firstWhere((o) => o.id == id);
       
       _logger.i('Order detail fetched: ${order.campaignTitle}');
       return order;
@@ -84,7 +84,7 @@ class OrderRepository {
 
       // Mock response
       await Future.delayed(const Duration(milliseconds: 800));
-      final order = MockData.orders.first;
+      final order = MockData.myOrders.first;
       
       _logger.i('Order created: ${order.id}');
       return order;

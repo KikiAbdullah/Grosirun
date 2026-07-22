@@ -65,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
                             selected: isActive,
                             onSelected: isActive
                                 ? null
-                                : (_) => context.read<AuthCubit>().switchRole(role),
+                                : (_) => context.read<AuthCubit>().updateActiveRole(role),
                             selectedColor: AppTheme.primary,
                             labelStyle: TextStyle(
                               color: isActive ? Colors.white : AppTheme.textPrimary,
