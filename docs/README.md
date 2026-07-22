@@ -23,6 +23,7 @@ Indeks ini adalah titik masuk dokumentasi Grosirun. Gunakan dokumen **Source of 
 4. [Proposal Penjual, Pembeli, dan Inisiator](PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md)
 5. [Isi Presentasi Grosirun](PRESENTASI_GROSIRUN.md)
 6. [Privacy Policy — consent, hak subjek data, dan retensi](PRIVACY_POLICY.md)
+7. [Brand Guidelines — filosofi, identitas visual, nada, dan penerapan brand](BRAND_GUIDELINES.md)
 
 ### Engineering
 
@@ -56,6 +57,7 @@ Indeks ini adalah titik masuk dokumentasi Grosirun. Gunakan dokumen **Source of 
 | Logs, metrics, performance, analytics | [Observability](OBSERVABILITY.md) | [Telemetry governance](OBSERVABILITY.md#1-telemetry-governance) |
 | Coding, Git, PR, contribution | [Development Guide](DEVELOPMENT_GUIDE.md) | [Dokumentasi wajib](DEVELOPMENT_GUIDE.md#10-dokumentasi-wajib) |
 | Consent, privacy, retention | [Privacy Policy](PRIVACY_POLICY.md) | [Data yang dikumpulkan](PRIVACY_POLICY.md#2-data-yang-dikumpulkan) |
+| Identitas visual, warna, tipografi, nada brand, filosofi | [Brand Guidelines](BRAND_GUIDELINES.md) | [Filosofi](BRAND_GUIDELINES.md#1-asal-usul-nama), [sistem warna](BRAND_GUIDELINES.md#9-sistem-warna), [nada suara](BRAND_GUIDELINES.md#13-nada-dan-suara-brand) |
 | Release history dan perubahan keputusan | [Changelog](CHANGELOG.md) | [Decision log](CHANGELOG.md#decision-log) |
 
 > [Proposal stakeholder](PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md) dan [isi presentasi](PRESENTASI_GROSIRUN.md) adalah materi komunikasi dan validasi minat, bukan source of truth requirement atau komitmen komersial.
