@@ -54,6 +54,8 @@ Target touch 48–56dp, TalkBack semantics, contrast, responsive layout, skeleto
 
 ## 8. Spesifikasi UI Terperinci
 
+> **Referensi brand:** Seluruh spesifikasi warna, tipografi, dan komponen UI di bagian ini mengikuti [Brand Guidelines](BRAND_GUIDELINES.md) sebagai panduan identitas visual resmi.
+
 ### 1. Prinsip Desain
 
 | Prinsip                  | Keterangan                                                                                                                       |
