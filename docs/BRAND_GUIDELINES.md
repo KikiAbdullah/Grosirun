@@ -1,42 +1,159 @@
 # Brand Guidelines — Grosirun
 
 **Tanggal:** 22 Juli 2026  
-**Versi:** 1.1  
+**Versi:** 2.0  
 **Owner:** Product & Design  
 **Review Cycle:** Setiap release  
 **Status Dokumen:** Final  
 **Status Implementasi:** Belum Dimulai  
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
 
-> **Catatan:** Filosofi dan fondasi identitas brand ada di [Brand Philosophy](BRAND_PHILOSOPHY.md). Dokumen ini adalah panduan implementasi visual, verbal, dan teknis.
+> Dokumen ini mencakup **fondasi filosofis** dan **panduan implementasi** brand Grosirun — dari "mengapa" hingga "bagaimana".
 
 ---
 
 ## Daftar Isi
 
-1. [Identitas Brand](#1-identitas-brand)
-2. [Logo](#2-logo)
-3. [Sistem Warna](#3-sistem-warna)
-4. [Tipografi](#4-tipografi)
-5. [Ikonografi](#5-ikonografi)
-6. [Gaya Visual dan Fotografi](#6-gaya-visual-dan-fotografi)
-7. [Nada dan Suara Brand](#7-nada-dan-suara-brand)
-8. [Komponen UI dan Pattern](#8-komponen-ui-dan-pattern)
-9. [Aplikasi Brand](#9-aplikasi-brand)
-10. [Do's and Don'ts](#10-dos-and-donts)
-11. [Aset Brand dan Kontak](#11-aset-brand-dan-kontak)
+**Bagian I — Filosofi Brand (Mengapa)**
+
+1. [Asal-usul Nama](#1-asal-usul-nama)
+2. [Filosofi Dasar](#2-filosofi-dasar)
+3. [Kepribadian Brand](#3-kepribadian-brand)
+4. [Tagline](#4-tagline)
+5. [Arah Visual](#5-arah-visual)
+6. [Elevator Pitch](#6-elevator-pitch)
+
+**Bagian II — Identitas & Implementasi (Bagaimana)**
+
+7. [Identitas Brand](#7-identitas-brand)
+8. [Logo](#8-logo)
+9. [Sistem Warna](#9-sistem-warna)
+10. [Tipografi](#10-tipografi)
+11. [Ikonografi](#11-ikonografi)
+12. [Gaya Visual dan Fotografi](#12-gaya-visual-dan-fotografi)
+13. [Nada dan Suara Brand](#13-nada-dan-suara-brand)
+14. [Komponen UI dan Pattern](#14-komponen-ui-dan-pattern)
+15. [Aplikasi Brand](#15-aplikasi-brand)
+16. [Do's and Don'ts](#16-dos-and-donts)
+17. [Aset Brand dan Kontak](#17-aset-brand-dan-kontak)
 
 ---
 
-## 1. Identitas Brand
+# Bagian I — Filosofi Brand
 
-### 1.1 Nama Brand
+---
 
-> **Asal-usul nama:** Lihat [Brand Philosophy §1](BRAND_PHILOSOPHY.md#1-asal-usul-nama) untuk penjelasan lengkap filosofi "Grosir" + "Run".
+## 1. Asal-usul Nama
 
-**Grosirun** — kombinasi dari "Grosir" (pembelian dalam jumlah besar dengan harga lebih murah) dan "Run" (gerakan, aktif, beroperasi). Secara harfiah: **"Grosir yang jalan terus."** Bunyi "-un" di akhir membuat nama terasa akrab, ringan, dan mudah diucapkan dalam bahasa Indonesia.
+Nama ini lahir dari dua kata dasar:
 
-**Aturan penulisan:**
+**GROSIR** → beli banyak, harga pabrik, langsung sumber.
+
+**RUN** → dalam bahasa Inggris berarti *berjalan*, *bergerak*, atau *beroperasi*.
+
+Jadi secara harfiah, **GROSIRUN** artinya: **"Grosir yang jalan terus"** atau **"Grosir yang beroperasi aktif"**.
+
+Kesan yang mau ditangkap: bisnis ini bukan toko yang diam. Dia bergerak, mengalir, dan siap setiap saat.
+
+---
+
+**Bonus dari bunyinya:**
+
+Meskipun asal katanya dari "Run", ketika diucapkan cepat oleh orang Indonesia—*Grosirun*—telinga kita menangkap nada yang terasa akrab dan mengajak. Bunyi "-un" di akhir membuatnya terdengar ringan, bukan kaku.
+
+Tanpa perlu dibuat-buat, nama ini jadi enak diucapkan dan gampang diingat. Satu kata sudah cukup untuk menyampaikan: **ini tentang grosir yang aktif dan seru.**
+
+---
+
+## 2. Filosofi Dasar
+
+Prinsipnya cuma satu: **belanja bareng itu lebih murah.**
+
+Ini bukan konsep baru. Ibu-ibu arisan, tukang warung, dan kelompok PKK sudah jalanin ini puluhan tahun: kumpul-kumpul, patungan, beli banyak, dapat harga miring.
+
+Grosirun hadir cuma buat **ngebantu kebiasaan itu supaya lebih teratur dan jelas**—tanpa menghilangkan rasa kekeluargaannya.
+
+**Yang kami pegang:**
+
+- Berapapun yang ikut, semua dapet harga grosir (hemat 14–21%).
+- Transaksinya transparan. Uang langsung ke pemasok, bukan ditahan kita. Kayak nitip beli ke tetangga, cuma sekarang pake HP.
+- Kami cuma fasilitator. Kendali penuh ada di kelompok atau RT/RW masing-masing.
+
+---
+
+## 3. Kepribadian Brand
+
+Kalau Grosirun ini orang, dia adalah sosok yang familiar:
+
+> **Tetangga yang bisa dipercaya.**
+
+> Orangnya rajin, tahu cara dapet harga murah, dan selalu ngajak tetangga lain buat ikut. Dia jujur, nggak suka curang, dan nggak pernah sok-sok an.
+
+**Sifat-sifatnya:**
+
+- Ramah dan gampang didekati
+- Bicara apa adanya, nggak bertele-tele
+- Lebih suka ngajak daripada maksa
+- Praktis, nggak ribet
+
+---
+
+## 4. Tagline
+
+### Tagline Utama (Rekomendasi)
+
+> **"Yuk, Grosirun Bareng!"**
+
+Paling simpel, paling nyambung dengan bunyi nama, dan kedengarannya persis seperti ajakan dari tetangga sebelah. Digunakan pada materi pemasaran, splash screen, kampanye, dan komunikasi publik.
+
+### Tagline Deskriptif (Konteks Formal/Teknis)
+
+> **Belanja Patungan Super Ringan**
+
+Digunakan pada dokumentasi teknis, README, dan konteks yang memerlukan deskripsi singkat tentang fungsi produk.
+
+### Pilihan Tagline Lainnya
+
+| Tagline | Kesan yang Dibawa | Penggunaan |
+|---|---|---|
+| **"Yuk, Grosirun Bareng!"** | Ajakan paling natural, nyambung bunyi nama | Utama: pemasaran, splash screen, kampanye |
+| **"Belanja Rame, Harga Lega"** | Santai, cocok untuk ibu-ibu RT | Kampanye komunitas |
+| **"Hemat Bareng, Untung Bareng"** | Tegas nyebutin keuntungan dua sisi | Materi edukasi keuangan, proposal seller |
+| **"Satu RT, Satu Harga Grosir"** | Jelas dan langsung ke target pasar | Targeting spesifik komunitas RT/RW |
+
+### Motto Internal
+
+> **Ringan di HP, Berat di Audit, Taat UU PDP, Siap Disaster.**
+
+Digunakan pada komunikasi internal tim, dokumentasi teknis, dan materi developer. Bukan untuk konsumsi publik eksternal.
+
+---
+
+## 5. Arah Visual
+
+- **Warna dominan:** Oranye atau kuning hangat (kesan ramah dan hemat), dipadu hijau (kesan segar dan terpercaya).
+- **Gambar/ikon:** Keranjang belanja yang diangkat oleh beberapa tangan—menggambarkan gotong royong secara gamblang.
+- **Jenis huruf:** Bulat, bersahabat, nggak terlalu kaku. Hindari font yang terlalu tegas kayak perusahaan logistik atau bank.
+
+> **Catatan implementasi:** Detail warna hex, token, dan spesifikasi teknis ada di [§9 Sistem Warna](#9-sistem-warna) dan [§10 Tipografi](#10-tipografi). Warna primary saat ini hijau `#16A34A` — arah jangka panjang dapat menambahkan aksen oranye/kuning hangat sesuai filosofi di atas.
+
+---
+
+## 6. Elevator Pitch
+
+> *"Grosirun itu kayak arisan belanja zaman sekarang. Kumpul bareng tetangga, pesen bareng, dapat harga grosir. Transparan, langsung dari HP, bisa hemat sampai 21%. Praktis dan nggak pake ribet."*
+
+Gunakan pada perkenalan singkat ke calon mitra, investor, atau user baru.
+
+---
+
+# Bagian II — Identitas & Implementasi
+
+---
+
+## 7. Identitas Brand
+
+### 7.1 Aturan Penulisan Nama
 
 | Konteks | Penulisan | Contoh |
 | --- | --- | --- |
@@ -54,47 +171,15 @@
 - ❌ Grosir-un
 - ❌ grosrun, GROSIR-UN
 
-### 1.2 Tagline
-
-**Tagline utama (rekomendasi):**
-
-> **"Yuk, Grosirun Bareng!"**
-
-Paling simpel, paling nyambung dengan bunyi nama, dan terasa seperti ajakan dari tetangga sebelah. Digunakan pada materi pemasaran, splash screen, kampanye, dan komunikasi publik.
-
-**Tagline deskriptif (konteks formal/teknis):**
-
-> **Belanja Patungan Super Ringan**
-
-Digunakan pada dokumentasi teknis, README, dan konteks yang memerlukan deskripsi singkat tentang fungsi produk.
-
-**Pilihan tagline lainnya:**
-
-| Tagline | Penggunaan |
-| --- | --- |
-| "Belanja Rame, Harga Lega" | Kampanye komunitas, ibu-ibu RT |
-| "Hemat Bareng, Untung Bareng" | Materi edukasi keuangan, proposal seller |
-| "Satu RT, Satu Harga Grosir" | Targeting spesifik komunitas RT/RW |
-
-> Lihat [Brand Philosophy §4](BRAND_PHILOSOPHY.md#4-pilihan-tagline) untuk penjelasan lengkap setiap pilihan.
-
-### 1.3 Motto Internal
-
-> **Ringan di HP, Berat di Audit, Taat UU PDP, Siap Disaster.**
-
-Motto ini digunakan pada komunikasi internal tim, dokumentasi teknis, dan materi developer. Bukan untuk konsumsi publik eksternal.
-
-### 1.4 Visi
+### 7.2 Visi
 
 Otak digital ekonomi mikro RT/RW, menghilangkan 100% admin manual patungan, taat UU PDP No.27/2022, non-escrow legal.
 
-### 1.5 Misi
+### 7.3 Misi
 
 Menyediakan platform group-buying yang ringan, transparan, dan terpercaya bagi komunitas RT/RW Indonesia untuk menghemat 14–21% harga kebutuhan pokok melalui sistem patungan digital.
 
-### 1.6 Nilai-Nilai Brand
-
-> **Filosofi lengkap:** Lihat [Brand Philosophy §2](BRAND_PHILOSOPHY.md#2-filosofi-dasar).
+### 7.4 Nilai-Nilai Brand
 
 | Nilai | Deskripsi | Manifestasi |
 | --- | --- | --- |
@@ -104,32 +189,15 @@ Menyediakan platform group-buying yang ringan, transparan, dan terpercaya bagi k
 | **Terpercaya** | Aman, taat regulasi, data terlindungi | Consent UU PDP, non-escrow ToS, enkripsi, audit trail |
 | **Efisien** | Menghemat waktu, uang, dan usaha semua pihak | Rekap otomatis, PDF 1-klik, validasi cepat, distribusi checklist |
 
-### 1.7 Kepribadian Brand
-
-> **Definisi lengkap:** Lihat [Brand Philosophy §3](BRAND_PHILOSOPHY.md#3-kepribadian-brand).
-
-Grosirun memiliki kepribadian seperti **tetangga yang bisa dipercaya**:
-
-- **Ramah** — Gampang didekati, bahasa sederhana, tidak teknikal, hangat
-- **Jujur** — Bicara apa adanya, tidak bertele-tele, tidak overpromise
-- **Mengajak** — Lebih suka ngajak daripada maksa, persuasif bukan agresif
-- **Praktis** — Solusi tepat, efisien, tanpa ribet, tidak sok-sok an
-
-### 1.8 Elevator Pitch
-
-> *"Grosirun itu kayak arisan belanja zaman sekarang. Kumpul bareng tetangga, pesen bareng, dapat harga grosir. Transparan, langsung dari HP, bisa hemat sampai 21%. Praktis dan nggak pake ribet."*
-
-Gunakan pada perkenalan singkat ke calon mitra, investor, atau user baru. Lihat [Brand Philosophy §6](BRAND_PHILOSOPHY.md#6-perkenalan-singkat-elevator-pitch).
-
 ---
 
-## 2. Logo
+## 8. Logo
 
-### 2.1 Konsep Logo
+### 8.1 Konsep Logo
 
 Logo Grosirun menggabungkan elemen keranjang belanja (gotong royong, belanja bersama) dengan gerakan dinamis (run, aksi cepat). Desain minimalis agar tetap jelas pada ukuran kecil (notifikasi, favicon) maupun besar (presentasi, spanduk).
 
-### 2.2 Konstruksi Logo
+### 8.2 Konstruksi Logo
 
 ```
 ┌─────────────────────────────────┐
@@ -152,7 +220,7 @@ Lockup vertikal (alternatif):
 - Jarak ikon ke wordmark = 0.3 × tinggi ikon
 - Tinggi total lockup = 1.2 × tinggi ikon
 
-### 2.3 Varian Logo
+### 8.3 Varian Logo
 
 | Varian | Penggunaan |
 | --- | --- |
@@ -162,7 +230,7 @@ Lockup vertikal (alternatif):
 | **Monokrom hitam** | Cetakan hitam putih, fax, stempel |
 | **Negative (putih di hijau)** | Tombol, badge, splash screen |
 
-### 2.4 Area Aman (Clear Space)
+### 8.4 Area Aman (Clear Space)
 
 Jarak minimum di sekeliling logo = **1× tinggi huruf "G"** pada wordmark. Tidak ada elemen visual lain (teks, gambar, border) yang boleh masuk area ini.
 
@@ -175,7 +243,7 @@ Jarak minimum di sekeliling logo = **1× tinggi huruf "G"** pada wordmark. Tidak
 ↓ ──────────────── ↓
 ```
 
-### 2.5 Ukuran Minimum
+### 8.5 Ukuran Minimum
 
 | Media | Ukuran minimum |
 | --- | --- |
@@ -184,7 +252,7 @@ Jarak minimum di sekeliling logo = **1× tinggi huruf "G"** pada wordmark. Tidak
 
 Di bawah ukuran ini, gunakan **icon only** tanpa wordmark.
 
-### 2.6 Latar Belakang Logo
+### 8.6 Latar Belakang Logo
 
 | Latar | Versi logo |
 | --- | --- |
@@ -195,9 +263,9 @@ Di bawah ukuran ini, gunakan **icon only** tanpa wordmark.
 
 ---
 
-## 3. Sistem Warna
+## 9. Sistem Warna
 
-### 3.1 Warna Primer
+### 9.1 Warna Primer
 
 | Token | Nama | Hex | RGB | HSL | Penggunaan |
 | --- | --- | --- | --- | --- | --- |
@@ -205,7 +273,7 @@ Di bawah ukuran ini, gunakan **icon only** tanpa wordmark.
 | **Primary Dark** | Grosirun Green Dark | `#15803D` | 21, 128, 61 | 142°, 72%, 29% | State pressed, hover, fokus |
 | **Primary Light** | Grosirun Green Light | `#BBF7D0` | 187, 247, 208 | 111°, 78%, 85% | Background aksen, badge, highlight ringan |
 
-### 3.2 Warna Sekunder dan Fungsional
+### 9.2 Warna Sekunder dan Fungsional
 
 | Token | Nama | Hex | Penggunaan |
 | --- | --- | --- | --- |
@@ -214,7 +282,7 @@ Di bawah ukuran ini, gunakan **icon only** tanpa wordmark.
 | **Success** | Hijau terang | `#22C55E` | Sukses, complete, terverifikasi |
 | **Info** | Biru | `#3B82F6` | Informasi, bantuan, link |
 
-### 3.3 Warna Netral
+### 9.3 Warna Netral
 
 | Token | Hex | Penggunaan |
 | --- | --- | --- |
@@ -227,7 +295,7 @@ Di bawah ukuran ini, gunakan **icon only** tanpa wordmark.
 | **Offline Banner BG** | `#FEF9C3` | Background peringatan offline |
 | **Offline Banner Text** | `#854D0E` | Teks peringatan offline |
 
-### 3.4 Palet Dark Mode
+### 9.4 Palet Dark Mode
 
 Dark mode mengikuti Material Design 3 dark surface scale. Warna hijau primer tetap `#16A34A` namun dengan penyesuaian:
 
@@ -240,7 +308,7 @@ Dark mode mengikuti Material Design 3 dark surface scale. Warna hijau primer tet
 | Primary | `#16A34A` | `#4ADE80` |
 | Border | `#E2E8F0` | `#334155` |
 
-### 3.5 Kontras dan Aksesibilitas
+### 9.5 Kontras dan Aksesibilitas
 
 Semua kombinasi warna memenuhi **WCAG 2.1 Level AA** (rasio kontras minimal 4.5:1 untuk teks normal):
 
@@ -252,7 +320,7 @@ Semua kombinasi warna memenuhi **WCAG 2.1 Level AA** (rasio kontras minimal 4.5:
 | Text Secondary `#64748B` on White | 4.6:1 | ✅ Pass AA |
 | White on Primary `#16A34A` | 4.5:1 | ✅ Pass AA |
 
-### 3.6 Gradien (Opsional)
+### 9.6 Gradien (Opsional)
 
 Gradien hanya digunakan pada elemen dekoratif (splash screen, ilustrasi), bukan pada teks atau tombol fungsional:
 
@@ -263,9 +331,9 @@ Accent Gradient: #16A34A → #0EA5E9 (diagonal, 135°) — terbatas ilustrasi
 
 ---
 
-## 4. Tipografi
+## 10. Tipografi
 
-### 4.1 Font Family
+### 10.1 Font Family
 
 | Platform | Font | Alasan |
 | --- | --- | --- |
@@ -275,7 +343,9 @@ Accent Gradient: #16A34A → #0EA5E9 (diagonal, 135°) — terbatas ilustrasi
 
 **Kebijakan:** Tidak menggunakan custom font berbayar atau font yang memerlukan download tambahan. APK harus tetap <10MB. Jika custom font diperlukan (misalnya untuk kampanye khusus), gunakan subset Latin only dengan ukuran <50KB per weight.
 
-### 4.2 Skala Tipografi
+> **Arah jangka panjang:** Sesuai [§5 Arah Visual](#5-arah-visual), font bulat dan bersahabat dapat dipertimbangkan untuk kampanye marketing, selama tidak menambah ukuran APK secara signifikan.
+
+### 10.2 Skala Tipografi
 
 | Token | Ukuran | Weight | Line Height | Penggunaan |
 | --- | --- | --- | --- | --- |
@@ -291,7 +361,7 @@ Accent Gradient: #16A34A → #0EA5E9 (diagonal, 135°) — terbatas ilustrasi
 | **Label Medium** | 14sp | Medium (500) | 1.4 | Tab label, chip, badge |
 | **Label Small** | 12sp | Medium (500) | 1.4 | Tag, kategori, counter |
 
-### 4.3 Aturan Tipografi
+### 10.3 Aturan Tipografi
 
 - **Bahasa:** Indonesia (formal untuk sistem, semi-formal untuk komunikasi)
 - **Format angka:** Gunakan titik sebagai pemisah ribuan (Rp1.500.000) dan koma untuk desimal (1,5 kg)
@@ -303,13 +373,13 @@ Accent Gradient: #16A34A → #0EA5E9 (diagonal, 135°) — terbatas ilustrasi
 
 ---
 
-## 5. Ikonografi
+## 11. Ikonografi
 
-### 5.1 Library Ikon
+### 11.1 Library Ikon
 
 Gunakan **Material Icons** (built-in Flutter) untuk menjaga ukuran APK tetap ringan. Tidak menggunakan ikon custom SVG kecuali benar-benar diperlukan untuk identitas brand.
 
-### 5.2 Gaya Ikon
+### 11.2 Gaya Ikon
 
 | Atribut | Spesifikasi |
 | --- | --- |
@@ -322,7 +392,7 @@ Gunakan **Material Icons** (built-in Flutter) untuk menjaga ukuran APK tetap rin
 | Warna aktif | `#16A34A` (Primary) |
 | Warna error | `#DC2626` (Error) |
 
-### 5.3 Ikon Utama Brand
+### 11.3 Ikon Utama Brand
 
 | Fungsi | Ikon | Catatan |
 | --- | --- | --- |
@@ -338,11 +408,9 @@ Gunakan **Material Icons** (built-in Flutter) untuk menjaga ukuran APK tetap rin
 
 ---
 
-## 6. Gaya Visual dan Fotografi
+## 12. Gaya Visual dan Fotografi
 
-> **Arah visual brand:** Lihat [Brand Philosophy §5](BRAND_PHILOSOPHY.md#5-arah-visual). Arah jangka panjang: warna hangat (oranye/kuning) dipadu hijau, ikon keranjang diangkat beberapa tangan (gotong royong), dan font bulat bersahabat.
-
-### 6.1 Gaya Ilustrasi
+### 12.1 Gaya Ilustrasi
 
 Ilustrasi digunakan pada empty state, onboarding, dan halaman promosi.
 
@@ -354,7 +422,7 @@ Ilustrasi digunakan pada empty state, onboarding, dan halaman promosi.
 | Objek | Keranjang belanja, pasar, rumah, komunitas, tangan saling membantu |
 | Hindari | 3D render, gradien kompleks, foto stok generik, font kaku korporat |
 
-### 6.2 Fotografi
+### 12.2 Fotografi
 
 Foto digunakan terbatas pada materi marketing (bukan di dalam aplikasi).
 
@@ -367,7 +435,7 @@ Foto digunakan terbatas pada materi marketing (bukan di dalam aplikasi).
 | Diversitas | Merepresentasikan berbagai usia dan latar belakang warga |
 | Hindari | Stok foto barat, pose formal korporat, warna gelap/suram |
 
-### 6.3 Ilustrasi Empty State
+### 12.3 Ilustrasi Empty State
 
 | Kondisi | Ilustrasi |
 | --- | --- |
@@ -379,11 +447,11 @@ Foto digunakan terbatas pada materi marketing (bukan di dalam aplikasi).
 
 ---
 
-## 7. Nada dan Suara Brand
+## 13. Nada dan Suara Brand
 
-### 7.1 Prinsip Komunikasi
+### 13.1 Prinsip Komunikasi
 
-Grosirun berkomunikasi seperti **tetangga yang pintar dan suka membantu**:
+Grosirun berkomunikasi sesuai kepribadian di [§3](#3-kepribadian-brand) — **tetangga yang bisa dipercaya**:
 
 | Prinsip | Penjelasan | Contoh |
 | --- | --- | --- |
@@ -393,19 +461,19 @@ Grosirun berkomunikasi seperti **tetangga yang pintar dan suka membantu**:
 | **Membantu** | Berikan solusi, bukan hanya masalah | ✅ "Upload gagal. Cek koneksi internet kamu ya." ❌ "Error 500: Internal Server Error" |
 | **Ringkas** | Langsung ke inti, tidak bertele-tele | ✅ "Pembayaran diterima ✅" ❌ "Kami informasikan bahwa pembayaran Anda telah kami terima dan telah diverifikasi oleh sistem" |
 
-### 7.2 Nada per Konteks
+### 13.2 Nada per Konteks
 
 | Konteks | Nada | Contoh |
 | --- | --- | --- |
 | **Sukses** | Ceria, singkat | "Patungan berhasil! 🎉" |
 | **Error** | Tenang, solutif | "Gagal memuat. Coba lagi ya." |
 | **Peringatan** | Sopan, jelas | "Kamu offline. Data mungkin tidak terbaru." |
-| **Onboarding** | Ramah, membimbing | "Yuk, mulai patungan pertamamu!" |
+| **Onboarding** | Ramah, membimbing | "Yuk, Grosirun Bareng! Mulai patungan pertamamu." |
 | **Konsent/ToS** | Serius, transparan | "Data WA kamu disimpan untuk keperluan PO RT saja." |
 | **Notifikasi** | Informatif, actionable | "Stok beras tinggal 5 kg. Checkout sekarang!" |
 | **Dukungan** | Empatik, membantu | "Maaf ya, ada kendala. Yuk kita selesaikan bersama." |
 
-### 7.3 Bahasa dan Terminologi
+### 13.3 Bahasa dan Terminologi
 
 | Istilah | Gunakan | Hindari |
 | --- | --- | --- |
@@ -418,7 +486,7 @@ Grosirun berkomunikasi seperti **tetangga yang pintar dan suka membantu**:
 | Bukti bayar | Bukti transfer | Payment proof, evidence |
 | Status | Pending, diproses, selesai | On hold, in progress, done |
 
-### 7.4 Emoji
+### 13.4 Emoji
 
 Emoji digunakan secara terbatas dan konsisten:
 
@@ -434,9 +502,9 @@ Emoji digunakan secara terbatas dan konsisten:
 
 ---
 
-## 8. Komponen UI dan Pattern
+## 14. Komponen UI dan Pattern
 
-### 8.1 Tombol (Button)
+### 14.1 Tombol (Button)
 
 | Jenis | Tinggi | Border Radius | Warna | Penggunaan |
 | --- | --- | --- | --- | --- |
@@ -448,7 +516,7 @@ Emoji digunakan secara terbatas dan konsisten:
 
 **Area sentuh minimum:** 48×48dp (accessibility requirement)
 
-### 8.2 Card
+### 14.2 Card
 
 | Atribut | Spesifikasi |
 | --- | --- |
@@ -458,7 +526,7 @@ Emoji digunakan secara terbatas dan konsisten:
 | Padding | 16dp |
 | Shadow | `0 1px 3px rgba(0,0,0,0.1)` |
 
-### 8.3 Progress Bar
+### 14.3 Progress Bar
 
 | Kondisi | Warna | Keterangan |
 | --- | --- | --- |
@@ -468,7 +536,7 @@ Emoji digunakan secara terbatas dan konsisten:
 | Background | `#E2E8F0` | Track progress |
 | Tinggi | 24dp | Dengan label persentase |
 
-### 8.4 Spacing System
+### 14.4 Spacing System
 
 Menggunakan kelipatan 4dp:
 
@@ -481,7 +549,7 @@ Menggunakan kelipatan 4dp:
 | `space-xl` | 32dp | Jarak antar group besar |
 | `space-2xl` | 48dp | Padding halaman (horizontal) |
 
-### 8.5 Border Radius
+### 14.5 Border Radius
 
 | Token | Nilai | Penggunaan |
 | --- | --- | --- |
@@ -494,29 +562,29 @@ Menggunakan kelipatan 4dp:
 
 ---
 
-## 9. Aplikasi Brand
+## 15. Aplikasi Brand
 
-### 9.1 Aplikasi Mobile
+### 15.1 Aplikasi Mobile
 
 | Elemen | Penerapan |
 | --- | --- |
 | **App Icon** | Ikon Grosirun (keranjang hijau) di background putih |
-| **Splash Screen** | Logo horizontal di tengah, background putih, tagline di bawah |
+| **Splash Screen** | Logo horizontal di tengah, background putih, tagline "Yuk, Grosirun Bareng!" di bawah |
 | **App Bar** | Background putih bersih, logo/icon navigasi, nama cluster di subtitle |
 | **Bottom Navigation** | 4 tab utama dengan ikon Material, active state hijau primary |
 | **Notifikasi** | Ikon Grosirun hijau, accent color hijau |
 
-### 9.2 Materi Presentasi
+### 15.2 Materi Presentasi
 
 | Elemen | Penerapan |
 | --- | --- |
-| **Slide sampul** | Logo horizontal + tagline + background putih |
+| **Slide sampul** | Logo horizontal + tagline utama + background putih |
 | **Header slide** | Logo kecil di pojok kanan atas |
 | **Footer slide** | Garis hijau primary 2px di bawah |
 | **Warna teks** | `#0F172A` untuk judul, `#64748B` untuk body |
 | **Highlight** | Background `#BBF7D0` (Primary Light) untuk poin penting |
 
-### 9.3 Media Sosial
+### 15.3 Media Sosial
 
 | Platform | Ukuran | Penerapan |
 | --- | --- | --- |
@@ -526,7 +594,7 @@ Menggunakan kelipatan 4dp:
 | **Twitter/X Post** | 1200×675 | Headline besar + visual flat |
 | **Profile Picture** | 400×400 | Icon only, background `#16A34A` |
 
-### 9.4 Dokumen Resmi
+### 15.4 Dokumen Resmi
 
 | Elemen | Penerapan |
 | --- | --- |
@@ -535,7 +603,7 @@ Menggunakan kelipatan 4dp:
 | **Tanda tangan digital** | Nama + jabatan + logo kecil |
 | **PDF Report** | Header dengan logo, footer dengan nomor halaman |
 
-### 9.5 Merchandise (Opsional)
+### 15.5 Merchandise (Opsional)
 
 | Item | Penerapan |
 | --- | --- |
@@ -545,9 +613,9 @@ Menggunakan kelipatan 4dp:
 
 ---
 
-## 10. Do's and Don'ts
+## 16. Do's and Don'ts
 
-### 10.1 Logo
+### 16.1 Logo
 
 | ✅ Do | ❌ Don't |
 | --- | --- |
@@ -557,7 +625,7 @@ Menggunakan kelipatan 4dp:
 | Skala proporsional | Distorsi, stretch, atau rotate |
 | Gunakan file vektor untuk cetak | Screenshot atau rasterize logo |
 
-### 10.2 Warna
+### 16.2 Warna
 
 | ✅ Do | ❌ Don't |
 | --- | --- |
@@ -566,7 +634,7 @@ Menggunakan kelipatan 4dp:
 | Konsisten dengan token warna | Gunakan warna di luar palet yang didefinisikan |
 | Dark mode dengan penyesuaian yang tepat | Copy-paste warna light mode ke dark tanpa modifikasi |
 
-### 10.3 Komunikasi
+### 16.3 Komunikasi
 
 | ✅ Do | ❌ Don't |
 | --- | --- |
@@ -576,7 +644,7 @@ Menggunakan kelipatan 4dp:
 | Gunakan "Grosirun" sebagai subjek | Gunakan "kami" atau "aplikasi" ambigu |
 | Konsisten dengan terminologi | Campur istilah Indonesia dan Inggris acak |
 
-### 10.4 Aplikasi
+### 16.4 Aplikasi
 
 | ✅ Do | ❌ Don't |
 | --- | --- |
@@ -587,9 +655,9 @@ Menggunakan kelipatan 4dp:
 
 ---
 
-## 11. Aset Brand dan Kontak
+## 17. Aset Brand dan Kontak
 
-### 11.1 Aset yang Tersedia
+### 17.1 Aset yang Tersedia
 
 | Aset | Format | Lokasi |
 | --- | --- | --- |
@@ -599,7 +667,7 @@ Menggunakan kelipatan 4dp:
 | Splash Screen | PNG + konfigurasi | `mobile/assets/splash/` |
 | Brand Guidelines | Markdown | `docs/BRAND_GUIDELINES.md` (dokumen ini) |
 
-### 11.2 Permintaan Aset
+### 17.2 Permintaan Aset
 
 Untuk permintaan aset brand, materi desain, atau pertanyaan penggunaan brand:
 
@@ -607,7 +675,7 @@ Untuk permintaan aset brand, materi desain, atau pertanyaan penggunaan brand:
 - **Email:** [Isi setelah disetujui]
 - **Slack:** [#brand-design](#) (akan dibuat)
 
-### 11.3 Lisensi
+### 17.3 Lisensi
 
 Seluruh aset brand Grosirun adalah milik Grosirun. Penggunaan oleh pihak ketiga memerlukan persetujuan tertulis dari Product Owner.
 
@@ -617,7 +685,6 @@ Seluruh aset brand Grosirun adalah milik Grosirun. Penggunaan oleh pihak ketiga 
 
 | Dokumen | Hubungan |
 | --- | --- |
-| **[Brand Philosophy](BRAND_PHILOSOPHY.md)** | **Sumber kebenaran filosofis:** asal nama, nilai, kepribadian, tagline, arah visual, elevator pitch |
 | [Mobile Specification](MOBILE_SPEC.md) | Detail teknis komponen UI, warna token, tipografi dalam Flutter |
 | [PRD](PRD.md) | Persona, value proposition, positioning brand |
 | [User Guide](USER_GUIDE.md) | Nada dan gaya bahasa untuk komunikasi ke user |
@@ -627,6 +694,6 @@ Seluruh aset brand Grosirun adalah milik Grosirun. Penggunaan oleh pihak ketiga 
 
 ---
 
-*Dokumen ini adalah panduan implementasi visual dan verbal Grosirun. Fondasi filosofis ada di [Brand Philosophy](BRAND_PHILOSOPHY.md). Setiap materi komunikasi, baik internal maupun eksternal, harus mengikuti kedua panduan ini. Perubahan hanya melalui persetujuan Product Owner.*
+*Dokumen ini adalah panduan lengkap brand Grosirun — dari filosofi hingga implementasi. Setiap materi komunikasi, baik internal maupun eksternal, harus mengikuti panduan ini. Perubahan hanya melalui persetujuan Product Owner.*
 
-**Versi 1.1 — 22 Juli 2026**
+**Versi 2.0 — 22 Juli 2026**

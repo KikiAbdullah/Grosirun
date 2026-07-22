@@ -715,8 +715,7 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - Alur Seller offer → Inisiator campaign snapshot → purchase order → fulfillment.
 - Verifikasi Supplier dan moderasi offer oleh Admin aplikasi.
 - Policy yang mencegah Seller mengakses data dan bukti pembayaran Pembeli.
-- Brand Guidelines (`docs/BRAND_GUIDELINES.md`) — identitas visual, palet warna, tipografi, ikonografi, nada suara brand, komponen UI, aplikasi brand, dan do's/don'ts.
-- Brand Philosophy (`docs/BRAND_PHILOSOPHY.md`) — filosofi brand, asal-usul nama "Grosir" + "Run", kepribadian ("tetangga yang bisa dipercaya"), pilihan tagline (rekomendasi: "Yuk, Grosirun Bareng!"), arah visual, dan elevator pitch.
+- Brand Guidelines (`docs/BRAND_GUIDELINES.md`) — panduan lengkap brand: filosofi (asal-usul nama "Grosir" + "Run", kepribadian "tetangga yang bisa dipercaya"), tagline (rekomendasi: "Yuk, Grosirun Bareng!"), arah visual, identitas, palet warna, tipografi, ikonografi, nada suara, komponen UI, aplikasi brand, dan do's/don'ts.
 
 ### Changed
 
