@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Models\Supplier;
 
 class SupplierSeeder extends Seeder
 {
@@ -13,7 +13,7 @@ class SupplierSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create suppliers
+        // Create suppliers using Eloquent
         $suppliers = [
             [
                 'name' => 'CV Makmur Jaya Abadi',
@@ -21,7 +21,7 @@ class SupplierSeeder extends Seeder
                 'address' => 'Jl. Industri Raya No. 45, Jakarta Timur',
                 'contact_business' => '021-87654321',
                 'verification_status' => 'approved',
-                'service_areas' => json_encode(['PGH-RT03', 'PGH-RT05', 'KBL-RT02']),
+                'service_areas' => ['PGH-RT03', 'PGH-RT05', 'KBL-RT02'],
             ],
             [
                 'name' => 'PT Sembako Nusantara',
@@ -29,7 +29,7 @@ class SupplierSeeder extends Seeder
                 'address' => 'Jl. Gudang Selatan No. 12, Jakarta Utara',
                 'contact_business' => '021-55566677',
                 'verification_status' => 'approved',
-                'service_areas' => json_encode(['PGH-RT03', 'CPN-RT07', 'PDI-RT11']),
+                'service_areas' => ['PGH-RT03', 'CPN-RT07', 'PDI-RT11'],
             ],
             [
                 'name' => 'UD Sumber Rejeki',
@@ -37,47 +37,45 @@ class SupplierSeeder extends Seeder
                 'address' => 'Jl. Pasar Baru No. 78, Jakarta Barat',
                 'contact_business' => '021-12345678',
                 'verification_status' => 'approved',
-                'service_areas' => json_encode(['CDA-RT04', 'TBH-RT09', 'STB-RT12']),
+                'service_areas' => ['CDA-RT04', 'TBH-RT09', 'STB-RT12'],
             ],
         ];
 
+        $supplierModels = [];
         foreach ($suppliers as $supplier) {
-            DB::table('suppliers')->insert(array_merge($supplier, [
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]));
+            $supplierModels[] = Supplier::create($supplier);
         }
 
-        // Create seller users and assign to suppliers
+        // Create seller users and assign to suppliers using relationships
         $sellers = [
             [
                 'name' => 'Pak Hendra Gunawan',
                 'phone_number' => '081112233445',
-                'supplier_id' => 1,
+                'supplier_index' => 0,
                 'member_role' => 'owner',
             ],
             [
                 'name' => 'Bu Sari Wulandari',
                 'phone_number' => '081223344556',
-                'supplier_id' => 1,
+                'supplier_index' => 0,
                 'member_role' => 'sales',
             ],
             [
                 'name' => 'Pak Andi Firmansyah',
                 'phone_number' => '081334455667',
-                'supplier_id' => 2,
+                'supplier_index' => 1,
                 'member_role' => 'owner',
             ],
             [
                 'name' => 'Pak Rudi Hartono',
                 'phone_number' => '081445566778',
-                'supplier_id' => 2,
+                'supplier_index' => 1,
                 'member_role' => 'warehouse',
             ],
             [
                 'name' => 'Bu Dewi Kartika',
                 'phone_number' => '081556677889',
-                'supplier_id' => 3,
+                'supplier_index' => 2,
                 'member_role' => 'owner',
             ],
         ];
@@ -99,26 +97,17 @@ class SupplierSeeder extends Seeder
             // Assign seller role
             $user->assignRole('seller');
 
-            // Create supplier member
-            DB::table('supplier_members')->insert([
-                'supplier_id' => $seller['supplier_id'],
+            // Create supplier member using relationship
+            $supplierModels[$seller['supplier_index']]->members()->create([
                 'user_id' => $user->id,
-                'member_role' => $seller['member_role'],
-                'created_at' => now(),
-                'updated_at' => now(),
+                'role' => $seller['member_role'],
             ]);
         }
 
         $this->command->info('✅ Suppliers and sellers created successfully!');
         $this->command->table(
             ['Supplier', 'Members'],
-            DB::table('suppliers')
-                ->join('supplier_members', 'suppliers.id', '=', 'supplier_members.supplier_id')
-                ->groupBy('suppliers.id', 'suppliers.name')
-                ->select('suppliers.name', DB::raw('count(supplier_members.id) as members'))
-                ->get()
-                ->map(fn($s) => [$s->name, $s->members])
-                ->toArray()
+            Supplier::with('members')->get()->map(fn($s) => [$s->name, $s->members->count()])->toArray()
         );
     }
 }
