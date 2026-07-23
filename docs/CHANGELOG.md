@@ -6,7 +6,7 @@
 **Review Cycle:** Setiap release
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
 **Status Dokumen:** Final
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 
 ---
 
@@ -715,6 +715,9 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - Alur Seller offer → Inisiator campaign snapshot → purchase order → fulfillment.
 - Verifikasi Supplier dan moderasi offer oleh Admin aplikasi.
 - Policy yang mencegah Seller mengakses data dan bukti pembayaran Pembeli.
+- Brand Guidelines (`docs/BRAND_GUIDELINES.md`) — panduan lengkap brand: filosofi (asal-usul nama "Grosir" + "Run", kepribadian "tetangga yang bisa dipercaya"), tagline (rekomendasi: "Yuk, Grosirun Bareng!"), arah visual, identitas, palet warna, tipografi, ikonografi, nada suara, komponen UI, aplikasi brand, dan do's/don'ts.
+- Mobile User Flow (`docs/MOBILE_USER_FLOW.md`) — alur lengkap 4 role (Buyer, Initiator, Seller, Admin) dengan detail screen-by-screen navigation, ASCII diagrams untuk visualisasi UI, contoh persona (Bu Siti, Pak Agus, Andi), alur lengkap 6 phase PO cycle, matrix fitur 15+ items per role, dan troubleshooting & eskalasi.
+- Flutter Mobile Project (`mobile/`) — implementasi lengkap Flutter 3.22+ dengan 40+ dependencies: architecture BLoC/Cubit pattern, 4 models (User, Campaign, Order, Notification), 4 repositories (Auth, Campaign, Order, Notification), 4 cubits, authentication flow (OTP, consent, ToS), home screen dengan 4 tabs, campaign detail, profile, workspace screens untuk setiap role, widgets (BigButton, OfflineBanner), Android configuration (Kotlin, Gradle), dan mock data untuk testing.
 
 ### Changed
 
@@ -756,7 +759,7 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - **Notifications Fallback:** Table `notifications` id, user_id FK, title, body, data json, read_at. Flow: SendFcmJob try Kreait FCM, even if success also insert DB fallback, if FCM fails catch still insert DB. Flutter polling GET /notifications?unread=true every 60s on resume + FCM foreground handler. PATCH read, POST read-all. Not dependent 100% Firebase.
 - **Batch Operations:** POST /campaigns/{id}/orders/batch-validate {order_uuids[], notes} → 207 multi-status success+failed, transaction per order, FCM batch. For initiator checkbox validate 10 orders at once reduce N+1.
 - **Feature Flags:** Laravel Pennant `qris-upload`, `extend-deadline`, `batch-validate`, `canary-new-order-service`. Flags via DB + env, toggle without deploy `php artisan pennant:activate --percentage=10`. GET /features return active flags for Flutter hide/show UI.
-- **Rate Limit Centralized:** AppServiceProvider RateLimiter custom Redis: global 60/min per user/IP, otp 5/min per phone+IP, override 10/min per initiator, validate 30/min. Middleware throttle:otp, throttle:global-api, throttle:override-validate. 429 with `locked_until`, `retry_after`, `code ERR_001_RL`.
+- **Rate Limit Centralized:** AppServiceProvider RateLimiter custom Redis: global 60/min per user, 100/min per IP, otp 5/min per phone+IP, override 10/min per initiator, validate 30/min. Middleware throttle:otp, throttle:global-api, throttle:override-validate. 429 with `locked_until`, `retry_after`, `code ERR_001_RL`.
 - **Webhooks Placeholder:** POST /webhooks/supplier-erp/order-status signed HMAC future V2 supplier integration, feature flag supplier-erp-webhook false, table webhooks prepared.
 - **Error Catalog (Dokumentasi baru):** 50 codes ERR_001 OTP_EXPIRED 401 action request ulang, ERR_024 OUT_OF_STOCK 409, ERR_030 ALREADY_VALIDATED 409 admin race, ERR_031 STALE_DATA 412, ERR_040 CLUSTER_MISMATCH 403, ERR_050 UPLOAD_TOO_LARGE 413, etc. Frontend mapper human message + trace_id Sentry.
 - **Versioning Strategy V2:** URL /api/v1/ current, future /api/v2/ backward compat, Deprecation header, Sunset, 6 months maintenance V1 after V2 launch, Accept header `application/vnd.grosirun.v1+json`, X-App-Version check min_supported. Doc [Changelog — Strategi Versioning](CHANGELOG.md#bagian-1-strategi-versioning) + OpenAPI Scribe v1/v2.
@@ -851,7 +854,7 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - **UU PDP Compliance:** Consent checkbox + privacy policy + DELETE account anonymize SLA <24h + retensi 90d proof S3 lifecycle + CleanOldProofsJob.
 - **S3 Security:** Private bucket, tempUrl 1h, Policy check owner or initiator own campaign cluster, random UUID filename, mime check, Intervention second compress, no path traversal.
 - **IDOR + Mass Assignment + XSS + SQLi:** Policy + $fillable strict + Resource escape + FormRequest + Eloquent safe, OWASP Checklist in [Security — Review Checklist](SECURITY.md#15-owasp-api-top-10-2023-checklist) Pass.
-- **Rate Limit Centralized:** Redis per-route override 60/min global, 5/min otp, 10/min override sensitive, 429 + trace_id.
+- **Rate Limit Centralized:** Redis per-route override 60/min global user + 100/min per IP, 5/min otp, 10/min override sensitive, 429 + trace_id.
 - **Secrets:** No hardcoded .env, dart-define SENTRY_DSN, google-services.json prod via env, keystore \*.jks gitignore, S3 keys via env, Firebase credentials via env.
 - **Audit:** transaction_logs all sensitive actions with ip, initiator_id, notes, type.
 - **Binary Protection:** Obfuscate --obfuscate + split-debug-info.

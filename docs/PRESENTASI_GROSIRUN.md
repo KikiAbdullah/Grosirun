@@ -9,7 +9,7 @@
 **Review Cycle:** Setiap release  
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)  
 **Status Dokumen:** Final  
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 
 > **Aturan akurasi:** Jangan menyampaikan target, asumsi, contoh, atau proyeksi sebagai hasil aktual. Aplikasi belum dibangun. Nilai harga, penghematan, volume, performa, dan jadwal pilot harus dikonfirmasi sebelum presentasi eksternal.
 
@@ -22,7 +22,7 @@
 - Bagian **Catatan presenter** tidak perlu ditampilkan.
 - Gunakan screenshot hanya setelah aplikasi tersedia; sebelum itu gunakan diagram sederhana dengan label **Konsep**.
 - Gunakan istilah Penjual untuk user yang login dan Supplier untuk organisasi usaha.
-- Gunakan logo, warna, dan kontak resmi hanya setelah disetujui Product Owner.
+- Gunakan logo, warna, dan kontak resmi hanya setelah disetujui Product Owner. Lihat [Brand Guidelines](BRAND_GUIDELINES.md) untuk filosofi, palet, tipografi, kepribadian, dan aturan penggunaan brand.
 
 ---
 

@@ -6,7 +6,7 @@
 **Review Cycle:** Setiap release
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
 **Status Dokumen:** Final
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 
 ---
 
@@ -103,7 +103,7 @@ Observability terdiri dari 3 pilar:
 | **Error bisnis (user fault)** | `error`    | Log daily ONLY (not Sentry)                   | Oversell attempt 409, validation already 409              | ❌ No (to avoid noise) |
 | **Exception unexpected 5xx**  | `error`    | Log::error + Sentry::captureException + Slack | DB connection lost, S3 timeout, Redis down                | ✅ Yes (Slack urgent)  |
 | **Security critical**         | `critical` | Log::critical + Sentry + Slack                | 10x OTP fail same IP (brute force), IDOR attempt 403      | ✅ Yes (Slack urgent)  |
-| **Performance warning**       | `warning`  | Log + Pulse + Slack                           | P95 GET /campaigns >300ms selama 5 menit                  | ✅ Yes (Slack)         |
+| **Performance warning**       | `warning`  | Log + Pulse + Slack                           | P95 GET /campaigns >150ms selama 5 menit                  | ✅ Yes (Slack)         |
 | **Queue failed job**          | `error`    | failed_jobs table + Sentry + Slack            | FCM job fail 3 tries, CleanOldProofsJob fail              | ✅ Yes (Slack)         |
 | **GDPR deletion**             | `info`     | Log + transaction_logs                        | User DELETE /auth/account                                 | ❌ No                  |
 
@@ -460,7 +460,7 @@ await trace.stop();
 | ------------------------------ | ---------- |
 | Cold start                     | <2 detik   |
 | Home screen render             | <1.5 detik |
-| GET /campaigns P95             | <300ms     |
+| GET /campaigns P95             | <150ms     |
 | POST /orders P95               | <300ms     |
 | Upload proof P95               | <2 detik   |
 | `campaign_list_load` trace P95 | <1.2 detik |
@@ -616,7 +616,7 @@ fi
 
 | Alert                            | Tindakan                                                                                            | Perintah                                                                                                              |
 | -------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **P95 GET /campaigns >300ms 5m** | 1. Buka Pulse lihat slow queries<br>2. EXPLAIN query<br>3. Cek index<br>4. Cek Redis cache hit rate | `php artisan pulse:check`<br>`EXPLAIN SELECT ...`<br>`redis-cli INFO stats`                                           |
+| **P95 GET /campaigns >150ms 5m** | 1. Buka Pulse lihat slow queries<br>2. EXPLAIN query<br>3. Cek index<br>4. Cek Redis cache hit rate | `php artisan pulse:check`<br>`EXPLAIN SELECT ...`<br>`redis-cli INFO stats`                                           |
 | **Failed jobs >5 10m**           | 1. Lihat daftar failed<br>2. Retry semua<br>3. Cek Redis status<br>4. Restart worker                | `php artisan queue:failed`<br>`php artisan queue:retry --all`<br>`systemctl restart redis`<br>`supervisorctl restart` |
 | **SSL expiry <7d**               | 1. Renew certificate<br>2. Reload nginx<br>3. Verifikasi                                            | `certbot renew --force-renewal`<br>`systemctl reload nginx`<br>`curl /health`                                         |
 | **Disk >80%**                    | 1. Cek ukuran folder<br>2. Clean logs<br>3. Clean backup<br>4. Upgrade disk                         | `df -h`<br>`php artisan backup:clean`<br>`find storage/logs -name "*.log" -mtime +30 -delete`                         |
@@ -682,7 +682,7 @@ Grosirun adalah platform patungan yang menangani transaksi uang riil. Performa a
 
 | Dampak                | Potensi Kerugian               |
 | --------------------- | ------------------------------ |
-| GET /campaigns >300ms | Warga malas membuka aplikasi   |
+| GET /campaigns >150ms | Warga malas membuka aplikasi   |
 | POST /orders >500ms   | Checkout batal, warga pergi    |
 | Upload proof >3 detik | Warga frustrasi upload ulang   |
 | Downtime 1 jam        | Hilang 2 PO = Rp16.800.000 GMV |

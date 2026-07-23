@@ -6,7 +6,7 @@
 **Review Cycle:** Setiap release
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
 **Status Dokumen:** Final
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 
 ---
 
@@ -155,7 +155,7 @@ Grosirun adalah platform patungan yang menangani transaksi uang riil dan data pr
 | **API1**  | BOLA (Broken Object Level Auth)           | `OrderPolicy`: buyer hanya lihat order sendiri, initiator lihat order campaign sendiri + cluster sendiri. Test Pest. | ✅     |
 | **API2**  | Broken Authentication                     | Sanctum expiry 30d, Hash OTP bcrypt, lock 15m after 5 fails, rate limit 5/min, SecureStorage token                   | ✅     |
 | **API3**  | BOPLA (Broken Object Property Level Auth) | Mass assignment `$fillable` strict, buyer tidak bisa update `is_taken`                                               | ✅     |
-| **API4**  | Unrestricted Resource Consumption         | Upload max 2MB proof, 5MB campaign, rate limit 60/min, S3 private tempUrl 1h                                         | ✅     |
+| **API4**  | Unrestricted Resource Consumption         | Upload max 2MB proof, 5MB campaign, rate limit 60/min user + 100/min per IP, S3 private tempUrl 1h                                         | ✅     |
 | **API5**  | BFLA (Broken Function Level Auth)         | `RoleMiddleware` initiator untuk POST campaigns, admin untuk features                                                | ✅     |
 | **API6**  | Unrestricted Sensitive Business Flows     | Batch max 100, override 10/min, extend max 2x, cancel only if target not reached                                     | ✅     |
 | **API7**  | SSRF                                      | Tidak ada fetch URL dari user input, hanya upload file                                                               | ✅     |

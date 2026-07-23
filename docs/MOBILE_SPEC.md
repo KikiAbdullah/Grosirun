@@ -6,7 +6,7 @@
 **Review Cycle:** Setiap release
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
 **Status Dokumen:** Final
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 
 ---
 
@@ -53,6 +53,8 @@ Deep link memulihkan role/context dengan aman. FCM tidak membawa PII. Error mapp
 Target touch 48–56dp, TalkBack semantics, contrast, responsive layout, skeleton/empty/error state, list virtualization, image cache, dan budget pada OBSERVABILITY.
 
 ## 8. Spesifikasi UI Terperinci
+
+> **Referensi brand:** Seluruh spesifikasi warna, tipografi, dan komponen UI di bagian ini mengikuti [Brand Guidelines](BRAND_GUIDELINES.md) sebagai panduan identitas visual resmi.
 
 ### 1. Prinsip Desain
 
