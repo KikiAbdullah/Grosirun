@@ -6,7 +6,7 @@
 **Versi Dokumen:** 3.1 - Enterprise GAP Closed Edition  
 **Tanggal Efektif:** 20 Juli 2026  
 **Status Dokumentasi:** Final
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 **Target Release:** MVP V1.0
 **Target APK:** `< 10 MB` arm64-v8a | Coverage Backend ≥80% | Crash-free >99.5%
 
@@ -15,7 +15,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php)](https://php.net)
 [![Coverage](https://img.shields.io/badge/coverage-not_measured-lightgrey)](./docs/TEST_PLAN.md)
 [![APK Size](https://img.shields.io/badge/APK_size-not_measured-lightgrey)](./docs/DEPLOYMENT.md)
-[![Implementation](https://img.shields.io/badge/implementation-not_started-lightgrey)](#status)
+[![Implementation](https://img.shields.io/badge/implementation-flutter_ready-yellow)](#status)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#)
 
 
@@ -150,16 +150,23 @@ grosirun/
 │   ├── docker/ (Dockerfile, nginx.conf, php.ini prod)
 │   └── load-test/k6-*.js
 ├── mobile/                       # Flutter
-│   ├── lib/core/network/dio_client.dart
-│   ├── lib/data/repositories/ (offline-first)
-│   ├── lib/logic/cubits/
-│   ├── lib/presentation/screens/
-│   └── integration_test/
-├── docs/ (18 dokumen domain + 1 indeks)
+│   ├── lib/
+│   │   ├── core/ (constants, network, theme)
+│   │   ├── data/ (models, datasources, repositories)
+│   │   ├── logic/ (cubits: auth, campaign, order, notification)
+│   │   └── presentation/
+│   │       ├── router/
+│   │       ├── screens/ (auth, campaign, home, profile, role_selection, splash, workspaces)
+│   │       └── widgets/
+│   ├── android/ (Kotlin, Gradle, resources)
+│   └── test/
+├── docs/ (19 dokumen domain + 1 indeks)
 │   ├── PRD.md, TECHNICAL_SPEC.md, API_SPEC.md
 │   ├── ADR, SECURITY.md, OBSERVABILITY.md, [Deployment §2](docs/DEPLOYMENT.md#2-ci-quality-gates--build-pipelines)
 │   ├── OBSERVABILITY.md bagian 3 (Performance Engineering) dan 7 (Referensi Performance), DEVELOPMENT_GUIDE.md, API_SPEC.md bagian 1.4 — Format dan Katalog Error
 │   ├── [User Guide §7–8](docs/USER_GUIDE.md#7-komplain-refund-dan-dispute-operations), USER_GUIDE.md, etc.
+│   ├── [MOBILE_USER_FLOW.md](docs/MOBILE_USER_FLOW.md) - Alur lengkap 4 role (Buyer, Initiator, Seller, Admin)
+│   └── [BRAND_GUIDELINES.md](docs/BRAND_GUIDELINES.md) - Filosofi & identitas visual brand
 ├── docker-compose.yml            # Laravel + MySQL + Redis + Nginx local
 ├── .github/workflows/            # test.yml, deploy.yml, build-apk.yml
 └── README.md
@@ -232,6 +239,7 @@ ls -lh build/app/outputs/apk/release/*.apk
 | **[DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md)** | Coding standards, Git, PR, review, testing, contribution | Final specification |
 | **[OBSERVABILITY.md](docs/OBSERVABILITY.md)** | Logs, traces, metrics, performance engineering, 59 analytics events | Final specification |
 | **[USER_GUIDE.md](docs/USER_GUIDE.md)** | Role guide, FAQ, troubleshooting, refund dan dispute operations | Final operations manual |
+| **[MOBILE_USER_FLOW.md](docs/MOBILE_USER_FLOW.md)** | Alur lengkap 4 role (Buyer, Initiator, Seller, Admin) dengan screen-by-screen navigation | Final user flow documentation |
 | **[PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md](docs/PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md)** | Proposal persuasif dan materi validasi untuk tiga stakeholder | Final communication material |
 | **[PRESENTASI_GROSIRUN.md](docs/PRESENTASI_GROSIRUN.md)** | Naskah slide akurat untuk presentasi stakeholder dan pilot | Final presentation material |
 | **[BRAND_GUIDELINES.md](docs/BRAND_GUIDELINES.md)** | Filosofi, identitas visual, warna, tipografi, nada brand, do's and don'ts | Final brand specification |
@@ -326,10 +334,12 @@ Lihat **[DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) + [Deployment §2](doc
 - FAQ Ibu-ibu: `USER_GUIDE.md`
 - Panduan Pak Agus: `USER_GUIDE.md`
 - Brand Guidelines: `BRAND_GUIDELINES.md`
+<<<<<<< HEAD
+- Mobile User Flow: `MOBILE_USER_FLOW.md`
+=======
+>>>>>>> e71c66565ac819df71f5daf236b53076eb3c1945
 
 ---
 
 Dibangun dengan ❤️ untuk RT/RW.  
 **Motto V3.1 Enterprise:** *Ringan di HP, Berat di Audit, Taat UU PDP, Siap Disaster.*
-
-Siap? `docker-compose up -d` → baca `USER_GUIDE.md` → pilot! 🚀

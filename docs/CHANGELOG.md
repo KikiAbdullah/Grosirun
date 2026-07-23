@@ -6,7 +6,7 @@
 **Review Cycle:** Setiap release
 **Global Glossary:** [Indeks Dokumentasi](README.md#glossary-global-indonesiainggris)
 **Status Dokumen:** Final
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 
 ---
 
@@ -716,6 +716,8 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), SemVer, Asia/Ja
 - Verifikasi Supplier dan moderasi offer oleh Admin aplikasi.
 - Policy yang mencegah Seller mengakses data dan bukti pembayaran Pembeli.
 - Brand Guidelines (`docs/BRAND_GUIDELINES.md`) — panduan lengkap brand: filosofi (asal-usul nama "Grosir" + "Run", kepribadian "tetangga yang bisa dipercaya"), tagline (rekomendasi: "Yuk, Grosirun Bareng!"), arah visual, identitas, palet warna, tipografi, ikonografi, nada suara, komponen UI, aplikasi brand, dan do's/don'ts.
+- Mobile User Flow (`docs/MOBILE_USER_FLOW.md`) — alur lengkap 4 role (Buyer, Initiator, Seller, Admin) dengan detail screen-by-screen navigation, ASCII diagrams untuk visualisasi UI, contoh persona (Bu Siti, Pak Agus, Andi), alur lengkap 6 phase PO cycle, matrix fitur 15+ items per role, dan troubleshooting & eskalasi.
+- Flutter Mobile Project (`mobile/`) — implementasi lengkap Flutter 3.22+ dengan 40+ dependencies: architecture BLoC/Cubit pattern, 4 models (User, Campaign, Order, Notification), 4 repositories (Auth, Campaign, Order, Notification), 4 cubits, authentication flow (OTP, consent, ToS), home screen dengan 4 tabs, campaign detail, profile, workspace screens untuk setiap role, widgets (BigButton, OfflineBanner), Android configuration (Kotlin, Gradle), dan mock data untuk testing.
 
 ### Changed
 

@@ -1,11 +1,11 @@
 # Indeks Dokumentasi Grosirun
 
-**Tanggal:** 21 Juli 2026  
+**Tanggal:** 22 Juli 2026  
 **Versi:** 3.1  
 **Owner:** Product & Engineering  
 **Review Cycle:** Setiap release  
 **Status Dokumen:** Final  
-**Status Implementasi:** Belum Dimulai
+**Status Implementasi:** Flutter Ready for Integration | Backend Not Started
 
 ---
 
@@ -20,10 +20,11 @@ Indeks ini adalah titik masuk dokumentasi Grosirun. Gunakan dokumen **Source of 
 1. [PRD — kebutuhan, role, dan lifecycle](PRD.md)
 2. [Business Analysis — asumsi bisnis dan unit economics](BUSINESS_ANALYSIS.md)
 3. [User & Operations Manual — panduan role, FAQ, refund, dan dispute](USER_GUIDE.md)
-4. [Proposal Penjual, Pembeli, dan Inisiator](PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md)
-5. [Isi Presentasi Grosirun](PRESENTASI_GROSIRUN.md)
-6. [Privacy Policy — consent, hak subjek data, dan retensi](PRIVACY_POLICY.md)
-7. [Brand Guidelines — filosofi, identitas visual, nada, dan penerapan brand](BRAND_GUIDELINES.md)
+4. [Mobile User Flow — alur lengkap 4 role dengan screen-by-screen navigation](MOBILE_USER_FLOW.md)
+5. [Proposal Penjual, Pembeli, dan Inisiator](PROPOSAL_PENJUAL_PEMBELI_INISIATOR.md)
+6. [Isi Presentasi Grosirun](PRESENTASI_GROSIRUN.md)
+7. [Privacy Policy — consent, hak subjek data, dan retensi](PRIVACY_POLICY.md)
+8. [Brand Guidelines — filosofi, identitas visual, nada, dan penerapan brand](BRAND_GUIDELINES.md)
 
 ### Engineering
 
@@ -57,6 +58,7 @@ Indeks ini adalah titik masuk dokumentasi Grosirun. Gunakan dokumen **Source of 
 | Logs, metrics, performance, analytics | [Observability](OBSERVABILITY.md) | [Telemetry governance](OBSERVABILITY.md#1-telemetry-governance) |
 | Coding, Git, PR, contribution | [Development Guide](DEVELOPMENT_GUIDE.md) | [Dokumentasi wajib](DEVELOPMENT_GUIDE.md#10-dokumentasi-wajib) |
 | Consent, privacy, retention | [Privacy Policy](PRIVACY_POLICY.md) | [Data yang dikumpulkan](PRIVACY_POLICY.md#2-data-yang-dikumpulkan) |
+| Alur user per role, navigasi screen, flow end-to-end | [Mobile User Flow](MOBILE_USER_FLOW.md) | [Alur Buyer](MOBILE_USER_FLOW.md#1-alur-pembeli-buyer), [Alur Initiator](MOBILE_USER_FLOW.md#2-alur-inisiator-initiator), [Alur Seller](MOBILE_USER_FLOW.md#3-alur-penjual-seller), [Alur Admin](MOBILE_USER_FLOW.md#4-alur-admin-aplikasi) |
 | Identitas visual, warna, tipografi, nada brand, filosofi | [Brand Guidelines](BRAND_GUIDELINES.md) | [Filosofi](BRAND_GUIDELINES.md#1-asal-usul-nama), [sistem warna](BRAND_GUIDELINES.md#9-sistem-warna), [nada suara](BRAND_GUIDELINES.md#13-nada-dan-suara-brand) |
 | Release history dan perubahan keputusan | [Changelog](CHANGELOG.md) | [Decision log](CHANGELOG.md#decision-log) |
 
