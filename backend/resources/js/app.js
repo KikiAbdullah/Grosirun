@@ -39,8 +39,10 @@ import TomSelect from 'tom-select';
 import 'tom-select/dist/css/tom-select.default.min.css';
 window.TomSelect = TomSelect;
 
-// ─── Laravel DataTables (yajra) ───
-import 'laravel-datatables-vite';
+// ─── DataTables (yajra server-side) ───
+import 'datatables.net-bs5';
+import 'datatables.net-buttons-bs5';
+import 'datatables.net-select-bs5';
 
 // ─── Grid.js ───
 import { Grid, html } from 'gridjs';
