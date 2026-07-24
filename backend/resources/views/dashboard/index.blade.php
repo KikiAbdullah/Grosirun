@@ -2,129 +2,104 @@
 @section('title','Dashboard')
 @section('content')
 
-<x-ui.page-header title="Dashboard" subtitle="Ringkasan aktivitas dan metrik utama." />
+<x-ui.page-header title="Dashboard" subtitle="Ringkasan aktivitas Anda." />
 
-{{-- Metric Cards --}}
+@php
+$cards = match($role) {
+    'admin' => [
+        ['icon'=>'store','label'=>'Pending Supplier','value'=>$metrics['pending_suppliers'],'color'=>'var(--warning-50)','text_color'=>'var(--warning-600)','route'=>route('admin.suppliers.pending')],
+        ['icon'=>'tags','label'=>'Pending Offer','value'=>$metrics['pending_offers'],'color'=>'var(--info-50)','text_color'=>'var(--info-500)','route'=>route('admin.offers.moderate')],
+        ['icon'=>'alert-triangle','label'=>'Open Dispute','value'=>$metrics['open_disputes'],'color'=>'var(--danger-50)','text_color'=>'var(--danger-600)','route'=>route('admin.disputes.index')],
+        ['icon'=>'users','label'=>'Total User','value'=>$metrics['total_users'],'color'=>'var(--primary-50)','text_color'=>'var(--primary-500)','route'=>route('admin.users.index')],
+    ],
+    'initiator' => [
+        ['icon'=>'shopping-cart','label'=>'Campaign Aktif','value'=>$metrics['active_campaigns'],'color'=>'var(--primary-50)','text_color'=>'var(--primary-500)','route'=>route('campaigns.manage')],
+        ['icon'=>'clock','label'=>'Menunggu Validasi','value'=>$metrics['pending_validation'],'color'=>'var(--warning-50)','text_color'=>'var(--warning-600)','route'=>route('orders.validate')],
+        ['icon'=>'file-text','label'=>'PO Pending','value'=>$metrics['pending_pos'],'color'=>'var(--info-50)','text_color'=>'var(--info-500)','route'=>route('purchase-orders.index')],
+        ['icon'=>'truck','label'=>'Belum Diambil','value'=>$metrics['not_taken'],'color'=>'var(--danger-50)','text_color'=>'var(--danger-600)','route'=>route('distribution.index')],
+    ],
+    'seller' => [
+        ['icon'=>'package','label'=>'Produk','value'=>$metrics['total_products'],'color'=>'var(--primary-50)','text_color'=>'var(--primary-500)','route'=>route('products.index')],
+        ['icon'=>'tags','label'=>'Offer Aktif','value'=>$metrics['active_offers'],'color'=>'var(--info-50)','text_color'=>'var(--info-500)','route'=>route('offers.index')],
+        ['icon'=>'file-plus','label'=>'PO Baru','value'=>$metrics['pending_pos'],'color'=>'var(--warning-50)','text_color'=>'var(--warning-600)','route'=>route('purchase-orders.index')],
+        ['icon'=>'truck','label'=>'Processing','value'=>$metrics['processing_pos'],'color'=>'var(--primary-50)','text_color'=>'var(--primary-500)','route'=>route('purchase-orders.index')],
+    ],
+    default => [
+        ['icon'=>'shopping-cart','label'=>'Campaign Aktif','value'=>$metrics['active_campaigns'],'color'=>'var(--primary-50)','text_color'=>'var(--primary-500)','route'=>route('campaigns.index')],
+        ['icon'=>'receipt','label'=>'Pesanan Saya','value'=>$metrics['my_orders'],'color'=>'var(--info-50)','text_color'=>'var(--info-500)','route'=>route('orders.index')],
+        ['icon'=>'clock','label'=>'Menunggu Bayar','value'=>$metrics['pending_payment'],'color'=>'var(--warning-50)','text_color'=>'var(--warning-600)','route'=>route('orders.index')],
+        ['icon'=>'truck','label'=>'Siap Diambil','value'=>$metrics['not_taken'],'color'=>'var(--primary-50)','text_color'=>'var(--primary-500)','route'=>route('orders.index')],
+    ],
+};
+@endphp
+
 <div class="row g-3 mb-4">
+    @foreach($cards as $card)
     <div class="col-6 col-lg-3">
-        <div class="gr-card p-3">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="d-flex align-items-center justify-content-center rounded-3"
-                     style="width:2.5rem;height:2.5rem;background:var(--primary-50)">
-                    <i data-lucide="shopping-cart" style="width:1.25rem;height:1.25rem;color:var(--primary-500)"></i>
+        <a href="{{ $card['route'] }}" class="text-decoration-none">
+            <div class="gr-card p-3 h-100" style="cursor:pointer">
+                <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
+                     style="width:2.5rem;height:2.5rem;background:{{ $card['color'] }}">
+                    <i data-lucide="{{ $card['icon'] }}" style="width:1.25rem;height:1.25rem;color:{{ $card['text_color'] }}"></i>
                 </div>
-                <span class="gr-badge gr-badge-success">
-                    <i data-lucide="trending-up" style="width:.75rem;height:.75rem"></i>Aktif
-                </span>
+                <h3 class="fw-bold mb-1" style="font-size:1.5rem;color:{{ $card['text_color'] }}">{{ number_format($card['value']) }}</h3>
+                <p class="text-muted mb-0" style="font-size:.8rem">{{ $card['label'] }}</p>
             </div>
-            <p class="metric-value">3</p>
-            <p class="metric-label mb-0">Campaign Aktif</p>
-        </div>
+        </a>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="gr-card p-3">
-            <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
-                 style="width:2.5rem;height:2.5rem;background:var(--info-50)">
-                <i data-lucide="receipt" style="width:1.25rem;height:1.25rem;color:var(--info-500)"></i>
+    @endforeach
+</div>
+
+{{-- Revenue Card --}}
+@if(isset($metrics['total_revenue']) || isset($metrics['gmv_total']))
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="gr-card p-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="text-muted mb-1">{{ $role === 'admin' ? 'Total GMV' : 'Total Revenue' }}</p>
+                    <h2 class="fw-bold mb-0 text-primary">Rp{{ number_format($metrics['total_revenue'] ?? $metrics['gmv_total'] ?? 0, 0, ',', '.') }}</h2>
+                </div>
+                <div class="text-end">
+                    @if($role === 'buyer' && isset($metrics['total_spent']))
+                    <p class="text-muted mb-1">Total Belanja</p>
+                    <h3 class="fw-bold mb-0">Rp{{ number_format($metrics['total_spent'], 0, ',', '.') }}</h3>
+                    @elseif($role === 'initiator')
+                    <p class="text-muted mb-1">Diterima: {{ $metrics['paid_orders'] }} | Diambil: {{ $metrics['taken'] ?? 0 }}</p>
+                    @elseif($role === 'seller')
+                    <p class="text-muted mb-1">Selesai: {{ $metrics['completed_pos'] }}</p>
+                    @else
+                    <p class="text-muted mb-1">Orders hari ini: {{ $metrics['today_orders'] ?? 0 }}</p>
+                    @endif
+                </div>
             </div>
-            <p class="metric-value">24</p>
-            <p class="metric-label mb-0">Total Pesanan</p>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="gr-card p-3">
-            <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
-                 style="width:2.5rem;height:2.5rem;background:var(--warning-50)">
-                <i data-lucide="clock" style="width:1.25rem;height:1.25rem;color:var(--warning-500)"></i>
-            </div>
-            <p class="metric-value">5</p>
-            <p class="metric-label mb-0">Menunggu Validasi</p>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="gr-card p-3">
-            <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
-                 style="width:2.5rem;height:2.5rem;background:var(--primary-50)">
-                <i data-lucide="users" style="width:1.25rem;height:1.25rem;color:var(--primary-500)"></i>
-            </div>
-            <p class="metric-value">18</p>
-            <p class="metric-label mb-0">Partisipan</p>
         </div>
     </div>
 </div>
+@endif
 
-{{-- Main Content --}}
-<div class="row g-4">
-    {{-- Campaigns --}}
-    <div class="col-12 col-lg-8">
-        <div class="gr-card p-3 p-sm-4">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h2 class="fw-semibold mb-0" style="font-size:1.05rem">Campaign Berjalan</h2>
-                <x-ui.button variant="ghost" size="sm" href="{{ route('campaigns.index') }}" icon="arrow-right">
-                    Lihat Semua
-                </x-ui.button>
-            </div>
-            <div class="d-flex flex-column gap-3">
-                @foreach([
-                    ['title'=>'Beras Premium Pulen','progress'=>64,'current'=>'320','target'=>'500 kg','deadline'=>now()->addDays(3)],
-                    ['title'=>'Minyak Goreng 2L','progress'=>73,'current'=>'145','target'=>'200 pcs','deadline'=>now()->addDays(5)],
-                    ['title'=>'Telur Ayam Negeri','progress'=>78,'current'=>'780','target'=>'1000 butir','deadline'=>now()->addDays(2)],
-                ] as $c)
-                <a href="#" class="gr-card gr-card-hover p-3 text-decoration-none"
-                   style="border:1px solid var(--surface-200)">
-                    <div class="d-flex align-items-start justify-content-between mb-2">
-                        <h3 class="fw-semibold mb-0" style="font-size:.95rem;color:var(--text-primary)">{{ $c['title'] }}</h3>
-                        <span class="gr-badge gr-badge-info">PGH-RT03</span>
-                    </div>
-                    <div class="gr-progress mb-2">
-                        <div class="{{ $c['progress'] >= 70 ? 'gr-progress-fill gr-progress-yellow' : 'gr-progress-fill gr-progress-green' }}"
-                             style="width:{{ $c['progress'] }}%">{{ $c['progress'] }}%</div>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span style="font-size:.8rem;color:var(--text-secondary)">{{ $c['current'] }}/{{ $c['target'] }}</span>
-                        <span class="fw-semibold" style="font-size:.8rem"
-                              x-data="countdown('{{ $c['deadline']->toISOString() }}')"
-                              x-text="remaining"
-                              :style="isUrgent ? 'color:var(--danger-600)' : 'color:var(--text-secondary)'"></span>
-                    </div>
-                </a>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
-    {{-- Sidebar --}}
-    <div class="col-12 col-lg-4">
-        <div class="d-flex flex-column gap-4">
-            {{-- Profile Card --}}
-            <div class="gr-card p-3 p-sm-4">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold"
-                         style="width:3.5rem;height:3.5rem;background:var(--primary-500);font-size:1.25rem;flex-shrink:0">BS</div>
-                    <div>
-                        <h3 class="fw-semibold mb-0" style="font-size:.95rem">Bu Siti Rahayu</h3>
-                        <p class="mb-0" style="font-size:.8rem;color:var(--text-secondary)">PGH-RT03</p>
-                    </div>
-                </div>
-                <div class="d-flex gap-2">
-                    <span class="gr-badge gr-badge-info">Buyer</span>
-                    <span class="gr-badge gr-badge-success">
-                        <i data-lucide="check-circle" style="width:.75rem;height:.75rem"></i>Consent
-                    </span>
-                </div>
-            </div>
-
-            {{-- Quick Actions --}}
-            <div class="gr-card p-3 p-sm-4">
-                <h3 class="fw-semibold mb-3" style="font-size:1rem">Aksi Cepat</h3>
-                <div class="d-flex flex-column gap-2">
-                    <x-ui.button variant="primary" href="{{ route('campaigns.index') }}" icon="shopping-cart" class="w-100">
-                        Lihat Campaign
-                    </x-ui.button>
-                    <x-ui.button variant="secondary" href="{{ route('orders.index') }}" icon="receipt" class="w-100">
-                        Pesanan Saya
-                    </x-ui.button>
-                </div>
+{{-- Quick Actions --}}
+<div class="row g-3">
+    <div class="col-12">
+        <div class="gr-card p-4">
+            <h5 class="fw-bold mb-3">Aksi Cepat</h5>
+            <div class="d-flex flex-wrap gap-2">
+                @if($role === 'buyer')
+                <a href="{{ route('campaigns.index') }}" class="btn btn-primary btn-sm"><i data-lucide="shopping-cart" class="me-1" style="width:14px;height:14px"></i>Lihat Campaign</a>
+                <a href="{{ route('orders.index') }}" class="btn btn-outline-primary btn-sm"><i data-lucide="receipt" class="me-1" style="width:14px;height:14px"></i>Pesanan Saya</a>
+                @elseif($role === 'initiator')
+                <a href="{{ route('campaigns.create') }}" class="btn btn-primary btn-sm"><i data-lucide="plus" class="me-1" style="width:14px;height:14px"></i>Buat Campaign</a>
+                <a href="{{ route('orders.validate') }}" class="btn btn-outline-primary btn-sm"><i data-lucide="check-square" class="me-1" style="width:14px;height:14px"></i>Validasi Order</a>
+                <a href="{{ route('distribution.index') }}" class="btn btn-outline-primary btn-sm"><i data-lucide="truck" class="me-1" style="width:14px;height:14px"></i>Distribusi</a>
+                @elseif($role === 'seller')
+                <a href="{{ route('products.create') }}" class="btn btn-primary btn-sm"><i data-lucide="plus" class="me-1" style="width:14px;height:14px"></i>Tambah Produk</a>
+                <a href="{{ route('offers.create') }}" class="btn btn-outline-primary btn-sm"><i data-lucide="tags" class="me-1" style="width:14px;height:14px"></i>Buat Offer</a>
+                <a href="{{ route('purchase-orders.index') }}" class="btn btn-outline-primary btn-sm"><i data-lucide="file-text" class="me-1" style="width:14px;height:14px"></i>Purchase Orders</a>
+                @else
+                <a href="{{ route('admin.suppliers.pending') }}" class="btn btn-primary btn-sm"><i data-lucide="shield-check" class="me-1" style="width:14px;height:14px"></i>Verifikasi Supplier</a>
+                <a href="{{ route('admin.offers.moderate') }}" class="btn btn-outline-primary btn-sm"><i data-lucide="clipboard-check" class="me-1" style="width:14px;height:14px"></i>Moderasi Offer</a>
+                <a href="{{ route('admin.audit-logs') }}" class="btn btn-outline-primary btn-sm"><i data-lucide="history" class="me-1" style="width:14px;height:14px"></i>Audit Log</a>
+                @endif
             </div>
         </div>
     </div>

@@ -14,22 +14,28 @@ class PendingSuppliersDataTable extends DataTable
         return (new EloquentDataTable($query))
             ->editColumn('created_at', fn($s) => $s->created_at->diffForHumans())
             ->addColumn('action', function($s) {
-                return '<div class="flex gap-2">'
-                    . '<form method="POST" action="' . route('admin.suppliers.verify', $s->id) . '" class="inline"><input type="hidden" name="_token" value="' . csrf_token() . '"><input type="hidden" name="action" value="approve"><button type="submit" class="btn btn-sm btn-primary"><i data-lucide="shield-check" class="w-4 h-4 mr-1"></i>Approve</button></form>'
-                    . '<form method="POST" action="' . route('admin.suppliers.verify', $s->id) . '" class="inline"><input type="hidden" name="_token" value="' . csrf_token() . '"><input type="hidden" name="action" value="reject"><input type="hidden" name="reason" value=""><button type="button" class="btn btn-sm btn-danger reject-btn" data-id="' . $s->id . '"><i data-lucide="x" class="w-4 h-4 mr-1"></i>Reject</button></form>'
-                    . '</div>';
+                return '<div class="btn-group btn-group-sm">'
+                    .'<form method="POST" action="'.route('admin.suppliers.verify', $s->id).'" class="d-inline">'.csrf_field().'<input type="hidden" name="action" value="approve"><button type="submit" class="btn btn-success"><i data-lucide="shield-check"></i> Approve</button></form>'
+                    .'<form method="POST" action="'.route('admin.suppliers.verify', $s->id).'" class="d-inline">'.csrf_field().'<input type="hidden" name="action" value="reject"><input type="hidden" name="reason" value=""><button type="button" class="btn btn-danger reject-btn" data-id="'.$s->id.'"><i data-lucide="x"></i> Reject</button></form>'
+                    .'</div>';
             })
             ->rawColumns(['action'])
             ->setRowId('id');
     }
 
-    public function query(Supplier $model): QueryBuilder { return $model->newQuery()->where('status', 'pending_verification')->latest(); }
+    public function query(Supplier $model): QueryBuilder
+    {
+        return $model->newQuery()
+            ->select(['suppliers.*'])
+            ->where('status', 'pending_verification')
+            ->latest();
+    }
 
     public function html(): HtmlBuilder
     {
         return $this->builder()->setTableId('suppliers-table')->columns($this->getColumns())
             ->minifiedAjax()->orderBy(0, 'desc')
-            ->parameters(['language'=>['search'=>'Cari supplier:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ supplier'], 'responsive'=>true]);
+            ->parameters(['language'=>['search'=>'Cari supplier:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ supplier'], 'responsive'=>true, 'pageLength'=>10]);
     }
 
     public function getColumns(): array

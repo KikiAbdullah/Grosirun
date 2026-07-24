@@ -14,24 +14,28 @@ class OrdersDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->addColumn('campaign_title', fn($o) => $o->campaign->title ?? '-')
-            ->editColumn('payment_method', fn($o) => '<span class="badge badge-neutral">' . strtoupper($o->payment_method) . '</span>')
-            ->editColumn('total_price', fn($o) => 'Rp' . number_format($o->total_price, 0, ',', '.'))
-            ->editColumn('payment_status', fn($o) => '<span class="badge badge-' . match($o->payment_status){'paid'=>'success','pending'=>'warning','waiting_qris'=>'warning','rejected'=>'danger','cancelled'=>'neutral',default=>'neutral'} . '">' . ucfirst(str_replace('_',' ',$o->payment_status)) . '</span>')
-            ->addColumn('action', fn($o) => '<a href="' . route('orders.show', $o->uuid) . '" class="btn-icon"><i data-lucide="eye" class="w-4 h-4"></i></a>')
+            ->editColumn('payment_method', fn($o) => '<span class="badge bg-secondary">'.strtoupper($o->payment_method).'</span>')
+            ->editColumn('total_price', fn($o) => 'Rp'.number_format($o->total_price, 0, ',', '.'))
+            ->editColumn('payment_status', fn($o) => '<span class="badge bg-'.match($o->payment_status){'paid'=>'success','pending'=>'warning','waiting_qris'=>'info','rejected'=>'danger',default=>'secondary'}.'">'.ucfirst(str_replace('_',' ',$o->payment_status)).'</span>')
+            ->addColumn('action', fn($o) => '<a href="'.route('orders.show', $o->uuid).'" class="btn btn-sm btn-outline-primary"><i data-lucide="eye"></i></a>')
             ->rawColumns(['payment_method', 'total_price', 'payment_status', 'action'])
             ->setRowId('id');
     }
 
     public function query(Order $model): QueryBuilder
     {
-        return $model->newQuery()->with('campaign')->where('user_id', auth()->id())->latest();
+        return $model->newQuery()
+            ->select(['orders.*'])
+            ->with(['campaign:id,title,uuid'])
+            ->where('user_id', auth()->id())
+            ->latest();
     }
 
     public function html(): HtmlBuilder
     {
         return $this->builder()->setTableId('orders-table')->columns($this->getColumns())
             ->minifiedAjax()->orderBy(0, 'desc')
-            ->parameters(['language'=>['search'=>'Cari pesanan:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ pesanan'], 'responsive'=>true])
+            ->parameters(['language'=>['search'=>'Cari pesanan:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ pesanan'], 'responsive'=>true, 'pageLength'=>10])
             ->buttons([Button::make('print'), Button::make('reset'), Button::make('reload')]);
     }
 

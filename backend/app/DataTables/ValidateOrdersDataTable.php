@@ -15,13 +15,13 @@ class ValidateOrdersDataTable extends DataTable
             ->addColumn('user_name', fn($o) => $o->user->name ?? '-')
             ->addColumn('campaign_title', fn($o) => $o->campaign->title ?? '-')
             ->editColumn('payment_method', fn($o) => strtoupper($o->payment_method))
-            ->editColumn('total_price', fn($o) => 'Rp' . number_format($o->total_price, 0, ',', '.'))
-            ->editColumn('payment_status', fn($o) => '<span class="badge badge-warning">' . ucfirst(str_replace('_',' ',$o->payment_status)) . '</span>')
+            ->editColumn('total_price', fn($o) => 'Rp'.number_format($o->total_price, 0, ',', '.'))
+            ->editColumn('payment_status', fn($o) => '<span class="badge bg-warning">'.ucfirst(str_replace('_',' ',$o->payment_status)).'</span>')
             ->addColumn('action', function($o) {
-                return '<div class="flex gap-2">'
-                    . '<form method="POST" action="' . route('orders.validate-order', $o->uuid) . '"><input type="hidden" name="_token" value="' . csrf_token() . '"><button type="submit" class="btn btn-sm btn-primary">✓ Validasi</button></form>'
-                    . '<form method="POST" action="' . route('orders.reject', $o->uuid) . '"><input type="hidden" name="_token" value="' . csrf_token() . '"><input type="hidden" name="reason" value="Bukti tidak jelas"><button type="submit" class="btn btn-sm btn-danger">✕ Tolak</button></form>'
-                    . '</div>';
+                return '<div class="btn-group btn-group-sm">'
+                    .'<form method="POST" action="'.route('orders.validate-order', $o->uuid).'" class="d-inline">'.csrf_field().'<button type="submit" class="btn btn-success"><i data-lucide="check"></i> Validasi</button></form>'
+                    .'<form method="POST" action="'.route('orders.reject', $o->uuid).'" class="d-inline">'.csrf_field().'<input type="hidden" name="reason" value="Bukti tidak jelas"><button type="submit" class="btn btn-danger"><i data-lucide="x"></i> Tolak</button></form>'
+                    .'</div>';
             })
             ->rawColumns(['payment_status', 'action'])
             ->setRowId('id');
@@ -29,7 +29,9 @@ class ValidateOrdersDataTable extends DataTable
 
     public function query(Order $model): QueryBuilder
     {
-        return $model->newQuery()->with(['campaign','user'])
+        return $model->newQuery()
+            ->select(['orders.*'])
+            ->with(['campaign:id,title,uuid', 'user:id,name'])
             ->whereHas('campaign', fn($q) => $q->where('initiator_id', auth()->id()))
             ->whereIn('payment_status', ['pending','waiting_qris'])
             ->latest();
@@ -39,7 +41,7 @@ class ValidateOrdersDataTable extends DataTable
     {
         return $this->builder()->setTableId('validate-orders-table')->columns($this->getColumns())
             ->minifiedAjax()->orderBy(0, 'desc')
-            ->parameters(['language'=>['search'=>'Cari buyer:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ menunggu validasi'], 'responsive'=>true]);
+            ->parameters(['language'=>['search'=>'Cari buyer:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ menunggu validasi'], 'responsive'=>true, 'pageLength'=>10]);
     }
 
     public function getColumns(): array

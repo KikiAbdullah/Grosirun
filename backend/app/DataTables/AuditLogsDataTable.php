@@ -14,20 +14,26 @@ class AuditLogsDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->editColumn('created_at', fn($l) => $l->created_at->format('d M Y, H:i'))
-            ->editColumn('action', fn($l) => '<span class="badge badge-' . match(true){str_contains($l->action,'suspend')=>'danger',str_contains($l->action,'reject')=>'danger',str_contains($l->action,'verif')||str_contains($l->action,'approv')=>'success',str_contains($l->action,'resolved')=>'info',default=>'neutral'} . '">' . str_replace('_',' ',$l->action) . '</span>')
-            ->addColumn('target', fn($l) => $l->target_type . ($l->target_id ? ' #' . $l->target_id : ''))
+            ->editColumn('action', fn($l) => '<span class="badge bg-'.match(true){str_contains($l->action,'suspend')=>'danger',str_contains($l->action,'reject')=>'danger',str_contains($l->action,'verif')||str_contains($l->action,'approv')=>'success',str_contains($l->action,'resolved')=>'info',default=>'secondary'}.'">'.str_replace('_',' ',$l->action).'</span>')
+            ->addColumn('target', fn($l) => $l->target_type.($l->target_id ? ' #'.$l->target_id : ''))
             ->addColumn('user_name', fn($l) => $l->user->name ?? $l->user_name ?? '-')
             ->rawColumns(['created_at', 'action'])
             ->setRowId('id');
     }
 
-    public function query(TransactionLog $model): QueryBuilder { return $model->newQuery()->with('user')->latest(); }
+    public function query(TransactionLog $model): QueryBuilder
+    {
+        return $model->newQuery()
+            ->select(['transaction_logs.*'])
+            ->with(['user:id,name'])
+            ->latest();
+    }
 
     public function html(): HtmlBuilder
     {
         return $this->builder()->setTableId('audit-logs-table')->columns($this->getColumns())
             ->minifiedAjax()->orderBy(0, 'desc')
-            ->parameters(['language'=>['search'=>'Cari aksi/deskripsi:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ entri'], 'responsive'=>true])
+            ->parameters(['language'=>['search'=>'Cari aksi/deskripsi:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ entri'], 'responsive'=>true, 'pageLength'=>10])
             ->buttons([Button::make('print'), Button::make('reset'), Button::make('reload')]);
     }
 

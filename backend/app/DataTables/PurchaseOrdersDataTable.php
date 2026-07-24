@@ -15,19 +15,23 @@ class PurchaseOrdersDataTable extends DataTable
         return (new EloquentDataTable($query))
             ->addColumn('campaign_title', fn($po) => $po->campaign->title ?? '-')
             ->addColumn('supplier_name', fn($po) => $po->supplier->name ?? '-')
-            ->editColumn('total_amount', fn($po) => 'Rp' . number_format($po->total_amount, 0, ',', '.'))
-            ->editColumn('status', fn($po) => '<span class="badge badge-' . match($po->status){'submitted'=>'warning','accepted'=>'info','paid'=>'success','processing'=>'info','shipped'=>'info','completed'=>'success','rejected'=>'danger',default=>'neutral'} . '">' . ucfirst($po->status) . '</span>')
-            ->addColumn('action', fn($po) => '<a href="' . route('purchase-orders.show', $po->uuid) . '" class="btn-icon"><i data-lucide="eye" class="w-4 h-4"></i></a>')
+            ->editColumn('total_amount', fn($po) => 'Rp'.number_format($po->total_amount, 0, ',', '.'))
+            ->editColumn('status', fn($po) => '<span class="badge bg-'.match($po->status){'submitted'=>'warning','accepted'=>'info','paid'=>'success','processing'=>'info','shipped'=>'info','completed'=>'success','rejected'=>'danger',default=>'secondary'}.'">'.ucfirst($po->status).'</span>')
+            ->addColumn('action', fn($po) => '<a href="'.route('purchase-orders.show', $po->uuid).'" class="btn btn-sm btn-outline-primary"><i data-lucide="eye"></i></a>')
             ->rawColumns(['total_amount', 'status', 'action'])
             ->setRowId('id');
     }
 
     public function query(PurchaseOrder $model): QueryBuilder
     {
-        $q = $model->newQuery()->with(['campaign','supplier','initiator']);
+        $q = $model->newQuery()
+            ->select(['purchase_orders.*'])
+            ->with(['campaign:id,title,uuid', 'supplier:id,name', 'initiator:id,name']);
+        
         $role = session('active_role', auth()->user()->active_role ?? 'buyer');
         if ($role === 'seller') $q->where('supplier_id', auth()->user()->supplier_id ?? 1);
         else $q->where('initiator_id', auth()->id());
+        
         return $q->latest();
     }
 
@@ -35,7 +39,7 @@ class PurchaseOrdersDataTable extends DataTable
     {
         return $this->builder()->setTableId('pos-table')->columns($this->getColumns())
             ->minifiedAjax()->orderBy(0, 'desc')
-            ->parameters(['language'=>['search'=>'Cari PO:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ PO'], 'responsive'=>true])
+            ->parameters(['language'=>['search'=>'Cari PO:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ PO'], 'responsive'=>true, 'pageLength'=>10])
             ->buttons([Button::make('print'), Button::make('reset'), Button::make('reload')]);
     }
 

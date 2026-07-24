@@ -14,10 +14,10 @@ class DistributionDataTable extends DataTable
         return (new EloquentDataTable($query))
             ->addColumn('user_name', fn($o) => $o->user->name ?? '-')
             ->addColumn('campaign_title', fn($o) => $o->campaign->title ?? '-')
-            ->editColumn('is_taken', fn($o) => $o->is_taken ? '<span class="badge badge-success">✓ Diambil</span>' : '<span class="badge badge-warning">Belum</span>')
+            ->editColumn('is_taken', fn($o) => $o->is_taken ? '<span class="badge bg-success">✓ Diambil</span>' : '<span class="badge bg-warning">Belum</span>')
             ->addColumn('action', function($o) {
-                if ($o->is_taken) return '<span class="text-body-sm text-text-secondary">Selesai</span>';
-                return '<form method="POST" action="' . route('orders.take', $o->uuid) . '"><input type="hidden" name="_token" value="' . csrf_token() . '"><button type="submit" class="btn btn-sm btn-primary"><i data-lucide="user-check" class="w-4 h-4 mr-1"></i>Centang Ambil</button></form>';
+                if ($o->is_taken) return '<span class="text-muted">Selesai</span>';
+                return '<form method="POST" action="'.route('orders.take', $o->uuid).'" class="d-inline">'.csrf_field().'<button type="submit" class="btn btn-sm btn-primary"><i data-lucide="user-check"></i> Centang Ambil</button></form>';
             })
             ->rawColumns(['is_taken', 'action'])
             ->setRowId('id');
@@ -25,7 +25,9 @@ class DistributionDataTable extends DataTable
 
     public function query(Order $model): QueryBuilder
     {
-        return $model->newQuery()->with(['campaign','user'])
+        return $model->newQuery()
+            ->select(['orders.*'])
+            ->with(['campaign:id,title,uuid', 'user:id,name'])
             ->whereHas('campaign', fn($q) => $q->where('initiator_id', auth()->id()))
             ->where('payment_status', 'paid')
             ->latest();
@@ -35,7 +37,7 @@ class DistributionDataTable extends DataTable
     {
         return $this->builder()->setTableId('distribution-table')->columns($this->getColumns())
             ->minifiedAjax()->orderBy(0, 'desc')
-            ->parameters(['language'=>['search'=>'Cari buyer:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ pesanan'], 'responsive'=>true]);
+            ->parameters(['language'=>['search'=>'Cari buyer:','lengthMenu'=>'Tampilkan _MENU_','info'=>'_START_-_END_ dari _TOTAL_ pesanan'], 'responsive'=>true, 'pageLength'=>10]);
     }
 
     public function getColumns(): array

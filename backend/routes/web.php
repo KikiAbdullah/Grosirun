@@ -1,6 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\{WebAuthController,ConsentController,TosController,ProfileController,NotificationController,CampaignController,OrderController,DistributionController,PurchaseOrderController,ProductController,OfferController,AdminController};
+use App\Http\Controllers\Web\{WebAuthController,ConsentController,TosController,ProfileController,NotificationController,CampaignController,OrderController,DistributionController,PurchaseOrderController,ProductController,OfferController,AdminController,DashboardController};
 
 Route::get('/', fn()=>auth()->check()?redirect('/dashboard'):redirect('/login'));
 Route::middleware('guest')->group(function(){
@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function(){
     Route::post('/tos/accept',[TosController::class,'accept'])->name('tos.accept');
 
     // Authenticated routes (simplified — skip full middleware for now)
-    Route::get('/dashboard',fn()=>view('dashboard.index'))->name('dashboard');
+    Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard');
     Route::get('/home',fn()=>redirect('/dashboard'))->name('home');
     Route::get('/profile',[ProfileController::class,'index'])->name('profile.index');
     Route::post('/profile/switch-role',[ProfileController::class,'switchRole'])->name('profile.switch-role');
