@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Cluster;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
@@ -13,7 +14,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $clusters = Cluster::all();
+        $superAdminRole = Role::findByName('super_admin', 'web');
+        $initiatorRole  = Role::findByName('initiator',   'web');
+        $buyerRole      = Role::findByName('buyer',       'web');
 
         // Super Admin (already created in RolePermissionSeeder)
         $admin = User::where('phone_number', '081234567890')->first();
@@ -30,7 +33,9 @@ class UserSeeder extends Seeder
                 'tos_version' => '1.0',
             ]);
         }
-        $admin->assignRole('super_admin');
+        $admin->assignRole($superAdminRole);
+
+        $clusters = Cluster::all();
 
         // Initiators (Ketua RT)
         $initiators = [
@@ -67,7 +72,7 @@ class UserSeeder extends Seeder
                     'tos_version' => '1.0',
                 ])
             );
-            $user->assignRole('initiator');
+            $user->assignRole($initiatorRole);
         }
 
         // Buyers (Warga RT)
@@ -96,7 +101,7 @@ class UserSeeder extends Seeder
                     'tos_version' => '1.0',
                 ])
             );
-            $user->assignRole('buyer');
+            $user->assignRole($buyerRole);
         }
 
         $this->command->info('✅ ' . User::count() . ' users created successfully!');

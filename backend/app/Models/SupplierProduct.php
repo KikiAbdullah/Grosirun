@@ -32,7 +32,7 @@ class SupplierProduct extends Model
      */
     public function offers(): HasMany
     {
-        return $this->hasMany(SupplierOffer::class);
+        return $this->hasMany(SupplierOffer::class, 'product_id');
     }
 
     /**
@@ -40,7 +40,7 @@ class SupplierProduct extends Model
      */
     public function activeOffers(): HasMany
     {
-        return $this->hasMany(SupplierOffer::class)
+        return $this->hasMany(SupplierOffer::class, 'product_id')
             ->where('status', 'active')
             ->where('valid_until', '>', now());
     }

@@ -2,31 +2,38 @@
 @section('title','Edit Produk')
 @section('content')
 
-<x-ui.page-header title="Edit Produk" />
+<div class="mb-4">
+    <h2 class="h4 mb-1">Edit Produk</h2>
+</div>
 
-<x-ui.card>
+<div class="card">
+    <div class="card-body">
     <form method="POST" action="{{ route('products.update',$id) }}">
         @csrf @method('PUT')
 
-        <x-ui.form-group label="Nama Produk" name="name" required>
-            <input type="text" name="name" class="gr-form-input" value="Beras Premium Pulen" required>
-        </x-ui.form-group>
+        <div class="mb-3">
+            <label class="form-label">Nama Produk <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" value="Beras Premium Pulen" required>
+        </div>
 
-        <x-ui.form-group label="Deskripsi" name="description">
-            <textarea name="description" class="gr-form-input" rows="3">Beras premium kualitas terbaik</textarea>
-        </x-ui.form-group>
+        <div class="mb-3">
+            <label class="form-label">Deskripsi</label>
+            <textarea name="description" class="form-control" rows="3">Beras premium kualitas terbaik</textarea>
+        </div>
 
-        <x-ui.form-group label="Base Unit" name="base_unit">
-            <select name="base_unit" class="gr-form-input">
+        <div class="mb-3">
+            <label class="form-label">Base Unit</label>
+            <select name="base_unit" class="form-select">
                 <option value="kg" selected>Kg</option>
             </select>
-        </x-ui.form-group>
+        </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-            <x-ui.button variant="secondary" href="{{ route('products.index') }}">Batal</x-ui.button>
-            <x-ui.button type="submit" variant="primary" icon="save">Simpan</x-ui.button>
+            <a href="{{ route('products.index') }}" class="btn btn-secondary">Batal</a>
+            <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
     </form>
-</x-ui.card>
+    </div>
+</div>
 
 @endsection

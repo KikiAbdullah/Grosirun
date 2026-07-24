@@ -17,7 +17,7 @@ class CampaignSeeder extends Seeder
      */
     public function run(): void
     {
-        $initiators = User::role('initiator')->get();
+        $initiators = User::where('role', 'initiator')->get();
         
         // Campaign 1 - Active (PGH-RT03)
         $campaign1 = Campaign::create([
@@ -27,8 +27,6 @@ class CampaignSeeder extends Seeder
             'status' => 'active',
             'initiator_id' => $initiators[0]->id,
             'cluster_id' => $initiators[0]->cluster_id,
-            'supplier_id' => 1,
-            'offer_id' => 1,
             'offer_snapshot' => json_encode([
                 'supplier_name' => 'CV Makmur Jaya Abadi',
                 'product_name' => 'Beras Premium Pulen 5Kg',
@@ -78,8 +76,6 @@ class CampaignSeeder extends Seeder
             'status' => 'active',
             'initiator_id' => $initiators[0]->id,
             'cluster_id' => $initiators[0]->cluster_id,
-            'supplier_id' => 1,
-            'offer_id' => 2,
             'offer_snapshot' => json_encode([
                 'supplier_name' => 'CV Makmur Jaya Abadi',
                 'product_name' => 'Minyak Goreng 2L',
@@ -121,8 +117,6 @@ class CampaignSeeder extends Seeder
             'status' => 'target_reached',
             'initiator_id' => $initiators[1]->id,
             'cluster_id' => $initiators[1]->cluster_id,
-            'supplier_id' => 2,
-            'offer_id' => 3,
             'offer_snapshot' => json_encode([
                 'supplier_name' => 'PT Sembako Nusantara',
                 'product_name' => 'Gula Pasir Putih 1Kg',
@@ -165,8 +159,6 @@ class CampaignSeeder extends Seeder
             'status' => 'completed',
             'initiator_id' => $initiators[1]->id,
             'cluster_id' => $initiators[1]->cluster_id,
-            'supplier_id' => 2,
-            'offer_id' => 4,
             'offer_snapshot' => json_encode([
                 'supplier_name' => 'PT Sembako Nusantara',
                 'product_name' => 'Telur Ayam Negeri',
@@ -210,8 +202,6 @@ class CampaignSeeder extends Seeder
             'status' => 'expired',
             'initiator_id' => $initiators[2]->id,
             'cluster_id' => $initiators[2]->cluster_id,
-            'supplier_id' => 3,
-            'offer_id' => 5,
             'offer_snapshot' => json_encode([
                 'supplier_name' => 'UD Sumber Rejeki',
                 'product_name' => 'Tepung Terigu 1Kg',

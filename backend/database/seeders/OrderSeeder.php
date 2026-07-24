@@ -16,8 +16,8 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        $buyers = User::role('buyer')->get();
-        $initiators = User::role('initiator')->get();
+        $buyers = User::where('role', 'buyer')->get();
+        $initiators = User::where('role', 'initiator')->get();
         
         // Orders for Campaign 1 (Active - Beras)
         $campaign1 = Campaign::where('title', 'Patungan Beras Premium Pulen')->first();

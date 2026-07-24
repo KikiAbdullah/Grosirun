@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="mx-auto" style="max-width:40rem">
-    <x-ui.card>
+    <div class="card p-4"><div class="card-body">
         {{-- Avatar & Info --}}
         <div class="d-flex align-items-center gap-4 mb-4">
             <div class="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold flex-shrink-0"
@@ -78,9 +78,9 @@
         {{-- Logout --}}
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <x-ui.button type="submit" variant="danger" icon="log-out" class="w-100">Keluar</x-ui.button>
+            <button type="submit" class="btn btn-danger w-100"><i data-lucide="log-out" style="width:1rem;height:1rem" class="me-2"></i>Keluar</button>
         </form>
-    </x-ui.card>
+    </div></div>
 
     <p class="text-center mt-3" style="font-size:.75rem;color:var(--text-disabled)">Grosirun v1.0.0</p>
 </div>

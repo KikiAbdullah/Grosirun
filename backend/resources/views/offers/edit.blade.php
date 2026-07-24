@@ -2,44 +2,54 @@
 @section('title','Edit Offer')
 @section('content')
 
-<x-ui.page-header title="Edit Offer" />
+<div class="d-flex flex-column mb-4">
+    <h1 class="h3 fw-bold mb-1">Edit Offer</h1>
+</div>
 
-<x-ui.card>
+<div class="card border-0 shadow-sm">
+<div class="card-body">
     <form method="POST" action="{{ route('offers.update',$id) }}">
         @csrf @method('PUT')
 
-        <x-ui.form-group label="Produk" name="product_id">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Produk</label>
             <select name="product_id" class="gr-form-input">
                 <option value="1" selected>Beras Premium Pulen</option>
             </select>
-        </x-ui.form-group>
+        </div>
 
         <div class="row g-3">
             <div class="col-12 col-sm-6">
-                <x-ui.form-group label="Min Order" name="minimum_order">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Min Order</label>
                     <input type="number" name="minimum_order" class="gr-form-input" value="500">
-                </x-ui.form-group>
+                </div>
             </div>
             <div class="col-12 col-sm-6">
-                <x-ui.form-group label="Kapasitas" name="capacity">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Kapasitas</label>
                     <input type="number" name="capacity" class="gr-form-input" value="2000">
-                </x-ui.form-group>
+                </div>
             </div>
         </div>
 
-        <x-ui.form-group label="Area Layanan" name="service_areas[]">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Area Layanan</label>
             <div x-data="tomSelectWrapper({maxItems:null})">
                 <select name="service_areas[]" x-ref="select" multiple class="gr-form-input">
                     <option value="PGH-RT03" selected>PGH-RT03</option>
                     <option value="PGH-RT05" selected>PGH-RT05</option>
                 </select>
             </div>
-        </x-ui.form-group>
+        </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-            <x-ui.button variant="secondary" href="{{ route('offers.index') }}">Batal</x-ui.button>
-            <x-ui.button type="submit" variant="primary" icon="save">Simpan</x-ui.button>
+            <a href="{{ route('offers.index') }}" class="btn btn-secondary">Batal</a>
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="save" style="width:1rem;height:1rem" class="me-1"></i>Simpan
+            </button>
         </div>
     </form>
-</x-ui.card>
+</div>
+</div>
 @endsection

@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Supplier;
 use App\Models\SupplierProduct;
 use App\Models\SupplierOffer;
+use App\Models\User;
 
 class SupplierOfferSeeder extends Seeder
 {
@@ -14,7 +15,7 @@ class SupplierOfferSeeder extends Seeder
      */
     public function run(): void
     {
-        $suppliers = Supplier::all();
+        $suppliers = Supplier::with('members')->get();
 
         // Create products for each supplier
         $products = [
@@ -64,16 +65,22 @@ class SupplierOfferSeeder extends Seeder
             $productModels[] = SupplierProduct::create($product);
         }
 
-        // Create offers for each product using relationships
+        // Map supplier index => seller user_id (first member of each supplier)
+        $supplierCreators = [];
+        foreach ($suppliers as $i => $supplier) {
+            $member = $supplier->members->first();
+            $supplierCreators[$i] = $member ? $member->user_id : User::first()->id;
+        }
+
+        // Create offers for each product
+        // Note: title, description, reserved_capacity do NOT exist in supplier_offers schema
         $offers = [
             // Product 1 - Beras Premium Pulen
             [
                 'product_index' => 0,
-                'title' => 'Beras Premium Pulen 5Kg',
-                'description' => 'Beras premium kualitas terbaik, pulen dan wangi',
+                'supplier_index' => 0,
                 'minimum_quantity' => 500,
                 'capacity' => 2000,
-                'reserved_capacity' => 0,
                 'tier_prices' => [
                     ['min' => 500, 'max' => 999, 'price' => 10500],
                     ['min' => 1000, 'max' => 1999, 'price' => 10000],
@@ -87,11 +94,9 @@ class SupplierOfferSeeder extends Seeder
             // Product 2 - Minyak Goreng
             [
                 'product_index' => 1,
-                'title' => 'Minyak Goreng 2L',
-                'description' => 'Minyak goreng berkualitas, cocok untuk masak sehari-hari',
+                'supplier_index' => 0,
                 'minimum_quantity' => 200,
                 'capacity' => 1000,
-                'reserved_capacity' => 0,
                 'tier_prices' => [
                     ['min' => 200, 'max' => 499, 'price' => 28000],
                     ['min' => 500, 'max' => 999, 'price' => 27000],
@@ -105,11 +110,9 @@ class SupplierOfferSeeder extends Seeder
             // Product 3 - Gula Pasir Putih
             [
                 'product_index' => 2,
-                'title' => 'Gula Pasir Putih 1Kg',
-                'description' => 'Gula pasir putih berkualitas, manis dan bersih',
+                'supplier_index' => 1,
                 'minimum_quantity' => 300,
                 'capacity' => 1500,
-                'reserved_capacity' => 0,
                 'tier_prices' => [
                     ['min' => 300, 'max' => 599, 'price' => 12500],
                     ['min' => 600, 'max' => 999, 'price' => 12000],
@@ -123,11 +126,9 @@ class SupplierOfferSeeder extends Seeder
             // Product 4 - Telur Ayam Negeri
             [
                 'product_index' => 3,
-                'title' => 'Telur Ayam Negeri',
-                'description' => 'Telur ayam segar, ukuran sedang-besar',
+                'supplier_index' => 1,
                 'minimum_quantity' => 1000,
                 'capacity' => 5000,
-                'reserved_capacity' => 0,
                 'tier_prices' => [
                     ['min' => 1000, 'max' => 1999, 'price' => 2800],
                     ['min' => 2000, 'max' => 3999, 'price' => 2700],
@@ -141,11 +142,9 @@ class SupplierOfferSeeder extends Seeder
             // Product 5 - Tepung Terigu
             [
                 'product_index' => 4,
-                'title' => 'Tepung Terigu 1Kg',
-                'description' => 'Tepung terigu serbaguna, cocok untuk kue dan roti',
+                'supplier_index' => 2,
                 'minimum_quantity' => 400,
                 'capacity' => 2000,
-                'reserved_capacity' => 0,
                 'tier_prices' => [
                     ['min' => 400, 'max' => 799, 'price' => 11000],
                     ['min' => 800, 'max' => 1499, 'price' => 10500],
@@ -159,11 +158,9 @@ class SupplierOfferSeeder extends Seeder
             // Product 6 - Mie Instan
             [
                 'product_index' => 5,
-                'title' => 'Mie Instan 1 Dus (40 pcs)',
-                'description' => 'Mie instan rasa ayam bawang, favorit keluarga',
+                'supplier_index' => 2,
                 'minimum_quantity' => 100,
                 'capacity' => 500,
-                'reserved_capacity' => 0,
                 'tier_prices' => [
                     ['min' => 100, 'max' => 199, 'price' => 95000],
                     ['min' => 200, 'max' => 399, 'price' => 92000],
@@ -178,20 +175,18 @@ class SupplierOfferSeeder extends Seeder
 
         foreach ($offers as $offer) {
             $product = $productModels[$offer['product_index']];
-            
-            // Create offer using product relationship
+            $createdById = $supplierCreators[$offer['supplier_index']];
+
             $product->offers()->create([
-                'supplier_id' => $product->supplier_id,
-                'title' => $offer['title'],
-                'description' => $offer['description'],
+                'supplier_id'      => $product->supplier_id,
+                'created_by_id'    => $createdById,
                 'minimum_quantity' => $offer['minimum_quantity'],
-                'capacity' => $offer['capacity'],
-                'reserved_capacity' => $offer['reserved_capacity'],
-                'tier_prices' => $offer['tier_prices'],
-                'service_areas' => $offer['service_areas'],
-                'delivery_cost' => $offer['delivery_cost'],
-                'valid_until' => $offer['valid_until'],
-                'status' => $offer['status'],
+                'capacity'         => $offer['capacity'],
+                'tier_prices'      => $offer['tier_prices'],
+                'service_areas'    => $offer['service_areas'],
+                'delivery_cost'    => $offer['delivery_cost'],
+                'valid_until'      => $offer['valid_until'],
+                'status'           => $offer['status'],
             ]);
         }
 

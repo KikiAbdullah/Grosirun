@@ -73,20 +73,16 @@ return new class extends Migration
             Schema::table('purchase_orders', fn(Blueprint $table) => $table->index('status'));
         }
 
-        // Suppliers indexes
-        if (!Schema::hasIndex('suppliers', 'suppliers_status_index')) {
-            Schema::table('suppliers', fn(Blueprint $table) => $table->index('status'));
+        // Suppliers indexes (column is verification_status, not status)
+        if (!Schema::hasIndex('suppliers', 'suppliers_verification_status_index')) {
+            Schema::table('suppliers', fn(Blueprint $table) => $table->index('verification_status'));
         }
 
         // Supplier offers indexes
-        if (!Schema::hasIndex('supplier_offers', 'supplier_offers_supplier_id_index')) {
-            Schema::table('supplier_offers', fn(Blueprint $table) => $table->index('supplier_id'));
-        }
-        if (!Schema::hasIndex('supplier_offers', 'supplier_offers_product_id_index')) {
-            Schema::table('supplier_offers', fn(Blueprint $table) => $table->index('product_id'));
-        }
-        if (!Schema::hasIndex('supplier_offers', 'supplier_offers_status_index')) {
-            Schema::table('supplier_offers', fn(Blueprint $table) => $table->index('status'));
+        // supplier_id+status and status+valid_until already indexed in create migration
+        // product_id column does not exist in supplier_offers (it's in supplier_products)
+        if (!Schema::hasIndex('supplier_offers', 'supplier_offers_valid_until_index')) {
+            Schema::table('supplier_offers', fn(Blueprint $table) => $table->index('valid_until'));
         }
 
         // Supplier products indexes
@@ -102,21 +98,11 @@ return new class extends Migration
             Schema::table('notifications', fn(Blueprint $table) => $table->index('read_at'));
         }
 
-        // Transaction logs indexes (skip if already exists)
-        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_user_id_index')) {
-            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('user_id'));
-        }
-        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_action_index')) {
-            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('action'));
-        }
-        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_target_type_index')) {
-            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('target_type'));
-        }
-        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_target_id_index')) {
-            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('target_id'));
-        }
-        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_created_at_index')) {
-            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('created_at'));
+        // Transaction logs indexes
+        // Columns type+created_at already indexed in create migration
+        // user_id, action, target_type, target_id do not exist in transaction_logs schema
+        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_initiator_id_index')) {
+            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('initiator_id'));
         }
     }
 
@@ -129,11 +115,11 @@ return new class extends Migration
             'campaign_variants' => ['campaign_id'],
             'orders' => ['user_id', 'campaign_id', 'payment_status', 'payment_method', 'is_taken', 'created_at'],
             'purchase_orders' => ['initiator_id', 'supplier_id', 'campaign_id', 'status'],
-            'suppliers' => ['status'],
-            'supplier_offers' => ['supplier_id', 'product_id', 'status'],
+            'suppliers' => ['verification_status'],
+            'supplier_offers' => ['valid_until'],
             'supplier_products' => ['supplier_id'],
             'notifications' => ['user_id', 'read_at'],
-            'transaction_logs' => ['user_id', 'action', 'target_type', 'target_id', 'created_at'],
+            'transaction_logs' => ['initiator_id'],
         ];
 
         foreach ($tables as $table => $indexes) {

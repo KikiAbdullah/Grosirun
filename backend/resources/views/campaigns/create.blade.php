@@ -2,58 +2,72 @@
 @section('title','Buat Campaign')
 @section('content')
 
-<x-ui.page-header title="Buat Campaign Baru" subtitle="Isi detail campaign patungan." />
+<div class="d-flex flex-column mb-4">
+    <h1 class="h3 fw-bold mb-1">Buat Campaign Baru</h1>
+    <p class="text-secondary mb-0">Isi detail campaign patungan.</p>
+</div>
 
-<x-ui.card>
+<div class="card border-0 shadow-sm">
+<div class="card-body">
     <form method="POST" action="{{ route('campaigns.store') }}">
         @csrf
 
-        <x-ui.form-group label="Judul Campaign" name="title" required>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Judul Campaign <span class="text-danger">*</span></label>
             <input type="text" name="title" class="gr-form-input" placeholder="Beras Premium Pulen" required>
-        </x-ui.form-group>
+        </div>
 
-        <x-ui.form-group label="Deskripsi" name="description">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Deskripsi</label>
             <textarea name="description" class="gr-form-input" rows="3" placeholder="Deskripsi campaign..."></textarea>
-        </x-ui.form-group>
+        </div>
 
         <div class="row g-3">
             <div class="col-12 col-sm-6">
-                <x-ui.form-group label="Target Quantity" name="target_quantity" required>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Target Quantity <span class="text-danger">*</span></label>
                     <input type="number" name="target_quantity" class="gr-form-input" placeholder="1000" required>
-                </x-ui.form-group>
+                </div>
             </div>
             <div class="col-12 col-sm-6">
-                <x-ui.form-group label="Satuan" name="unit" required>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Satuan <span class="text-danger">*</span></label>
                     <select name="unit" class="gr-form-input" required>
                         <option value="kg">Kg</option>
                         <option value="pcs">Pcs</option>
                         <option value="liter">Liter</option>
                     </select>
-                </x-ui.form-group>
+                </div>
             </div>
         </div>
 
         <div class="row g-3">
             <div class="col-12 col-sm-6">
-                <x-ui.form-group label="Harga Buyer / unit" name="buyer_unit_price" required>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Harga Buyer / unit <span class="text-danger">*</span></label>
                     <input type="number" name="buyer_unit_price" class="gr-form-input" placeholder="12000" required>
-                </x-ui.form-group>
+                </div>
             </div>
             <div class="col-12 col-sm-6">
-                <x-ui.form-group label="Tenggat (hari)" name="deadline_days" required>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tenggat (hari) <span class="text-danger">*</span></label>
                     <input type="number" name="deadline_days" class="gr-form-input" placeholder="2" min="1" required>
-                </x-ui.form-group>
+                </div>
             </div>
         </div>
 
-        <x-ui.form-group label="Lokasi Distribusi" name="location" required>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Lokasi Distribusi <span class="text-danger">*</span></label>
             <input type="text" name="location" class="gr-form-input" placeholder="Rumah Pak RT Jl Mawar 12" required>
-        </x-ui.form-group>
+        </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-            <x-ui.button variant="secondary" href="{{ route('campaigns.index') }}">Batal</x-ui.button>
-            <x-ui.button type="submit" variant="primary" icon="send">Publikasikan</x-ui.button>
+            <a href="{{ route('campaigns.index') }}" class="btn btn-secondary">Batal</a>
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="send" style="width:1rem;height:1rem" class="me-1"></i>Publikasikan
+            </button>
         </div>
     </form>
-</x-ui.card>
+</div>
+</div>
 @endsection

@@ -2,24 +2,32 @@
 @section('title','Edit Campaign')
 @section('content')
 
-<x-ui.page-header title="Edit Campaign" />
+<div class="d-flex flex-column mb-4">
+    <h1 class="h3 fw-bold mb-1">Edit Campaign</h1>
+</div>
 
-<x-ui.card>
+<div class="card border-0 shadow-sm">
+<div class="card-body">
     <form method="POST" action="{{ route('campaigns.update',$uuid) }}">
         @csrf @method('PUT')
 
-        <x-ui.form-group label="Judul" name="title" required>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Judul <span class="text-danger">*</span></label>
             <input type="text" name="title" class="gr-form-input" value="Beras Premium Pulen" required>
-        </x-ui.form-group>
+        </div>
 
-        <x-ui.form-group label="Target" name="target_quantity">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Target</label>
             <input type="number" name="target_quantity" class="gr-form-input" value="500">
-        </x-ui.form-group>
+        </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-            <x-ui.button variant="secondary" href="{{ route('campaigns.manage') }}">Batal</x-ui.button>
-            <x-ui.button type="submit" variant="primary" icon="save">Simpan</x-ui.button>
+            <a href="{{ route('campaigns.manage') }}" class="btn btn-secondary">Batal</a>
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="save" style="width:1rem;height:1rem" class="me-1"></i>Simpan
+            </button>
         </div>
     </form>
-</x-ui.card>
+</div>
+</div>
 @endsection

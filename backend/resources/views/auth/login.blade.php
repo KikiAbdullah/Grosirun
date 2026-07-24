@@ -29,7 +29,8 @@
 
         <form method="POST" action="{{ route('login.submit') }}">
             @csrf
-            <x-ui.form-group label="Nomor WhatsApp" name="phone_number" required>
+            <div class="mb-3">
+                <label class="form-label">Nomor WhatsApp <span class="text-danger">*</span></label>
                 <div class="position-relative">
                     <span class="position-absolute" style="left:1rem;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:.875rem">+62</span>
                     <input type="tel" name="phone_number"
@@ -37,7 +38,7 @@
                            style="padding-left:3rem"
                            placeholder="81234567890" required>
                 </div>
-            </x-ui.form-group>
+            </div>
 
             <div class="mb-4">
                 <label class="d-flex align-items-start gap-2" style="cursor:pointer">
@@ -49,7 +50,7 @@
                 </label>
             </div>
 
-            <x-ui.button type="submit" variant="primary" icon="send" class="w-100">Kirim Kode OTP</x-ui.button>
+            <button type="submit" class="btn btn-primary w-100"><i data-lucide="send" style="width:1rem;height:1rem" class="me-2"></i>Kirim Kode OTP</button>
         </form>
 
         {{-- Divider --}}

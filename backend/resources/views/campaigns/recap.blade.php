@@ -2,7 +2,9 @@
 @section('title','Recap Campaign')
 @section('content')
 
-<x-ui.page-header title="Recap: Beras Premium Pulen" />
+<div class="d-flex flex-column mb-4">
+    <h1 class="h3 fw-bold mb-1">Recap: Beras Premium Pulen</h1>
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-12 col-sm-4">
@@ -25,7 +27,8 @@
     </div>
 </div>
 
-<x-ui.card>
+<div class="card border-0 shadow-sm">
+<div class="card-body">
     <h3 class="fw-semibold mb-3" style="font-size:1rem">Detail per Varian</h3>
     <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -43,11 +46,13 @@
             </tbody>
         </table>
     </div>
-</x-ui.card>
+    </div>
+</div>
+</div>
 
 <div class="d-flex justify-content-end mt-4">
-    <x-ui.button variant="primary" href="{{ route('purchase-orders.create') }}" icon="file-text">
-        Buat PO ke Seller
-    </x-ui.button>
+    <a href="{{ route('purchase-orders.create') }}" class="btn btn-primary">
+        <i data-lucide="file-text" style="width:1rem;height:1rem" class="me-1"></i>Buat PO ke Seller
+    </a>
 </div>
 @endsection

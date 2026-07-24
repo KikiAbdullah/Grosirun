@@ -2,15 +2,23 @@
 @section('title','Kelola Campaign')
 @section('content')
 
-<x-ui.page-header title="Kelola Campaign" subtitle="Campaign yang Anda inisiasi.">
-    <x-slot:actions>
-        <x-ui.button variant="primary" href="{{ route('campaigns.create') }}" icon="plus">Buat Baru</x-ui.button>
-    </x-slot:actions>
-</x-ui.page-header>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Kelola Campaign</h1>
+        <p class="text-secondary mb-0">Campaign yang Anda inisiasi.</p>
+    </div>
+    <div>
+        <a href="{{ route('campaigns.create') }}" class="btn btn-primary">
+            <i data-lucide="plus" style="width:1rem;height:1rem" class="me-1"></i>Buat Baru
+        </a>
+    </div>
+</div>
 
-<x-ui.card padding="none" class="p-3">
+<div class="card border-0 shadow-sm p-3">
+<div class="card-body p-0">
     {{ $dataTable->table(['id'=>'campaigns-table','class'=>'table table-hover align-middle w-100']) }}
-</x-ui.card>
+</div>
+</div>
 
 @push('scripts')
 {{ $dataTable->scripts(attributes:['type'=>'module']) }}

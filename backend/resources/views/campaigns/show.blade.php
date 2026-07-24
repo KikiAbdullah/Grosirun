@@ -2,15 +2,22 @@
 @section('title','Detail Campaign')
 @section('content')
 
-<x-ui.page-header title="Beras Premium Pulen" subtitle="oleh Pak Agus Setiawan • PGH-RT03">
-    <x-slot:actions>
-        <x-ui.button variant="ghost" size="sm" icon="share-2">Share</x-ui.button>
-    </x-slot:actions>
-</x-ui.page-header>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Beras Premium Pulen</h1>
+        <p class="text-secondary mb-0">oleh Pak Agus Setiawan • PGH-RT03</p>
+    </div>
+    <div>
+        <button class="btn btn-light btn-sm">
+            <i data-lucide="share-2" style="width:1rem;height:1rem" class="me-1"></i>Share
+        </button>
+    </div>
+</div>
 
 <div class="row g-4">
     <div class="col-12 col-lg-8">
-        <x-ui.card>
+        <div class="card border-0 shadow-sm">
+        <div class="card-body">
             {{-- Product Image --}}
             <div class="rounded-3 d-flex align-items-center justify-content-center mb-4"
                  style="aspect-ratio:16/9;background:linear-gradient(135deg,var(--primary-50),var(--primary-100))">
@@ -51,13 +58,15 @@
                 </div>
             </div>
             @endforeach
-        </x-ui.card>
+        </div>
+        </div>
     </div>
 
     <div class="col-12 col-lg-4">
         <div class="d-flex flex-column gap-4">
             {{-- Metode Pembayaran --}}
-            <x-ui.card>
+            <div class="card border-0 shadow-sm">
+            <div class="card-body">
                 <h3 class="fw-semibold mb-3" style="font-size:.95rem">Metode Pembayaran</h3>
                 <div class="row g-2">
                     <div class="col-6">
@@ -76,16 +85,21 @@
                         </label>
                     </div>
                 </div>
-            </x-ui.card>
+            </div>
+            </div>
 
             {{-- Checkout --}}
-            <x-ui.card>
+            <div class="card border-0 shadow-sm">
+            <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <span style="font-size:.875rem;color:var(--text-secondary)">Total</span>
                     <span class="fw-bold" style="font-size:1.5rem;color:var(--primary-500)">Rp60.000</span>
                 </div>
-                <x-ui.button variant="primary" icon="shopping-cart" class="w-100 gr-btn-lg">Checkout</x-ui.button>
-            </x-ui.card>
+                <button class="btn btn-primary w-100 gr-btn-lg">
+                    <i data-lucide="shopping-cart" style="width:1rem;height:1rem" class="me-1"></i>Checkout
+                </button>
+            </div>
+            </div>
         </div>
     </div>
 </div>

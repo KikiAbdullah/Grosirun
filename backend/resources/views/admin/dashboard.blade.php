@@ -2,7 +2,12 @@
 @section('title','Admin Dashboard')
 @section('content')
 
-<x-ui.page-header title="Console Admin" subtitle="Moderasi dan audit terpusat." />
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-1">Console Admin</h2>
+        <p class="text-muted mb-0">Moderasi dan audit terpusat.</p>
+    </div>
+</div>
 
 {{-- Metrics --}}
 <div class="row g-3 mb-4">

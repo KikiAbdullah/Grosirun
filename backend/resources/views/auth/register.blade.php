@@ -24,13 +24,15 @@
     <div class="gr-card p-4">
         <form method="POST" action="{{ route('register.submit') }}">
             @csrf
-            <x-ui.form-group label="Nama Lengkap" name="name" required>
+            <div class="mb-3">
+                <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
                 <input type="text" name="name"
                        class="gr-form-input @error('name') gr-form-input-error @enderror"
                        placeholder="Siti Rahayu" required value="{{ old('name') }}">
-            </x-ui.form-group>
+            </div>
 
-            <x-ui.form-group label="Nomor WhatsApp" name="phone_number" required>
+            <div class="mb-3">
+                <label class="form-label">Nomor WhatsApp <span class="text-danger">*</span></label>
                 <div class="position-relative">
                     <span class="position-absolute" style="left:1rem;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:.875rem">+62</span>
                     <input type="tel" name="phone_number"
@@ -38,12 +40,14 @@
                            style="padding-left:3rem"
                            placeholder="81234567890" required>
                 </div>
-            </x-ui.form-group>
+            </div>
 
-            <x-ui.form-group label="Cluster / RT" name="cluster_code" hint="Kode cluster tempat tinggal">
+            <div class="mb-3">
+                <label class="form-label">Cluster / RT</label>
                 <input type="text" name="cluster_code" class="gr-form-input"
                        value="{{ old('cluster_code','PGH-RT03') }}">
-            </x-ui.form-group>
+                <div class="form-text" style="font-size:.75rem">Kode cluster tempat tinggal</div>
+            </div>
 
             <div class="mb-4">
                 <label class="d-flex align-items-start gap-2" style="cursor:pointer">
@@ -56,7 +60,7 @@
                 </label>
             </div>
 
-            <x-ui.button type="submit" variant="primary" icon="user-plus" class="w-100">Daftar Sekarang</x-ui.button>
+            <button type="submit" class="btn btn-primary w-100"><i data-lucide="user-plus" style="width:1rem;height:1rem" class="me-2"></i>Daftar Sekarang</button>
         </form>
 
         <p class="text-center mt-3 mb-0" style="font-size:.875rem;color:var(--text-secondary)">

@@ -120,7 +120,7 @@ class RolePermissionSeeder extends Seeder
                 'name' => $permission['name'],
                 'description' => $permission['description'],
                 'group' => $permission['group'],
-                'guard_name' => 'sanctum',
+                'guard_name' => 'web',
             ]);
         }
 
@@ -132,7 +132,7 @@ class RolePermissionSeeder extends Seeder
         $buyerRole = Role::create([
             'name' => 'buyer',
             'description' => 'Regular buyer who can join campaigns and place orders',
-            'guard_name' => 'sanctum',
+            'guard_name' => 'web',
             'level' => 1,
             'is_system' => true,
         ]);
@@ -153,7 +153,7 @@ class RolePermissionSeeder extends Seeder
         $initiatorRole = Role::create([
             'name' => 'initiator',
             'description' => 'Campaign initiator who can create campaigns and validate orders',
-            'guard_name' => 'sanctum',
+            'guard_name' => 'web',
             'level' => 2,
             'is_system' => true,
         ]);
@@ -194,7 +194,7 @@ class RolePermissionSeeder extends Seeder
         $sellerRole = Role::create([
             'name' => 'seller',
             'description' => 'Supplier seller who can manage offers and purchase orders',
-            'guard_name' => 'sanctum',
+            'guard_name' => 'web',
             'level' => 2,
             'is_system' => true,
         ]);
@@ -221,7 +221,7 @@ class RolePermissionSeeder extends Seeder
         $adminRole = Role::create([
             'name' => 'admin',
             'description' => 'Platform administrator with full access',
-            'guard_name' => 'sanctum',
+            'guard_name' => 'web',
             'level' => 3,
             'is_system' => true,
         ]);
@@ -257,7 +257,7 @@ class RolePermissionSeeder extends Seeder
         $superAdminRole = Role::create([
             'name' => 'super_admin',
             'description' => 'Super administrator with all permissions',
-            'guard_name' => 'sanctum',
+            'guard_name' => 'web',
             'level' => 4,
             'is_system' => true,
         ]);
@@ -283,7 +283,7 @@ class RolePermissionSeeder extends Seeder
             ]
         );
 
-        $adminUser->assignRole('super_admin');
+        $adminUser->assignRole($superAdminRole);
 
         // ============================================
         // OUTPUT SUMMARY

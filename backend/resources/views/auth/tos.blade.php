@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="mx-auto" style="max-width:40rem" x-data="{scrolled:false}" @scroll.window="scrolled=(window.scrollY>200)">
-    <x-ui.card padding="lg">
+    <div class="card p-4"><div class="card-body">
         <div class="d-flex align-items-center gap-3 mb-4">
             <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
                  style="width:3rem;height:3rem;background:var(--warning-50)">
@@ -51,9 +51,9 @@
                     Saya <strong>mengerti dan setuju</strong>.
                 </span>
             </label>
-            <x-ui.button type="submit" variant="primary" icon="check" class="w-100">Setuju &amp; Lanjutkan</x-ui.button>
+            <button type="submit" class="btn btn-primary w-100"><i data-lucide="check" style="width:1rem;height:1rem" class="me-2"></i>Setuju &amp; Lanjutkan</button>
         </form>
-    </x-ui.card>
+    </div></div>
 </div>
 
 @endsection

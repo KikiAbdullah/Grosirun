@@ -2,13 +2,16 @@
 @section('title','Detail PO')
 @section('content')
 
-<x-ui.page-header title="PO #{{ $po->uuid }}" />
+<div class="mb-4">
+    <h2 class="h4 mb-1">PO #{{ $po->uuid }}</h2>
+</div>
 
 <div class="row g-4">
     <div class="col-12 col-lg-8">
         <div class="d-flex flex-column gap-4">
             {{-- Detail PO --}}
-            <x-ui.card>
+            <div class="card">
+                <div class="card-body">
                 <h3 class="fw-semibold mb-3" style="font-size:1rem">Detail Purchase Order</h3>
                 <div class="row g-3">
                     <div class="col-6">
@@ -36,10 +39,12 @@
                         <p class="mb-0 fw-semibold" style="font-size:1.1rem;color:var(--primary-500)">Rp{{ number_format($po->total_amount,0,',','.') }}</p>
                     </div>
                 </div>
-            </x-ui.card>
+                </div>
+            </div>
 
             {{-- Upload Dokumen --}}
-            <x-ui.card>
+            <div class="card">
+                <div class="card-body">
                 <h3 class="fw-semibold mb-3" style="font-size:1rem">Upload Dokumen</h3>
                 <div x-data="filepondUploader({
                     processUrl:'{{ route('purchase-orders.upload-document',$po->uuid) }}',
@@ -48,50 +53,54 @@
                 })">
                     <input type="file" x-ref="pond" name="documents[]" multiple>
                 </div>
-            </x-ui.card>
+                </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="col-12 col-lg-4">
-        <x-ui.card>
+        <div class="card">
+            <div class="card-body">
             <div class="d-flex align-items-center gap-2 mb-3">
                 <i data-lucide="info" style="width:1.25rem;height:1.25rem;color:var(--info-500)"></i>
                 <span class="fw-semibold" style="font-size:.95rem">Status</span>
             </div>
-            <x-ui.status-badge :status="$po->status" />
+            <span class="badge bg-secondary">{{ $po->status }}</span>
 
             <div class="d-flex flex-column gap-2 mt-4">
                 @if($po->status === 'submitted')
                     <form method="POST" action="{{ route('purchase-orders.accept',$po->uuid) }}">
                         @csrf
-                        <x-ui.button type="submit" variant="primary" icon="check" class="w-100">Accept PO</x-ui.button>
+                        <button type="submit" class="btn btn-primary w-100">Accept PO</button>
                     </form>
                     <form method="POST" action="{{ route('purchase-orders.reject',$po->uuid) }}">
                         @csrf
                         <input type="hidden" name="reason" value="Tidak sesuai">
-                        <x-ui.button type="submit" variant="danger" icon="x" class="w-100"
-                            onclick="return confirm('Yakin tolak PO?')">Reject PO</x-ui.button>
+                        <button type="submit" class="btn btn-danger w-100"
+                            onclick="return confirm('Yakin tolak PO?')">Reject PO</button>
                     </form>
                 @elseif($po->status === 'accepted')
                     <form method="POST" action="{{ route('purchase-orders.confirm-payment',$po->uuid) }}">
                         @csrf
-                        <x-ui.button type="submit" variant="primary" icon="banknote" class="w-100">Konfirmasi Pembayaran</x-ui.button>
+                        <button type="submit" class="btn btn-primary w-100">Konfirmasi Pembayaran</button>
                     </form>
                 @elseif($po->status === 'paid')
                     <form method="POST" action="{{ route('purchase-orders.update-status',$po->uuid) }}">
                         @csrf
                         <input type="hidden" name="status" value="processing">
-                        <x-ui.button type="submit" variant="primary" class="w-100">Proses</x-ui.button>
+                        <button type="submit" class="btn btn-primary w-100">Proses</button>
                     </form>
                 @elseif($po->status === 'processing')
                     <form method="POST" action="{{ route('purchase-orders.update-status',$po->uuid) }}">
                         @csrf
                         <input type="hidden" name="status" value="shipped">
-                        <x-ui.button type="submit" variant="primary" icon="truck" class="w-100">Tandai Dikirim</x-ui.button>
+                        <button type="submit" class="btn btn-primary w-100">Tandai Dikirim</button>
                     </form>
                 @endif
             </div>
-        </x-ui.card>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

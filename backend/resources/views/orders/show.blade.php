@@ -2,13 +2,17 @@
 @section('title','Detail Pesanan')
 @section('content')
 
-<x-ui.page-header title="Beras Premium Pulen" subtitle="Pesanan #{{ $uuid }}" />
+<div class="mb-4">
+    <h2 class="h4 mb-1">Beras Premium Pulen</h2>
+    <p class="text-muted mb-0">Pesanan #{{ $uuid }}</p>
+</div>
 
 <div class="row g-4">
     <div class="col-12 col-lg-8">
         <div class="d-flex flex-column gap-4">
             {{-- Detail Pesanan --}}
-            <x-ui.card>
+            <div class="card">
+                <div class="card-body">
                 <h3 class="fw-semibold mb-3" style="font-size:1rem">Detail Pesanan</h3>
                 <div class="row g-3">
                     <div class="col-6">
@@ -28,10 +32,12 @@
                         <p class="mb-0 fw-semibold" style="font-size:1.1rem;color:var(--primary-500)">Rp60.000</p>
                     </div>
                 </div>
-            </x-ui.card>
+                </div>
+            </div>
 
             {{-- Upload Bukti --}}
-            <x-ui.card>
+            <div class="card">
+                <div class="card-body">
                 <h3 class="fw-semibold mb-3" style="font-size:1rem">Upload Bukti Pembayaran</h3>
                 <div x-data="imagePreview()">
                     <input type="file" accept="image/*" @change="handleFile($event)" class="d-none" id="proof-input">
@@ -52,22 +58,25 @@
                         <span x-text="fileName"></span> • <span x-text="fileSize"></span>
                     </p>
                     <div x-show="preview" class="d-flex gap-2 mt-3">
-                        <x-ui.button variant="primary" icon="upload" class="flex-grow-1">Upload Bukti</x-ui.button>
-                        <x-ui.button variant="ghost" @click="clear()" icon="x">Hapus</x-ui.button>
+                        <button type="button" class="btn btn-primary flex-grow-1">Upload Bukti</button>
+                        <button type="button" class="btn btn-light" @click="clear()">Hapus</button>
                     </div>
                 </div>
-            </x-ui.card>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="col-12 col-lg-4">
-        <x-ui.card>
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <i data-lucide="check-circle" style="width:1.25rem;height:1.25rem;color:var(--primary-500)"></i>
-                <span class="fw-semibold" style="font-size:.95rem">Status</span>
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i data-lucide="check-circle" style="width:1.25rem;height:1.25rem;color:var(--primary-500)"></i>
+                    <span class="fw-semibold" style="font-size:.95rem">Status</span>
+                </div>
+                <span class="badge bg-success">Paid</span>
             </div>
-            <x-ui.status-badge status="paid" />
-        </x-ui.card>
+        </div>
     </div>
 </div>
 

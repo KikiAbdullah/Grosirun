@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
@@ -109,7 +110,7 @@ class Order extends Model
     /**
      * Get transaction logs for this order
      */
-    public function logs(): HasMany
+    public function logs(): MorphMany
     {
         return $this->morphMany(TransactionLog::class, 'loggable');
     }

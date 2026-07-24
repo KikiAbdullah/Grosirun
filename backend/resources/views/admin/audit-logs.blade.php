@@ -2,17 +2,23 @@
 @section('title','Audit Log')
 @section('content')
 
-<x-ui.page-header title="Audit Log" subtitle="Append-only log.">
-    <x-slot:actions>
-        <span class="gr-badge gr-badge-neutral">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-1">Audit Log</h2>
+        <p class="text-muted mb-0">Append-only log.</p>
+    </div>
+    <div>
+        <span class="badge bg-secondary">
             <i data-lucide="lock" style="width:.75rem;height:.75rem"></i>Append-only
         </span>
-    </x-slot:actions>
-</x-ui.page-header>
+    </div>
+</div>
 
-<x-ui.card padding="none" class="p-3">
+<div class="card p-3">
+    <div class="card-body p-0">
     {{ $dataTable->table(['id'=>'audit-logs-table','class'=>'table table-hover align-middle w-100']) }}
-</x-ui.card>
+    </div>
+</div>
 
 @push('scripts')
 {{ $dataTable->scripts(attributes:['type'=>'module']) }}

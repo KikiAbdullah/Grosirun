@@ -15,17 +15,18 @@ class TransactionLogSeeder extends Seeder
     public function run(): void
     {
         $orders = Order::with(['campaign'])->get();
-        
+
         foreach ($orders as $order) {
-            // Create order creation log using relationship
+            // Create order creation log using morphMany relationship
+            // Schema: type, initiator_id, before_data, after_data, ip_address, user_agent
             $order->logs()->create([
-                'action' => 'order_created',
-                'user_id' => $order->user_id,
-                'before' => null,
-                'after' => [
-                    'order_id' => $order->uuid,
+                'type'         => 'order_created',
+                'initiator_id' => $order->user_id,
+                'before_data'  => null,
+                'after_data'   => [
+                    'order_id'    => $order->uuid,
                     'campaign_id' => $order->campaign_id,
-                    'quantity' => $order->quantity,
+                    'quantity'    => $order->quantity,
                     'total_price' => $order->total_price,
                 ],
                 'ip_address' => '127.0.0.1',
@@ -35,10 +36,10 @@ class TransactionLogSeeder extends Seeder
             // If order has proof
             if ($order->proof_path) {
                 $order->logs()->create([
-                    'action' => 'proof_uploaded',
-                    'user_id' => $order->user_id,
-                    'before' => null,
-                    'after' => [
+                    'type'         => 'proof_uploaded',
+                    'initiator_id' => $order->user_id,
+                    'before_data'  => null,
+                    'after_data'   => [
                         'proof_path' => $order->proof_path,
                     ],
                     'ip_address' => '127.0.0.1',
@@ -49,12 +50,12 @@ class TransactionLogSeeder extends Seeder
             // If order is paid
             if ($order->payment_status === 'paid') {
                 $order->logs()->create([
-                    'action' => 'payment_validated',
-                    'user_id' => $order->campaign->initiator_id,
-                    'before' => [
+                    'type'         => 'payment_validated',
+                    'initiator_id' => $order->campaign->initiator_id,
+                    'before_data'  => [
                         'payment_status' => $order->payment_method === 'cash' ? 'pending' : 'waiting_qris',
                     ],
-                    'after' => [
+                    'after_data'   => [
                         'payment_status' => 'paid',
                     ],
                     'ip_address' => '127.0.0.1',
@@ -65,12 +66,12 @@ class TransactionLogSeeder extends Seeder
             // If order is taken
             if ($order->is_taken) {
                 $order->logs()->create([
-                    'action' => 'order_taken',
-                    'user_id' => $order->taken_by_initiator_id,
-                    'before' => [
+                    'type'         => 'order_taken',
+                    'initiator_id' => $order->taken_by_initiator_id,
+                    'before_data'  => [
                         'is_taken' => false,
                     ],
-                    'after' => [
+                    'after_data'   => [
                         'is_taken' => true,
                         'taken_at' => $order->taken_at,
                     ],
@@ -82,11 +83,11 @@ class TransactionLogSeeder extends Seeder
 
         $this->command->info('✅ ' . TransactionLog::count() . ' transaction logs created successfully!');
         $this->command->table(
-            ['Action', 'Count'],
-            TransactionLog::selectRaw('action, count(*) as count')
-                ->groupBy('action')
+            ['Type', 'Count'],
+            TransactionLog::selectRaw('`type`, count(*) as count')
+                ->groupBy('type')
                 ->get()
-                ->map(fn($log) => [$log->action, $log->count])
+                ->map(fn($log) => [$log->type, $log->count])
                 ->toArray()
         );
     }

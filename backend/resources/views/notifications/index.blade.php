@@ -2,14 +2,18 @@
 @section('title','Notifikasi')
 @section('content')
 
-<x-ui.page-header title="Notifikasi" subtitle="Update transaksi &amp; campaign.">
-    <x-slot:actions>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-1">Notifikasi</h2>
+        <p class="text-muted mb-0">Update transaksi &amp; campaign.</p>
+    </div>
+    <div>
         <form method="POST" action="{{ route('notifications.read-all') }}">
             @csrf
-            <x-ui.button type="submit" variant="ghost" size="sm" icon="check-check">Tandai Semua</x-ui.button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm"><i data-lucide="check-check" class="me-1" style="width:14px;height:14px"></i>Tandai Semua</button>
         </form>
-    </x-slot:actions>
-</x-ui.page-header>
+    </div>
+</div>
 
 {{-- Filter --}}
 <form method="GET" class="d-flex flex-column flex-sm-row gap-2 mb-4">
@@ -46,7 +50,10 @@
         </div>
     </div>
     @empty
-    <x-ui.empty-state icon="bell-off" title="Tidak ada notifikasi" />
+    <div class="text-center py-5">
+        <i data-lucide="bell-off" style="width:3rem;height:3rem;color:var(--text-disabled);display:block;margin:0 auto 1rem"></i>
+        <h3 class="fw-semibold mb-0" style="font-size:1.1rem">Tidak ada notifikasi</h3>
+    </div>
     @endforelse
 
     {{ $notifications->links() }}

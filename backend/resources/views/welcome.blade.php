@@ -21,8 +21,10 @@
                 <span class="fw-bold" style="font-size:1.1rem;color:var(--text-primary)">Grosirun</span>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <x-ui.button variant="secondary" size="sm" href="{{ route('login') }}">Masuk</x-ui.button>
-                <x-ui.button variant="primary" size="sm" href="{{ route('register') }}" icon="user-plus">Daftar</x-ui.button>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ route('login') }}">Masuk</a>
+                <a class="btn btn-primary btn-sm" href="{{ route('register') }}">
+                    <i data-lucide="user-plus" style="width:1rem;height:1rem"></i> Daftar
+                </a>
             </div>
         </div>
     </header>
@@ -42,8 +44,12 @@
                 Patungan belanja sembako lebih murah untuk satu RT. Harga grosir, kualitas terbaik.
             </p>
             <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-3">
-                <x-ui.button variant="primary" href="{{ route('register') }}" icon="rocket" size="lg">Mulai Patungan</x-ui.button>
-                <x-ui.button variant="secondary" href="{{ route('login') }}" icon="log-in" size="lg">Sudah Punya Akun</x-ui.button>
+                <a class="btn btn-primary btn-lg" href="{{ route('register') }}">
+                    <i data-lucide="rocket" style="width:1rem;height:1rem"></i> Mulai Patungan
+                </a>
+                <a class="btn btn-outline-secondary btn-lg" href="{{ route('login') }}">
+                    <i data-lucide="log-in" style="width:1rem;height:1rem"></i> Sudah Punya Akun
+                </a>
             </div>
 
             {{-- Features --}}

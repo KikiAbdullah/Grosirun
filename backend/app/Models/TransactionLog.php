@@ -12,27 +12,28 @@ class TransactionLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        'action',
-        'user_id',
+        'type',
+        'initiator_id',
         'loggable_type',
         'loggable_id',
-        'before',
-        'after',
+        'notes',
+        'before_data',
+        'after_data',
         'ip_address',
         'user_agent',
     ];
 
     protected $casts = [
-        'before' => 'array',
-        'after' => 'array',
+        'before_data' => 'array',
+        'after_data'  => 'array',
     ];
 
     /**
      * Get the user that performed the action
      */
-    public function user(): BelongsTo
+    public function initiator(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'initiator_id');
     }
 
     /**
@@ -44,27 +45,27 @@ class TransactionLog extends Model
     }
 
     /**
-     * Scope to filter by user
+     * Scope to filter by initiator
      */
     public function scopeByUser($query, int $userId)
     {
-        return $query->where('user_id', $userId);
+        return $query->where('initiator_id', $userId);
     }
 
     /**
-     * Scope to filter by action
+     * Scope to filter by type
      */
-    public function scopeOfAction($query, string $action)
+    public function scopeOfType($query, string $type)
     {
-        return $query->where('action', $action);
+        return $query->where('type', $type);
     }
 
     /**
      * Scope to filter by loggable type
      */
-    public function scopeForType($query, string $type)
+    public function scopeForType($query, string $loggableType)
     {
-        return $query->where('loggable_type', $type);
+        return $query->where('loggable_type', $loggableType);
     }
 
     /**
@@ -76,18 +77,18 @@ class TransactionLog extends Model
     }
 
     /**
-     * Get description of the action
+     * Get description of the log type
      */
     public function getDescriptionAttribute(): string
     {
-        return match($this->action) {
-            'order_created' => 'Pesanan dibuat',
-            'proof_uploaded' => 'Bukti pembayaran diupload',
-            'payment_validated' => 'Pembayaran divalidasi',
-            'order_taken' => 'Barang diambil oleh pembeli',
-            'campaign_cancelled' => 'Campaign dibatalkan',
+        return match($this->type) {
+            'order_created'          => 'Pesanan dibuat',
+            'proof_uploaded'         => 'Bukti pembayaran diupload',
+            'payment_validated'      => 'Pembayaran divalidasi',
+            'order_taken'            => 'Barang diambil oleh pembeli',
+            'campaign_cancelled'     => 'Campaign dibatalkan',
             'distribution_completed' => 'Distribusi selesai',
-            default => $this->action,
+            default                  => $this->type,
         };
     }
 }

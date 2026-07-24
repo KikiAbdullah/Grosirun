@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Supplier;
+use Spatie\Permission\Models\Role;
 
 class SupplierSeeder extends Seeder
 {
@@ -13,6 +14,8 @@ class SupplierSeeder extends Seeder
      */
     public function run(): void
     {
+        $sellerRole = Role::findByName('seller', 'web');
+
         // Create suppliers using Eloquent
         $suppliers = [
             [
@@ -95,12 +98,12 @@ class SupplierSeeder extends Seeder
             );
 
             // Assign seller role
-            $user->assignRole('seller');
+            $user->assignRole($sellerRole);
 
             // Create supplier member using relationship
             $supplierModels[$seller['supplier_index']]->members()->create([
                 'user_id' => $user->id,
-                'role' => $seller['member_role'],
+                'member_role' => $seller['member_role'],
             ]);
         }
 

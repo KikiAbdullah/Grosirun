@@ -20,8 +20,7 @@ return new class extends Migration
             $table->string('user_agent')->nullable();
             $table->timestamps();
             
-            $table->index(['loggable_type', 'loggable_id']);
-            $table->index(['type', 'created_at']);
+            $table->index(['type', 'created_at']); // loggable index already created by morphs()
         });
     }
 
