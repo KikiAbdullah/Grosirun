@@ -1,3 +1,11 @@
 @props(['hoverable'=>false,'padding'=>'md'])
-@php $c = ($hoverable?'card-hover':'card').' '.match($padding){'sm'=>'p-3','lg'=>'p-6 sm:p-8','none'=>'',default=>'p-4 sm:p-6'}; @endphp
-<div {{ $attributes->merge(['class'=>$c]) }}>{{ $slot }}</div>
+@php
+    $cls = $hoverable ? 'gr-card gr-card-hover' : 'gr-card';
+    $pad = match($padding) {
+        'sm'   => 'p-2',
+        'lg'   => 'p-4 p-sm-5',
+        'none' => '',
+        default => 'p-3 p-sm-4',
+    };
+@endphp
+<div {{ $attributes->merge(['class' => trim("$cls $pad")]) }}>{{ $slot }}</div>

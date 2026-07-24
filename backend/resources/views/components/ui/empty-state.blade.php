@@ -1,10 +1,16 @@
 @props(['icon'=>'inbox','title'=>'Tidak ada data','description'=>'','actionLabel'=>null,'actionUrl'=>null])
-<div class="empty-state" {{ $attributes }}>
-    <div class="empty-state-icon"><i data-lucide="{{ $icon }}" class="w-8 h-8 text-text-disabled"></i></div>
-    <h3 class="empty-state-title">{{ $title }}</h3>
-    @if($description)<p class="empty-state-description">{{ $description }}</p>@endif
-    @if($actionLabel&&$actionUrl)
-        <a href="{{ $actionUrl }}" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i>{{ $actionLabel }}</a>
+<div class="gr-empty-state" {{ $attributes }}>
+    <div class="gr-empty-state-icon">
+        <i data-lucide="{{ $icon }}" style="width:2rem;height:2rem;color:var(--text-disabled)"></i>
+    </div>
+    <h3 class="fw-semibold mb-1" style="font-size:1.1rem;color:var(--text-primary)">{{ $title }}</h3>
+    @if($description)
+    <p class="mb-3" style="font-size:.875rem;color:var(--text-secondary);max-width:20rem">{{ $description }}</p>
+    @endif
+    @if($actionLabel && $actionUrl)
+    <a href="{{ $actionUrl }}" class="gr-btn gr-btn-primary">
+        <i data-lucide="plus" style="width:1rem;height:1rem"></i>{{ $actionLabel }}
+    </a>
     @endif
     {{ $slot ?? '' }}
 </div>

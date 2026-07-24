@@ -1,1 +1,36 @@
-@extends('layouts.app')@section('title','Verifikasi Supplier')@section('content')<x-ui-page-header title="Verifikasi Supplier" subtitle="Review dokumen usaha supplier." /><x-ui-card padding="none" class="p-4">{{ $dataTable->table(['id'=>'suppliers-table','class'=>'w-full']) }}</x-ui-card>@push('scripts'){{ $dataTable->scripts(attributes:['type'=>'module']) }}<script>document.addEventListener('click',function(e){if(e.target.closest('.reject-btn')){const btn=e.target.closest('.reject-btn');Swal.fire({title:'Tolak Supplier',input:'textarea',inputLabel:'Alasan (wajib)',showCancelButton:true,confirmButtonColor:'#DC2626',confirmButtonText:'Tolak',cancelButtonText:'Batal'}).then(r=>{if(r.isConfirmed&&r.value){const form=btn.closest('td').querySelector('form');form.querySelector('[name=reason]').value=r.value;form.submit();}});}});</script>@endpush@endsection
+@extends('layouts.app')
+@section('title','Verifikasi Supplier')
+@section('content')
+
+<x-ui.page-header title="Verifikasi Supplier" subtitle="Review dokumen usaha supplier." />
+
+<x-ui.card padding="none" class="p-3">
+    {{ $dataTable->table(['id'=>'suppliers-table','class'=>'table table-hover align-middle w-100']) }}
+</x-ui.card>
+
+@push('scripts')
+{{ $dataTable->scripts(attributes:['type'=>'module']) }}
+<script>
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.reject-btn')) {
+        const btn = e.target.closest('.reject-btn');
+        Swal.fire({
+            title: 'Tolak Supplier',
+            input: 'textarea',
+            inputLabel: 'Alasan (wajib)',
+            showCancelButton: true,
+            confirmButtonColor: '#DC2626',
+            confirmButtonText: 'Tolak',
+            cancelButtonText: 'Batal'
+        }).then(r => {
+            if (r.isConfirmed && r.value) {
+                const form = btn.closest('td').querySelector('form');
+                form.querySelector('[name=reason]').value = r.value;
+                form.submit();
+            }
+        });
+    }
+});
+</script>
+@endpush
+@endsection

@@ -1,1 +1,71 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Daftar — Grosirun</title>@vite(['resources/css/app.css','resources/js/app.js'])</head><body class="bg-surface-50 min-h-screen flex items-center justify-center p-4"><div class="w-full max-w-md"><div class="text-center mb-8"><div class="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4"><i data-lucide="shopping-bag" class="w-9 h-9 text-white"></i></div><h1 class="text-headline-lg">Buat Akun Baru</h1></div><x-ui-card padding="lg"><form method="POST" action="{{ route('register.submit') }}">@csrf<x-ui-form-group label="Nama Lengkap" name="name" required><input type="text" name="name" class="form-input @error('name') form-input-error @enderror" placeholder="Siti Rahayu" required value="{{ old('name') }}"></x-ui-form-group><x-ui-form-group label="Nomor WhatsApp" name="phone_number" required><div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary text-sm">+62</span><input type="tel" name="phone_number" class="form-input pl-12 @error('phone_number') form-input-error @enderror" placeholder="81234567890" required></div></x-ui-form-group><x-ui-form-group label="Cluster / RT" name="cluster_code" hint="Kode cluster tempat tinggal"><input type="text" name="cluster_code" class="form-input" value="{{ old('cluster_code','PGH-RT03') }}"></x-ui-form-group><div class="mb-6"><label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" name="consent" required class="mt-1 w-4 h-4 rounded text-primary-500"><span class="text-body-sm text-text-secondary">Saya setuju <a href="#" class="text-primary-500 font-semibold">Syarat Layanan</a> dan <a href="#" class="text-primary-500 font-semibold">Kebijakan Privasi</a>.</span></label></div><x-ui-button type="submit" variant="primary" icon="user-plus" class="w-full">Daftar Sekarang</x-ui-button></form><p class="text-center text-body-sm text-text-secondary mt-6">Sudah punya akun? <a href="{{ route('login') }}" class="text-primary-500 font-semibold">Masuk</a></p></x-ui-card></div></body></html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Daftar — Grosirun</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+</head>
+<body style="background:var(--surface-50);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem">
+
+<div style="width:100%;max-width:26rem">
+    {{-- Logo --}}
+    <div class="text-center mb-4">
+        <div class="d-flex align-items-center justify-content-center rounded-3 text-white mx-auto mb-3"
+             style="width:4rem;height:4rem;background:var(--primary-500)">
+            <i data-lucide="shopping-bag" style="width:2.25rem;height:2.25rem"></i>
+        </div>
+        <h1 class="fw-black mb-0" style="font-size:1.75rem;color:var(--text-primary)">Buat Akun Baru</h1>
+    </div>
+
+    {{-- Card --}}
+    <div class="gr-card p-4">
+        <form method="POST" action="{{ route('register.submit') }}">
+            @csrf
+            <x-ui.form-group label="Nama Lengkap" name="name" required>
+                <input type="text" name="name"
+                       class="gr-form-input @error('name') gr-form-input-error @enderror"
+                       placeholder="Siti Rahayu" required value="{{ old('name') }}">
+            </x-ui.form-group>
+
+            <x-ui.form-group label="Nomor WhatsApp" name="phone_number" required>
+                <div class="position-relative">
+                    <span class="position-absolute" style="left:1rem;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:.875rem">+62</span>
+                    <input type="tel" name="phone_number"
+                           class="gr-form-input @error('phone_number') gr-form-input-error @enderror"
+                           style="padding-left:3rem"
+                           placeholder="81234567890" required>
+                </div>
+            </x-ui.form-group>
+
+            <x-ui.form-group label="Cluster / RT" name="cluster_code" hint="Kode cluster tempat tinggal">
+                <input type="text" name="cluster_code" class="gr-form-input"
+                       value="{{ old('cluster_code','PGH-RT03') }}">
+            </x-ui.form-group>
+
+            <div class="mb-4">
+                <label class="d-flex align-items-start gap-2" style="cursor:pointer">
+                    <input type="checkbox" name="consent" required class="mt-1 form-check-input flex-shrink-0"
+                           style="accent-color:var(--primary-500)">
+                    <span style="font-size:.875rem;color:var(--text-secondary)">
+                        Saya setuju <a href="#" style="color:var(--primary-600);font-weight:600">Syarat Layanan</a>
+                        dan <a href="#" style="color:var(--primary-600);font-weight:600">Kebijakan Privasi</a>.
+                    </span>
+                </label>
+            </div>
+
+            <x-ui.button type="submit" variant="primary" icon="user-plus" class="w-100">Daftar Sekarang</x-ui.button>
+        </form>
+
+        <p class="text-center mt-3 mb-0" style="font-size:.875rem;color:var(--text-secondary)">
+            Sudah punya akun? <a href="{{ route('login') }}" style="color:var(--primary-600);font-weight:600">Masuk</a>
+        </p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons())</script>
+</body>
+</html>

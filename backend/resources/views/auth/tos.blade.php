@@ -1,1 +1,59 @@
-@extends('layouts.app')@section('title','Syarat Layanan')@section('content')<div class="max-w-2xl mx-auto" x-data="{scrolled:false}" @scroll.window="scrolled=(window.scrollY>200)"><x-ui-card padding="lg"><div class="flex items-center gap-3 mb-6"><div class="w-12 h-12 rounded-xl bg-warning-50 flex items-center justify-center"><i data-lucide="file-text" class="w-6 h-6 text-warning-600"></i></div><div><h1 class="text-headline-md">Syarat Layanan Non-Escrow</h1><p class="text-body-md text-text-secondary">Wajib dibaca</p></div></div><div class="max-h-80 overflow-y-auto border border-surface-200 rounded-xl p-4 mb-6 bg-surface-50 text-text-secondary text-body-md space-y-3"><h3 class="text-title-md text-text-primary font-bold">1. Model Non-Escrow</h3><p>Grosirun <strong>bukan marketplace atau bank</strong>. Dana tidak ditahan oleh aplikasi.</p><h3 class="text-title-md text-text-primary font-bold">2. Alur Pembayaran</h3><p>Buyer membayar <strong>langsung ke Initiator</strong> (tunai/QRIS). Initiator transfer ke Supplier.</p><h3 class="text-title-md text-text-primary font-bold">3. Penyelesaian Sengketa</h3><ul class="list-disc pl-5 space-y-1"><li>Buyer ↔ Initiator: <strong>2×24 jam</strong></li><li>Eskalasi RT/RW: <strong>3×24 jam</strong></li><li>Admin mediasi berdasarkan bukti</li></ul><h3 class="text-title-md text-text-primary font-bold">4. Privasi Data</h3><p>Data Buyer <strong>tidak dapat dilihat Seller</strong>. Audit log append-only.</p></div><div x-show="!scrolled" x-transition class="text-center mb-4"><p class="text-body-sm text-text-disabled animate-bounce"><i data-lucide="arrow-down" class="w-4 h-4 inline"></i> Scroll untuk membaca semua</p></div><form method="POST" action="{{ route('tos.accept') }}">@csrf<label class="flex items-start gap-3 cursor-pointer mb-6"><input type="checkbox" name="agree" :disabled="!scrolled" required class="mt-1 w-5 h-5 rounded text-primary-500 disabled:opacity-50"><span class="text-body-md" :class="{'opacity-50':!scrolled}">Saya <strong>mengerti dan setuju</strong>.</span></label><x-ui-button type="submit" variant="primary" icon="check" class="w-full">Setuju & Lanjutkan</x-ui-button></form></x-ui-card></div>@endsection
+@extends('layouts.app')
+@section('title','Syarat Layanan')
+@section('content')
+
+<div class="mx-auto" style="max-width:40rem" x-data="{scrolled:false}" @scroll.window="scrolled=(window.scrollY>200)">
+    <x-ui.card padding="lg">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
+                 style="width:3rem;height:3rem;background:var(--warning-50)">
+                <i data-lucide="file-text" style="width:1.5rem;height:1.5rem;color:var(--warning-600)"></i>
+            </div>
+            <div>
+                <h1 class="fw-bold mb-0" style="font-size:1.25rem;color:var(--text-primary)">Syarat Layanan Non-Escrow</h1>
+                <p class="mb-0" style="font-size:.875rem;color:var(--text-secondary)">Wajib dibaca</p>
+            </div>
+        </div>
+
+        <div class="overflow-y-auto border rounded-3 p-3 mb-4"
+             style="max-height:20rem;background:var(--surface-50);color:var(--text-secondary);font-size:.875rem">
+            <h3 class="fw-bold mb-2" style="font-size:.95rem;color:var(--text-primary)">1. Model Non-Escrow</h3>
+            <p class="mb-3">Grosirun <strong>bukan marketplace atau bank</strong>. Dana tidak ditahan oleh aplikasi.</p>
+
+            <h3 class="fw-bold mb-2" style="font-size:.95rem;color:var(--text-primary)">2. Alur Pembayaran</h3>
+            <p class="mb-3">Buyer membayar <strong>langsung ke Initiator</strong> (tunai/QRIS). Initiator transfer ke Supplier.</p>
+
+            <h3 class="fw-bold mb-2" style="font-size:.95rem;color:var(--text-primary)">3. Penyelesaian Sengketa</h3>
+            <ul class="ps-3 mb-3" style="line-height:1.8">
+                <li>Buyer ↔ Initiator: <strong>2×24 jam</strong></li>
+                <li>Eskalasi RT/RW: <strong>3×24 jam</strong></li>
+                <li>Admin mediasi berdasarkan bukti</li>
+            </ul>
+
+            <h3 class="fw-bold mb-2" style="font-size:.95rem;color:var(--text-primary)">4. Privasi Data</h3>
+            <p class="mb-0">Data Buyer <strong>tidak dapat dilihat Seller</strong>. Audit log append-only.</p>
+        </div>
+
+        <div x-show="!scrolled" x-transition class="text-center mb-3">
+            <p style="font-size:.75rem;color:var(--text-disabled)">
+                <i data-lucide="arrow-down" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"></i>
+                Scroll untuk membaca semua
+            </p>
+        </div>
+
+        <form method="POST" action="{{ route('tos.accept') }}">
+            @csrf
+            <label class="d-flex align-items-start gap-2 mb-4" style="cursor:pointer">
+                <input type="checkbox" name="agree" :disabled="!scrolled" required
+                       class="mt-1 form-check-input flex-shrink-0"
+                       style="accent-color:var(--primary-500)">
+                <span style="font-size:.875rem" :style="!scrolled ? 'opacity:.5' : ''">
+                    Saya <strong>mengerti dan setuju</strong>.
+                </span>
+            </label>
+            <x-ui.button type="submit" variant="primary" icon="check" class="w-100">Setuju &amp; Lanjutkan</x-ui.button>
+        </form>
+    </x-ui.card>
+</div>
+
+@endsection

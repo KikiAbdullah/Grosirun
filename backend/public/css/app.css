@@ -1,0 +1,330 @@
+/* ══════════════════════════════════════════════════════
+   Grosirun — Custom CSS (Bootstrap 5 override + custom)
+   No build step. Load via <link href="/css/app.css">
+   ══════════════════════════════════════════════════════ */
+
+/* ─── Google Fonts ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ─── CSS Custom Properties (Color Palette) ─── */
+:root {
+    /* Primary — hijau segar */
+    --primary-50:  #f0fdf4;
+    --primary-100: #dcfce7;
+    --primary-200: #bbf7d0;
+    --primary-500: #22c55e;
+    --primary-600: #16a34a;
+    --primary-700: #15803d;
+
+    /* Warning — amber */
+    --warning-50:  #fffbeb;
+    --warning-100: #fef3c7;
+    --warning-500: #f59e0b;
+    --warning-600: #d97706;
+
+    /* Danger — merah */
+    --danger-50:   #fef2f2;
+    --danger-100:  #fee2e2;
+    --danger-500:  #ef4444;
+    --danger-600:  #dc2626;
+    --danger-700:  #b91c1c;
+
+    /* Info — biru */
+    --info-50:     #eff6ff;
+    --info-100:    #dbeafe;
+    --info-500:    #3b82f6;
+    --info-600:    #2563eb;
+
+    /* Surface / Neutral */
+    --surface-50:  #f8fafc;
+    --surface-100: #f1f5f9;
+    --surface-200: #e2e8f0;
+    --surface-300: #cbd5e1;
+
+    /* Text */
+    --text-primary:   #0f172a;
+    --text-secondary: #64748b;
+    --text-disabled:  #94a3b8;
+
+    /* Misc */
+    --border-radius-card: 1rem;
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / .08), 0 1px 2px -1px rgb(0 0 0 / .08);
+    --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / .12);
+
+    /* Bootstrap overrides */
+    --bs-primary:   #22c55e;
+    --bs-success:   #22c55e;
+    --bs-danger:    #dc2626;
+    --bs-warning:   #f59e0b;
+    --bs-info:      #3b82f6;
+    --bs-font-sans-serif: 'Inter', system-ui, -apple-system, sans-serif;
+    --bs-body-font-family: var(--bs-font-sans-serif);
+    --bs-body-bg: var(--surface-50);
+    --bs-body-color: var(--text-primary);
+    --bs-border-color: var(--surface-200);
+    --bs-border-radius: 0.75rem;
+    --bs-border-radius-sm: 0.5rem;
+    --bs-border-radius-lg: 1rem;
+}
+
+/* ─── Base ─── */
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body { background-color: var(--surface-50); font-family: var(--bs-body-font-family); color: var(--text-primary); }
+[x-cloak] { display: none !important; }
+*:focus-visible { outline: 2px solid var(--primary-500); outline-offset: 2px; border-radius: 4px; }
+
+/* ─── Bootstrap Primary Color Override ─── */
+.btn-primary, .btn-outline-primary:hover, .bg-primary { background-color: var(--primary-500) !important; border-color: var(--primary-500) !important; }
+.btn-primary:hover { background-color: var(--primary-600) !important; border-color: var(--primary-600) !important; }
+.btn-primary:active { background-color: var(--primary-700) !important; }
+.btn-outline-primary { color: var(--primary-600) !important; border-color: var(--primary-500) !important; }
+.btn-outline-primary:hover { color: #fff !important; }
+.text-primary { color: var(--primary-600) !important; }
+.border-primary { border-color: var(--primary-500) !important; }
+a { color: var(--primary-600); }
+a:hover { color: var(--primary-700); }
+
+/* ─── Scrollbar Hide ─── */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ══════════════════════════════════════
+   GROSIRUN CUSTOM COMPONENTS
+   ══════════════════════════════════════ */
+
+/* ─── Card ─── */
+.gr-card {
+    background: #fff;
+    border: 1px solid var(--surface-200);
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-card);
+}
+.gr-card-hover {
+    transition: box-shadow .2s, border-color .2s;
+}
+.gr-card-hover:hover {
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--primary-200);
+}
+
+/* ─── Buttons ─── */
+.gr-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    font-weight: 600;
+    border-radius: .75rem;
+    transition: all .15s;
+    min-height: 2.5rem;
+    padding: .5rem 1.25rem;
+    font-size: .875rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1;
+}
+.gr-btn:disabled, .gr-btn.disabled { opacity: .5; pointer-events: none; }
+.gr-btn-primary   { background: var(--primary-500); color: #fff; border-color: var(--primary-500); }
+.gr-btn-primary:hover { background: var(--primary-600); border-color: var(--primary-600); color: #fff; }
+.gr-btn-secondary { background: var(--surface-100); color: var(--text-primary); border-color: var(--surface-200); }
+.gr-btn-secondary:hover { background: var(--surface-200); color: var(--text-primary); }
+.gr-btn-danger    { background: var(--danger-600); color: #fff; border-color: var(--danger-600); }
+.gr-btn-danger:hover { background: var(--danger-700); color: #fff; }
+.gr-btn-ghost     { background: transparent; color: var(--text-secondary); border-color: transparent; }
+.gr-btn-ghost:hover { background: var(--surface-100); color: var(--text-primary); }
+.gr-btn-sm        { min-height: 2rem; padding: .375rem .75rem; font-size: .75rem; border-radius: .5rem; }
+.gr-btn-lg        { min-height: 3.5rem; padding: .75rem 2rem; font-size: 1rem; }
+.gr-btn-icon      { display: inline-flex; align-items: center; justify-content: center; border-radius: .75rem; min-height: 2.5rem; min-width: 2.5rem; padding: 0; background: transparent; border: none; color: var(--text-secondary); transition: all .15s; cursor: pointer; }
+.gr-btn-icon:hover { background: var(--surface-100); color: var(--text-primary); }
+
+/* ─── Badges ─── */
+.gr-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .2rem .625rem;
+    border-radius: 9999px;
+    font-size: .75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.gr-badge-success { background: var(--primary-50); color: var(--primary-600); }
+.gr-badge-warning { background: var(--warning-50); color: var(--warning-600); }
+.gr-badge-danger  { background: var(--danger-50); color: var(--danger-600); }
+.gr-badge-info    { background: var(--info-50); color: var(--info-600); }
+.gr-badge-neutral { background: var(--surface-100); color: var(--text-secondary); }
+
+/* ─── Forms ─── */
+.gr-form-input {
+    display: block;
+    width: 100%;
+    border-radius: .75rem;
+    border: 1px solid var(--surface-200);
+    background: var(--surface-50);
+    padding: .625rem 1rem;
+    font-size: .875rem;
+    color: var(--text-primary);
+    transition: border-color .15s, box-shadow .15s, background .15s;
+    font-family: inherit;
+}
+.gr-form-input::placeholder { color: var(--text-disabled); }
+.gr-form-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgb(34 197 94 / .15);
+    background: #fff;
+}
+.gr-form-input-error { border-color: var(--danger-500) !important; }
+.gr-form-input-error:focus { box-shadow: 0 0 0 3px rgb(220 38 38 / .15) !important; }
+.gr-form-label { display: block; font-size: .875rem; font-weight: 600; color: var(--text-primary); margin-bottom: .375rem; }
+.gr-form-hint  { font-size: .75rem; color: var(--text-secondary); margin-top: .25rem; }
+.gr-form-error { font-size: .75rem; color: var(--danger-600); margin-top: .25rem; }
+.gr-form-group { margin-bottom: 1rem; }
+
+/* ─── Sidebar ─── */
+.gr-sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 16rem;
+    background: #fff;
+    border-right: 1px solid var(--surface-200);
+    display: flex;
+    flex-direction: column;
+    z-index: 1040;
+    transform: translateX(0);
+    transition: transform .3s ease;
+}
+.gr-sidebar.collapsed { transform: translateX(-16rem); }
+.gr-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .625rem .75rem;
+    border-radius: .75rem;
+    color: var(--text-secondary);
+    font-size: .875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all .15s;
+}
+.gr-sidebar-link:hover { background: var(--surface-100); color: var(--text-primary); }
+.gr-sidebar-link.active { background: var(--primary-50); color: var(--primary-600); }
+.gr-sidebar-link.active:hover { background: var(--primary-100); }
+.gr-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / .4);
+    z-index: 1035;
+}
+
+/* ─── Main Content (offset for sidebar) ─── */
+.gr-main-wrapper { 
+    margin-left: 16rem; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column;
+    transition: margin-left .3s ease;
+}
+.gr-main-wrapper.sidebar-collapsed { margin-left: 0; }
+
+/* ─── Navbar ─── */
+.gr-navbar {
+    height: 4rem;
+    background: #fff;
+    border-bottom: 1px solid var(--surface-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+/* ─── Metric Card ─── */
+.metric-value { font-size: 1.875rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.metric-label { font-size: .875rem; color: var(--text-secondary); margin-top: .5rem; }
+
+/* ─── Progress Bar ─── */
+.gr-progress { height: 1.5rem; border-radius: 9999px; background: var(--surface-200); overflow: hidden; }
+.gr-progress-fill { height: 100%; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: #fff; transition: width .5s; }
+.gr-progress-green  { background: var(--primary-500); }
+.gr-progress-yellow { background: var(--warning-500); }
+
+/* ─── Offline Banner ─── */
+.gr-offline-banner {
+    background: #1e293b;
+    color: #f1f5f9;
+    font-size: .875rem;
+    font-weight: 500;
+    padding: .5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
+
+/* ─── Skeleton ─── */
+@keyframes skeleton-shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.gr-skeleton {
+    background: linear-gradient(90deg, var(--surface-200) 25%, var(--surface-100) 50%, var(--surface-200) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: .5rem;
+}
+
+/* ─── Modal (Alpine-driven) ─── */
+.gr-modal-backdrop { position: fixed; inset: 0; z-index: 1055; background: rgb(0 0 0/.4); backdrop-filter: blur(2px); }
+.gr-modal-panel    { position: fixed; inset: 0; z-index: 1060; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.gr-modal-content  { background: #fff; border-radius: 1rem; box-shadow: 0 20px 60px rgb(0 0 0/.2); max-width: 32rem; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideUp .2s ease; }
+@keyframes slideUp { from{opacity:0;transform:translateY(1rem)} to{opacity:1;transform:translateY(0)} }
+
+/* ─── Empty State ─── */
+.gr-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 1rem; text-align: center; }
+.gr-empty-state-icon { width: 4rem; height: 4rem; border-radius: 9999px; background: var(--surface-100); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+
+/* ─── Pagination ─── */
+.gr-pagination { display: flex; align-items: center; justify-content: center; gap: .25rem; margin-top: 1.5rem; }
+.gr-page-link { min-height: 2.25rem; min-width: 2.25rem; padding: .375rem .75rem; border-radius: .5rem; font-size: .875rem; font-weight: 500; color: var(--text-secondary); background: transparent; border: none; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transition: all .15s; }
+.gr-page-link:hover { background: var(--surface-100); color: var(--text-primary); }
+.gr-page-link.active { background: var(--primary-500); color: #fff; }
+
+/* ─── Upload Area ─── */
+.gr-upload-area {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 2rem; border: 2px dashed var(--surface-200); border-radius: .75rem;
+    cursor: pointer; transition: border-color .15s; background: var(--surface-50);
+}
+.gr-upload-area:hover { border-color: var(--primary-300, #86efac); }
+
+/* ─── DataTables Bootstrap5 custom tweaks ─── */
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: .75rem !important;
+    border-color: var(--surface-200) !important;
+    padding: .375rem .75rem !important;
+    font-size: .875rem !important;
+}
+.dataTables_wrapper .dataTables_filter input:focus { box-shadow: 0 0 0 3px rgb(34 197 94 / .15) !important; border-color: var(--primary-500) !important; outline: none; }
+table.dataTable thead th { background: var(--surface-50); font-size: .75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--surface-200) !important; }
+table.dataTable tbody tr:hover td { background: var(--surface-50); }
+
+/* ─── Notyf override for green primary ─── */
+.notyf__toast--success { background: var(--primary-500) !important; }
+
+/* ─── FilePond overrides ─── */
+.filepond--panel-root { border-radius: .75rem !important; border: 2px dashed var(--surface-200) !important; background: var(--surface-50) !important; }
+.filepond--drop-label { color: var(--text-secondary) !important; }
+.filepond--label-action { color: var(--primary-600) !important; }
+
+/* ─── Tom Select overrides ─── */
+.ts-control { border-radius: .75rem !important; border-color: var(--surface-200) !important; background: var(--surface-50) !important; }
+.ts-control:focus-within { border-color: var(--primary-500) !important; box-shadow: 0 0 0 3px rgb(34 197 94 / .15) !important; }
+
+/* ─── Responsive: hide sidebar on mobile ─── */
+@media (max-width: 991.98px) {
+    .gr-sidebar { transform: translateX(-16rem); }
+    .gr-sidebar.mobile-open { transform: translateX(0); }
+    .gr-main-wrapper { margin-left: 0 !important; }
+}

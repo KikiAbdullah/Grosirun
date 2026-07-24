@@ -1,4 +1,54 @@
-@extends('layouts.app')@section('title','Notifikasi')@section('content')<x-ui-page-header title="Notifikasi" subtitle="Update transaksi & campaign."><x-slot:actions><form method="POST" action="{{ route('notifications.read-all') }}">@csrf<x-ui-button type="submit" variant="ghost" size="sm" icon="check-check">Tandai Semua</x-ui-button></form></x-slot:actions></x-ui-page-header>
-<form method="GET" class="flex flex-col sm:flex-row gap-3 mb-6"><div class="relative flex-1"><i data-lucide="search" class="w-4 h-4 text-text-disabled absolute left-3 top-1/2 -translate-y-1/2"></i><input type="search" name="search" value="{{ $search??'' }}" placeholder="Cari notifikasi..." class="form-input pl-10 py-2.5 text-sm"></div><select name="read" onchange="this.form.submit()" class="form-select py-2.5 text-sm sm:w-40"><option value="">Semua</option><option value="0" {{ ($read??'')==='0'?'selected':'' }}>Belum Dibaca</option><option value="1" {{ ($read??'')==='1'?'selected':'' }}>Sudah Dibaca</option></select></form>
-<p class="text-body-sm text-text-secondary mb-4">{{ $notifications->total() }} notifikasi</p>
-<div class="space-y-3">@forelse($notifications as $n)<x-ui-card class="{{ !$n->read_at?'border-l-4 border-l-primary-500':'' }}" padding="sm"><div class="flex items-start gap-4"><div class="w-10 h-10 rounded-full {{ !$n->read_at?'bg-primary-50':'bg-surface-100' }} flex items-center justify-center flex-shrink-0"><i data-lucide="{{ !$n->read_at?'bell':'bell-off' }}" class="w-5 h-5 {{ !$n->read_at?'text-primary-500':'text-text-disabled' }}"></i></div><div class="flex-1"><h3 class="text-body-md font-semibold">{{ $n->data['title'] ?? 'Notifikasi' }}</h3><p class="text-body-sm text-text-secondary">{{ $n->data['body'] ?? '' }}</p><p class="text-body-sm text-text-disabled mt-1">{{ $n->created_at->diffForHumans() }}</p></div></div></x-ui-card>@empty<x-ui-empty-state icon="bell-off" title="Tidak ada notifikasi" />@endforelse{{ $notifications->links() }}</div>@endsection
+@extends('layouts.app')
+@section('title','Notifikasi')
+@section('content')
+
+<x-ui.page-header title="Notifikasi" subtitle="Update transaksi &amp; campaign.">
+    <x-slot:actions>
+        <form method="POST" action="{{ route('notifications.read-all') }}">
+            @csrf
+            <x-ui.button type="submit" variant="ghost" size="sm" icon="check-check">Tandai Semua</x-ui.button>
+        </form>
+    </x-slot:actions>
+</x-ui.page-header>
+
+{{-- Filter --}}
+<form method="GET" class="d-flex flex-column flex-sm-row gap-2 mb-4">
+    <div class="position-relative flex-grow-1">
+        <i data-lucide="search" style="width:1rem;height:1rem;color:var(--text-disabled);position:absolute;left:.75rem;top:50%;transform:translateY(-50%)"></i>
+        <input type="search" name="search" value="{{ $search ?? '' }}"
+               placeholder="Cari notifikasi..."
+               class="gr-form-input" style="padding-left:2.25rem">
+    </div>
+    <select name="read" onchange="this.form.submit()" class="gr-form-input" style="max-width:10rem">
+        <option value="">Semua</option>
+        <option value="0" {{ ($read ?? '') === '0' ? 'selected' : '' }}>Belum Dibaca</option>
+        <option value="1" {{ ($read ?? '') === '1' ? 'selected' : '' }}>Sudah Dibaca</option>
+    </select>
+</form>
+
+<p class="mb-3" style="font-size:.875rem;color:var(--text-secondary)">{{ $notifications->total() }} notifikasi</p>
+
+<div class="d-flex flex-column gap-3">
+    @forelse($notifications as $n)
+    <div class="gr-card p-3 {{ !$n->read_at ? '' : '' }}"
+         style="{{ !$n->read_at ? 'border-left:4px solid var(--primary-500)' : '' }}">
+        <div class="d-flex align-items-start gap-3">
+            <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                 style="width:2.5rem;height:2.5rem;background:{{ !$n->read_at ? 'var(--primary-50)' : 'var(--surface-100)' }}">
+                <i data-lucide="{{ !$n->read_at ? 'bell' : 'bell-off' }}"
+                   style="width:1.1rem;height:1.1rem;color:{{ !$n->read_at ? 'var(--primary-500)' : 'var(--text-disabled)' }}"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h3 class="fw-semibold mb-1" style="font-size:.875rem">{{ $n->data['title'] ?? 'Notifikasi' }}</h3>
+                <p class="mb-1" style="font-size:.8rem;color:var(--text-secondary)">{{ $n->data['body'] ?? '' }}</p>
+                <p class="mb-0" style="font-size:.75rem;color:var(--text-disabled)">{{ $n->created_at->diffForHumans() }}</p>
+            </div>
+        </div>
+    </div>
+    @empty
+    <x-ui.empty-state icon="bell-off" title="Tidak ada notifikasi" />
+    @endforelse
+
+    {{ $notifications->links() }}
+</div>
+@endsection

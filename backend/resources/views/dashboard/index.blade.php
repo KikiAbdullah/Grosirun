@@ -1,1 +1,133 @@
-@extends('layouts.app')@section('title','Dashboard')@section('content')<x-ui-page-header title="Dashboard" subtitle="Ringkasan aktivitas dan metrik utama." /><div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"><x-ui-card class="metric-card"><div class="flex items-center justify-between"><div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center"><i data-lucide="shopping-cart" class="w-5 h-5 text-primary-500"></i></div><span class="badge badge-success"><i data-lucide="trending-up" class="w-3 h-3"></i>Aktif</span></div><div class="mt-3"><p class="metric-value">3</p><p class="metric-label">Campaign Aktif</p></div></x-ui-card><x-ui-card class="metric-card"><div class="w-10 h-10 rounded-xl bg-info-50 flex items-center justify-center"><i data-lucide="receipt" class="w-5 h-5 text-info-500"></i></div><div class="mt-3"><p class="metric-value">24</p><p class="metric-label">Total Pesanan</p></div></x-ui-card><x-ui-card class="metric-card"><div class="w-10 h-10 rounded-xl bg-warning-50 flex items-center justify-center"><i data-lucide="clock" class="w-5 h-5 text-warning-500"></i></div><div class="mt-3"><p class="metric-value">5</p><p class="metric-label">Menunggu Validasi</p></div></x-ui-card><x-ui-card class="metric-card"><div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center"><i data-lucide="users" class="w-5 h-5 text-primary-500"></i></div><div class="mt-3"><p class="metric-value">18</p><p class="metric-label">Partisipan</p></div></x-ui-card></div><div class="grid lg:grid-cols-3 gap-6"><div class="lg:col-span-2 space-y-6"><x-ui-card><div class="flex items-center justify-between mb-4"><h2 class="text-title-lg">Campaign Berjalan</h2><x-ui-button variant="ghost" size="sm" href="{{ route('campaigns.index') }}" icon="arrow-right">Lihat Semua</x-ui-button></div><div class="space-y-4">@foreach([['title'=>'Beras Premium Pulen','progress'=>64,'current'=>'320','target'=>'500 kg','deadline'=>now()->addDays(3)],['title'=>'Minyak Goreng 2L','progress'=>73,'current'=>'145','target'=>'200 pcs','deadline'=>now()->addDays(5)],['title'=>'Telur Ayam Negeri','progress'=>78,'current'=>'780','target'=>'1000 butir','deadline'=>now()->addDays(2)]] as $c)<a href="#" class="block p-4 rounded-xl border border-surface-200 hover:border-primary-200 hover:shadow-card-hover transition-all"><div class="flex items-start justify-between mb-3"><h3 class="text-title-md">{{ $c['title'] }}</h3><span class="badge badge-info">PGH-RT03</span></div><div class="progress-bar mb-2"><div class="{{ $c['progress']>=70?'progress-bar-fill-yellow':'progress-bar-fill-green' }}" style="width:{{ $c['progress'] }}%">{{ $c['progress'] }}%</div></div><div class="flex items-center justify-between text-body-sm"><span class="text-text-secondary">{{ $c['current'] }}/{{ $c['target'] }}</span><span class="font-semibold" x-data="countdown('{{ $c['deadline']->toISOString() }}')" x-text="remaining" :class="{'text-danger-600':isUrgent}"></span></div></a>@endforeach</div></x-ui-card></div><div class="space-y-6"><x-ui-card><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 bg-primary-500 rounded-full flex items-center justify-center"><span class="text-xl font-bold text-white">BS</span></div><div><h3 class="text-title-md">Bu Siti Rahayu</h3><p class="text-body-sm text-text-secondary">PGH-RT03</p></div></div><div class="flex gap-2"><span class="badge badge-info">Buyer</span><span class="badge badge-success"><i data-lucide="check-circle" class="w-3 h-3"></i>Consent</span></div></x-ui-card><x-ui-card><h3 class="text-title-lg mb-4">Aksi Cepat</h3><div class="space-y-2"><x-ui-button variant="primary" href="{{ route('campaigns.index') }}" icon="shopping-cart" class="w-full">Lihat Campaign</x-ui-button><x-ui-button variant="secondary" href="{{ route('orders.index') }}" icon="receipt" class="w-full">Pesanan Saya</x-ui-button></div></x-ui-card></div></div>@endsection
+@extends('layouts.app')
+@section('title','Dashboard')
+@section('content')
+
+<x-ui.page-header title="Dashboard" subtitle="Ringkasan aktivitas dan metrik utama." />
+
+{{-- Metric Cards --}}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="gr-card p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center justify-content-center rounded-3"
+                     style="width:2.5rem;height:2.5rem;background:var(--primary-50)">
+                    <i data-lucide="shopping-cart" style="width:1.25rem;height:1.25rem;color:var(--primary-500)"></i>
+                </div>
+                <span class="gr-badge gr-badge-success">
+                    <i data-lucide="trending-up" style="width:.75rem;height:.75rem"></i>Aktif
+                </span>
+            </div>
+            <p class="metric-value">3</p>
+            <p class="metric-label mb-0">Campaign Aktif</p>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="gr-card p-3">
+            <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
+                 style="width:2.5rem;height:2.5rem;background:var(--info-50)">
+                <i data-lucide="receipt" style="width:1.25rem;height:1.25rem;color:var(--info-500)"></i>
+            </div>
+            <p class="metric-value">24</p>
+            <p class="metric-label mb-0">Total Pesanan</p>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="gr-card p-3">
+            <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
+                 style="width:2.5rem;height:2.5rem;background:var(--warning-50)">
+                <i data-lucide="clock" style="width:1.25rem;height:1.25rem;color:var(--warning-500)"></i>
+            </div>
+            <p class="metric-value">5</p>
+            <p class="metric-label mb-0">Menunggu Validasi</p>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="gr-card p-3">
+            <div class="d-flex align-items-center justify-content-center rounded-3 mb-3"
+                 style="width:2.5rem;height:2.5rem;background:var(--primary-50)">
+                <i data-lucide="users" style="width:1.25rem;height:1.25rem;color:var(--primary-500)"></i>
+            </div>
+            <p class="metric-value">18</p>
+            <p class="metric-label mb-0">Partisipan</p>
+        </div>
+    </div>
+</div>
+
+{{-- Main Content --}}
+<div class="row g-4">
+    {{-- Campaigns --}}
+    <div class="col-12 col-lg-8">
+        <div class="gr-card p-3 p-sm-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h2 class="fw-semibold mb-0" style="font-size:1.05rem">Campaign Berjalan</h2>
+                <x-ui.button variant="ghost" size="sm" href="{{ route('campaigns.index') }}" icon="arrow-right">
+                    Lihat Semua
+                </x-ui.button>
+            </div>
+            <div class="d-flex flex-column gap-3">
+                @foreach([
+                    ['title'=>'Beras Premium Pulen','progress'=>64,'current'=>'320','target'=>'500 kg','deadline'=>now()->addDays(3)],
+                    ['title'=>'Minyak Goreng 2L','progress'=>73,'current'=>'145','target'=>'200 pcs','deadline'=>now()->addDays(5)],
+                    ['title'=>'Telur Ayam Negeri','progress'=>78,'current'=>'780','target'=>'1000 butir','deadline'=>now()->addDays(2)],
+                ] as $c)
+                <a href="#" class="gr-card gr-card-hover p-3 text-decoration-none"
+                   style="border:1px solid var(--surface-200)">
+                    <div class="d-flex align-items-start justify-content-between mb-2">
+                        <h3 class="fw-semibold mb-0" style="font-size:.95rem;color:var(--text-primary)">{{ $c['title'] }}</h3>
+                        <span class="gr-badge gr-badge-info">PGH-RT03</span>
+                    </div>
+                    <div class="gr-progress mb-2">
+                        <div class="{{ $c['progress'] >= 70 ? 'gr-progress-fill gr-progress-yellow' : 'gr-progress-fill gr-progress-green' }}"
+                             style="width:{{ $c['progress'] }}%">{{ $c['progress'] }}%</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span style="font-size:.8rem;color:var(--text-secondary)">{{ $c['current'] }}/{{ $c['target'] }}</span>
+                        <span class="fw-semibold" style="font-size:.8rem"
+                              x-data="countdown('{{ $c['deadline']->toISOString() }}')"
+                              x-text="remaining"
+                              :style="isUrgent ? 'color:var(--danger-600)' : 'color:var(--text-secondary)'"></span>
+                    </div>
+                </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    {{-- Sidebar --}}
+    <div class="col-12 col-lg-4">
+        <div class="d-flex flex-column gap-4">
+            {{-- Profile Card --}}
+            <div class="gr-card p-3 p-sm-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold"
+                         style="width:3.5rem;height:3.5rem;background:var(--primary-500);font-size:1.25rem;flex-shrink:0">BS</div>
+                    <div>
+                        <h3 class="fw-semibold mb-0" style="font-size:.95rem">Bu Siti Rahayu</h3>
+                        <p class="mb-0" style="font-size:.8rem;color:var(--text-secondary)">PGH-RT03</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="gr-badge gr-badge-info">Buyer</span>
+                    <span class="gr-badge gr-badge-success">
+                        <i data-lucide="check-circle" style="width:.75rem;height:.75rem"></i>Consent
+                    </span>
+                </div>
+            </div>
+
+            {{-- Quick Actions --}}
+            <div class="gr-card p-3 p-sm-4">
+                <h3 class="fw-semibold mb-3" style="font-size:1rem">Aksi Cepat</h3>
+                <div class="d-flex flex-column gap-2">
+                    <x-ui.button variant="primary" href="{{ route('campaigns.index') }}" icon="shopping-cart" class="w-100">
+                        Lihat Campaign
+                    </x-ui.button>
+                    <x-ui.button variant="secondary" href="{{ route('orders.index') }}" icon="receipt" class="w-100">
+                        Pesanan Saya
+                    </x-ui.button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection

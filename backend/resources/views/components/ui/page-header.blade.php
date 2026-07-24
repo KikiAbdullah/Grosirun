@@ -1,10 +1,12 @@
 @props(['title','subtitle'=>null])
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-between gap-3 mb-4">
     <div>
-        <h1 class="text-headline-lg text-text-primary text-balance">{{ $title }}</h1>
-        @if($subtitle)<p class="text-body-md text-text-secondary mt-1">{{ $subtitle }}</p>@endif
+        <h1 class="mb-0 fw-bold" style="font-size:1.5rem;color:var(--text-primary)">{{ $title }}</h1>
+        @if($subtitle)
+        <p class="mb-0 mt-1" style="font-size:.875rem;color:var(--text-secondary)">{{ $subtitle }}</p>
+        @endif
     </div>
     @if($actions ?? false)
-        <div class="flex items-center gap-3 flex-shrink-0">{{ $actions }}</div>
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">{{ $actions }}</div>
     @endif
 </div>

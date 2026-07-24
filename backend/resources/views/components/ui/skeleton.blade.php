@@ -1,9 +1,42 @@
 @props(['type'=>'card','count'=>1])
 @switch($type)
-    @case('text')    @for($i=0;$i<$count;$i++)<div class="skeleton-text {{ $i>0?'mt-2':'' }}" style="width:{{ rand(50,100) }}%"></div>@endfor @break
-    @case('heading') <div class="skeleton-heading"></div> @break
-    @case('avatar')  <div class="skeleton-avatar"></div> @break
-    @case('table-row') @for($i=0;$i<$count;$i++)<div class="flex items-center gap-4 py-4 {{ $i>0?'border-t border-surface-200':'' }}"><div class="skeleton-avatar"></div><div class="flex-1 space-y-2"><div class="skeleton-text" style="width:40%"></div><div class="skeleton-text" style="width:60%;opacity:.5"></div></div><div class="skeleton h-6 w-20"></div></div>@endfor @break
-    @case('metric')  <div class="card p-4 sm:p-6"><div class="skeleton h-4 w-20 mb-3"></div><div class="skeleton h-8 w-16 mb-2"></div><div class="skeleton h-3 w-24"></div></div> @break
-    @default @for($i=0;$i<$count;$i++)<div class="card p-4 sm:p-6 {{ $i>0?'mt-4':'' }}"><div class="skeleton h-40 w-full rounded-xl mb-4"></div><div class="skeleton h-5 w-3/4 mb-2"></div><div class="skeleton h-4 w-1/2 mb-4"></div><div class="skeleton h-6 w-full rounded-full mb-4"></div></div>@endfor
+    @case('text')
+        @for($i=0;$i<$count;$i++)
+        <div class="gr-skeleton mb-2" style="height:1rem;width:{{ rand(50,100) }}%"></div>
+        @endfor
+        @break
+    @case('heading')
+        <div class="gr-skeleton mb-2" style="height:1.5rem;width:50%"></div>
+        @break
+    @case('avatar')
+        <div class="gr-skeleton rounded-circle" style="height:2.5rem;width:2.5rem"></div>
+        @break
+    @case('table-row')
+        @for($i=0;$i<$count;$i++)
+        <div class="d-flex align-items-center gap-3 py-3 {{ $i>0?'border-top':'' }}">
+            <div class="gr-skeleton rounded-circle flex-shrink-0" style="height:2.5rem;width:2.5rem"></div>
+            <div class="flex-grow-1">
+                <div class="gr-skeleton mb-2" style="height:.875rem;width:40%"></div>
+                <div class="gr-skeleton" style="height:.75rem;width:60%;opacity:.5"></div>
+            </div>
+            <div class="gr-skeleton" style="height:1.5rem;width:5rem"></div>
+        </div>
+        @endfor
+        @break
+    @case('metric')
+        <div class="gr-card p-3">
+            <div class="gr-skeleton mb-3" style="height:1rem;width:5rem"></div>
+            <div class="gr-skeleton mb-2" style="height:2rem;width:4rem"></div>
+            <div class="gr-skeleton" style="height:.75rem;width:6rem"></div>
+        </div>
+        @break
+    @default
+        @for($i=0;$i<$count;$i++)
+        <div class="gr-card p-3 {{ $i>0?'mt-3':'' }}">
+            <div class="gr-skeleton mb-3" style="height:10rem;border-radius:.75rem"></div>
+            <div class="gr-skeleton mb-2" style="height:1.25rem;width:75%"></div>
+            <div class="gr-skeleton mb-3" style="height:1rem;width:50%"></div>
+            <div class="gr-skeleton" style="height:1.5rem;border-radius:9999px"></div>
+        </div>
+        @endfor
 @endswitch
