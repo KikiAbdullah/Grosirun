@@ -26,10 +26,12 @@ Route::get('/health', function () {
     ]);
 });
 
-// Authentication routes (public)
+// Authentication routes (public) - with rate limiting
 Route::prefix('auth')->group(function () {
-    Route::post('/request-otp', [AuthController::class, 'requestOtp']);
-    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/request-otp', [AuthController::class, 'requestOtp'])
+        ->middleware('throttle:5,1'); // 5 attempts per minute
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])
+        ->middleware('throttle:10,1'); // 10 attempts per minute
 });
 
 // Protected routes (require authentication)

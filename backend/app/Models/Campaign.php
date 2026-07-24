@@ -190,10 +190,10 @@ class Campaign extends Model
      */
     public function incrementQuantity(int $quantity): bool
     {
-        $result = $this->newQuery()
-            ->where('id', $this->id)
-            ->whereRaw('current_quantity + ? <= target_quantity', [$quantity])
-            ->update(['current_quantity' => \DB::raw("current_quantity + {$quantity}")]);
+        $result = \DB::update(
+            'UPDATE campaigns SET current_quantity = current_quantity + ? WHERE id = ? AND current_quantity + ? <= target_quantity',
+            [$quantity, $this->id, $quantity]
+        );
         
         if ($result) {
             $this->current_quantity += $quantity;

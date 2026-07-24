@@ -4,18 +4,23 @@ use App\DataTables\{AdminUsersDataTable, AuditLogsDataTable, PendingSuppliersDat
 use App\Http\Controllers\Controller;
 use App\Models\{Supplier,SupplierOffer,User,PurchaseOrder,Campaign,TransactionLog};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
     public function dashboard()
     {
-        return view('admin.dashboard', ['metrics'=>[
-            'pending_suppliers'=>Supplier::where('status','pending_verification')->count(),
-            'pending_offers'=>SupplierOffer::where('status','pending_moderation')->count(),
-            'open_disputes'=>PurchaseOrder::whereIn('status',['disputed','rejected'])->count(),
-            'active_campaigns'=>Campaign::where('status','active')->count(),
-            'total_users'=>User::count(),
-        ]]);
+        $metrics = Cache::remember('admin_dashboard_metrics', 300, function () {
+            return [
+                'pending_suppliers'=>Supplier::where('status','pending_verification')->count(),
+                'pending_offers'=>SupplierOffer::where('status','pending_moderation')->count(),
+                'open_disputes'=>PurchaseOrder::whereIn('status',['disputed','rejected'])->count(),
+                'active_campaigns'=>Campaign::where('status','active')->count(),
+                'total_users'=>User::count(),
+            ];
+        });
+        
+        return view('admin.dashboard', compact('metrics'));
     }
 
     public function pendingSuppliers(PendingSuppliersDataTable $dataTable) { return $dataTable->render('admin.suppliers.pending'); }
@@ -24,6 +29,7 @@ class AdminController extends Controller
         $r->validate(['action'=>'required|in:approve,reject','reason'=>'nullable|string|max:500']);
         $s = Supplier::findOrFail($id);
         $s->update($r->action==='approve' ? ['status'=>'verified','verified_at'=>now()] : ['status'=>'rejected','rejection_reason'=>$r->reason]);
+        Cache::forget('admin_dashboard_metrics');
         return back()->with('success',$r->action==='approve'?'Supplier diverifikasi ✅':'Supplier ditolak');
     }
 
@@ -32,6 +38,7 @@ class AdminController extends Controller
     {
         $r->validate(['action'=>'required|in:approve,reject','note'=>'nullable|string']);
         SupplierOffer::findOrFail($id)->update(['status'=>$r->action==='approve'?'active':'rejected','moderation_note'=>$r->note]);
+        Cache::forget('admin_dashboard_metrics');
         return back()->with('success',$r->action==='approve'?'Offer disetujui ✅':'Offer ditolak');
     }
 

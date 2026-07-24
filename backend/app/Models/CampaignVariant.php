@@ -70,10 +70,10 @@ class CampaignVariant extends Model
      */
     public function incrementSoldQuantity(int $quantity): bool
     {
-        $result = $this->newQuery()
-            ->where('id', $this->id)
-            ->whereRaw('sold_quantity + ? <= max_quantity', [$quantity])
-            ->update(['sold_quantity' => \DB::raw("sold_quantity + {$quantity}")]);
+        $result = \DB::update(
+            'UPDATE campaign_variants SET sold_quantity = sold_quantity + ? WHERE id = ? AND sold_quantity + ? <= max_quantity',
+            [$quantity, $this->id, $quantity]
+        );
         
         if ($result) {
             $this->sold_quantity += $quantity;
@@ -88,10 +88,10 @@ class CampaignVariant extends Model
      */
     public function decrementSoldQuantity(int $quantity): bool
     {
-        $result = $this->newQuery()
-            ->where('id', $this->id)
-            ->whereRaw('sold_quantity - ? >= 0', [$quantity])
-            ->update(['sold_quantity' => \DB::raw("sold_quantity - {$quantity}")]);
+        $result = \DB::update(
+            'UPDATE campaign_variants SET sold_quantity = sold_quantity - ? WHERE id = ? AND sold_quantity - ? >= 0',
+            [$quantity, $this->id, $quantity]
+        );
         
         if ($result) {
             $this->sold_quantity -= $quantity;
