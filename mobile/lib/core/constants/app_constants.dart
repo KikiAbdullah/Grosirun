@@ -38,6 +38,9 @@ class AppConstants {
   static const String boxProofUploads = 'proof_uploads_box';
   static const String boxEtag = 'etag_box';
   static const String boxIdempotency = 'idempotency_box';
+  static const String boxSellerProducts = 'seller_products_box';
+  static const String boxSellerOffers = 'seller_offers_box';
+  static const String boxPurchaseOrders = 'purchase_orders_box';
 
   static const String keyToken = 'auth_token';
   static const String keyAuthToken = 'auth_token';
@@ -46,6 +49,9 @@ class AppConstants {
   static const String keyActiveRole = 'active_role';
   static const String keyCurrentUser = 'current_user';
   static const String keyPendingDeepLink = 'pending_deep_link';
+  static const String keyLastRoute = 'last_route';
+  static const String keyLastCampaignId = 'last_campaign_id';
+  static const String keyLastActiveAt = 'last_active_at';
 
   static const String deepLinkScheme = 'grosirun';
   static const String deepLinkHost = 'campaign';

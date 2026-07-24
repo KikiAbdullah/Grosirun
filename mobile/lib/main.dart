@@ -11,14 +11,18 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'core/constants/app_constants.dart';
 import 'core/network/dio_client.dart';
 import 'core/theme/app_theme.dart';
+import 'data/repositories/admin_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/campaign_repository.dart';
 import 'data/repositories/notification_repository.dart';
 import 'data/repositories/order_repository.dart';
+import 'data/repositories/seller_repository.dart';
+import 'logic/cubits/admin/admin_cubit.dart';
 import 'logic/cubits/auth/auth_cubit.dart';
 import 'logic/cubits/campaign/campaign_cubit.dart';
 import 'logic/cubits/notification/notification_cubit.dart';
 import 'logic/cubits/order/order_cubit.dart';
+import 'logic/cubits/seller/seller_cubit.dart';
 import 'presentation/router/app_router.dart';
 
 final getIt = GetIt.instance;
@@ -53,17 +57,22 @@ Future<void> initDependencies() async {
     () => DioClient(logger: getIt<Logger>(), secureStorage: getIt<FlutterSecureStorage>()),
   );
 
+  // ─── Repositories ───
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepository(secureStorage: getIt<FlutterSecureStorage>()),
   );
   getIt.registerLazySingleton<CampaignRepository>(() => CampaignRepository());
   getIt.registerLazySingleton<OrderRepository>(() => OrderRepository());
   getIt.registerLazySingleton<NotificationRepository>(() => NotificationRepository());
+  getIt.registerLazySingleton<SellerRepository>(() => SellerRepository());
+  getIt.registerLazySingleton<AdminRepository>(() => AdminRepository());
 
+  // ─── Cubits ───
   getIt.registerLazySingleton<AuthCubit>(
     () => AuthCubit(repository: getIt<AuthRepository>()),
   );
 
+  // ─── Hive ───
   await Hive.initFlutter();
   await Future.wait([
     Hive.openBox(AppConstants.boxCampaigns),
@@ -75,6 +84,9 @@ Future<void> initDependencies() async {
     Hive.openBox(AppConstants.boxProofUploads),
     Hive.openBox(AppConstants.boxEtag),
     Hive.openBox(AppConstants.boxIdempotency),
+    Hive.openBox(AppConstants.boxSellerProducts),
+    Hive.openBox(AppConstants.boxSellerOffers),
+    Hive.openBox(AppConstants.boxPurchaseOrders),
   ]);
 }
 
@@ -99,6 +111,8 @@ class GrosirunApp extends StatelessWidget {
         RepositoryProvider.value(value: getIt<CampaignRepository>()),
         RepositoryProvider.value(value: getIt<OrderRepository>()),
         RepositoryProvider.value(value: getIt<NotificationRepository>()),
+        RepositoryProvider.value(value: getIt<SellerRepository>()),
+        RepositoryProvider.value(value: getIt<AdminRepository>()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -111,6 +125,12 @@ class GrosirunApp extends StatelessWidget {
           ),
           BlocProvider(
             create: (_) => NotificationCubit(getIt<NotificationRepository>()),
+          ),
+          BlocProvider(
+            create: (_) => SellerCubit(getIt<SellerRepository>()),
+          ),
+          BlocProvider(
+            create: (_) => AdminCubit(getIt<AdminRepository>()),
           ),
         ],
         child: MaterialApp.router(

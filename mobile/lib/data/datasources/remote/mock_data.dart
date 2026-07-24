@@ -1,6 +1,11 @@
 import '../../models/campaign_model.dart';
+import '../../models/dispute_model.dart';
 import '../../models/notification_model.dart';
 import '../../models/order_model.dart';
+import '../../models/purchase_order_model.dart';
+import '../../models/seller_product_model.dart';
+import '../../models/supplier_model.dart';
+import '../../models/supplier_offer_model.dart';
 import '../../models/user_model.dart';
 import '../../../core/constants/app_constants.dart';
 
@@ -269,5 +274,391 @@ class MockData {
         'Bu Dewi • 2L Minyak x 3 • 8 menit lalu',
         'Pak Rudi • 30 butir Telur • 12 menit lalu',
         'Bu Ani • 5 Kg Gula • 15 menit lalu',
+      ];
+
+  // ─── Seller Products ───
+
+  static List<SellerProductModel> get sellerProducts => [
+        SellerProductModel(
+          id: 1,
+          supplierId: 1,
+          name: 'Beras Premium Pulen',
+          baseUnit: 'kg',
+          description: 'Beras premium kualitas terbaik langsung dari pabrik.',
+          variants: const [
+            ProductVariantModel(id: 1, productId: 1, name: '5 Kg', packageQuantity: 5),
+            ProductVariantModel(id: 2, productId: 1, name: '10 Kg', packageQuantity: 10),
+            ProductVariantModel(id: 3, productId: 1, name: '25 Kg (Sak)', packageQuantity: 25),
+          ],
+          createdAt: DateTime.now().subtract(const Duration(days: 10)),
+        ),
+        SellerProductModel(
+          id: 2,
+          supplierId: 1,
+          name: 'Minyak Goreng 2L',
+          baseUnit: 'pcs',
+          description: 'Minyak goreng kemasan 2 liter berkualitas.',
+          variants: const [
+            ProductVariantModel(id: 4, productId: 2, name: '1 pcs (2L)', packageQuantity: 1),
+            ProductVariantModel(id: 5, productId: 2, name: '1 Dus (6 pcs)', packageQuantity: 6),
+          ],
+          createdAt: DateTime.now().subtract(const Duration(days: 7)),
+        ),
+      ];
+
+  // ─── Supplier Offers ───
+
+  static List<SupplierOfferModel> get supplierOffers => [
+        SupplierOfferModel(
+          id: 1,
+          supplierId: 1,
+          supplierName: 'CV Makmur Jaya',
+          productName: 'Beras Premium Pulen',
+          unit: 'kg',
+          minimumOrder: 500,
+          capacity: 2000,
+          tiers: const [
+            PriceTier(minQuantity: 500, maxQuantity: 999, unitPrice: 10500),
+            PriceTier(minQuantity: 1000, maxQuantity: 0, unitPrice: 10000),
+          ],
+          serviceAreas: const ['PGH-RT03', 'PGH-RT05'],
+          deliveryCost: 200000,
+          validUntil: DateTime.now().add(const Duration(days: 15)),
+          status: OfferStatus.active,
+          createdAt: DateTime.now().subtract(const Duration(days: 5)),
+        ),
+      ];
+
+  static List<SupplierOfferModel> get pendingOffers => [
+        SupplierOfferModel(
+          id: 10,
+          supplierId: 1,
+          supplierName: 'CV Makmur Jaya',
+          productName: 'Beras Premium Pulen',
+          unit: 'kg',
+          minimumOrder: 500,
+          capacity: 2000,
+          tiers: const [
+            PriceTier(minQuantity: 500, maxQuantity: 999, unitPrice: 10500),
+            PriceTier(minQuantity: 1000, maxQuantity: 0, unitPrice: 10000),
+          ],
+          serviceAreas: const ['PGH-RT03', 'PGH-RT05'],
+          deliveryCost: 200000,
+          validUntil: DateTime.now().add(const Duration(days: 30)),
+          status: OfferStatus.pendingModeration,
+          createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+        ),
+        SupplierOfferModel(
+          id: 11,
+          supplierId: 2,
+          supplierName: 'UD Sumber Rejeki',
+          productName: 'Minyak Goreng 2L',
+          unit: 'pcs',
+          minimumOrder: 200,
+          capacity: 1000,
+          tiers: const [
+            PriceTier(minQuantity: 200, maxQuantity: 499, unitPrice: 28000),
+            PriceTier(minQuantity: 500, maxQuantity: 0, unitPrice: 26500),
+          ],
+          serviceAreas: const ['PGH-RT03'],
+          deliveryCost: 180000,
+          validUntil: DateTime.now().add(const Duration(days: 20)),
+          status: OfferStatus.pendingModeration,
+          createdAt: DateTime.now().subtract(const Duration(hours: 8)),
+        ),
+      ];
+
+  static List<SupplierOfferModel> get allOffers => [...supplierOffers, ...pendingOffers];
+
+  // ─── Purchase Orders (Seller side) ───
+
+  static List<PurchaseOrderModel> get sellerPurchaseOrders => [
+        PurchaseOrderModel(
+          id: 1001,
+          code: 'PO-1001',
+          campaignId: 1,
+          campaignTitle: 'Beras Premium Pulen',
+          initiatorId: 2,
+          initiatorName: 'Pak Agus Setiawan',
+          supplierId: 1,
+          supplierName: 'CV Makmur Jaya',
+          productName: 'Beras Premium Pulen',
+          unit: 'kg',
+          quantity: 500,
+          unitPrice: 10500,
+          subtotal: 5250000,
+          deliveryCost: 200000,
+          totalAmount: 5450000,
+          status: POStatus.submitted,
+          createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        ),
+        PurchaseOrderModel(
+          id: 1002,
+          code: 'PO-1002',
+          campaignId: 2,
+          campaignTitle: 'Minyak Goreng 2L',
+          initiatorId: 2,
+          initiatorName: 'Pak Agus Setiawan',
+          supplierId: 1,
+          supplierName: 'CV Makmur Jaya',
+          productName: 'Minyak Goreng 2L',
+          unit: 'pcs',
+          quantity: 200,
+          unitPrice: 30000,
+          subtotal: 6000000,
+          deliveryCost: 180000,
+          totalAmount: 6180000,
+          status: POStatus.accepted,
+          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+          acceptedAt: DateTime.now().subtract(const Duration(hours: 18)),
+        ),
+        PurchaseOrderModel(
+          id: 1003,
+          code: 'PO-1003',
+          campaignId: 3,
+          campaignTitle: 'Gula Pasir',
+          initiatorId: 2,
+          initiatorName: 'Pak Agus Setiawan',
+          supplierId: 2,
+          supplierName: 'UD Sumber Rejeki',
+          productName: 'Gula Pasir',
+          unit: 'kg',
+          quantity: 300,
+          unitPrice: 16000,
+          subtotal: 4800000,
+          deliveryCost: 150000,
+          totalAmount: 4950000,
+          status: POStatus.shipped,
+          trackingNumber: 'JNE-123456',
+          createdAt: DateTime.now().subtract(const Duration(days: 3)),
+          acceptedAt: DateTime.now().subtract(const Duration(days: 2)),
+          paidAt: DateTime.now().subtract(const Duration(days: 2, hours: 6)),
+          shippedAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+      ];
+
+  // ─── Supplier Models (Admin verification) ───
+
+  static List<SupplierModel> get pendingSuppliers => [
+        SupplierModel(
+          id: 1,
+          name: 'CV Makmur Jaya',
+          siup: 'SIUP-2024-001',
+          npwp: '01.234.567.8-901.000',
+          address: 'Jl. Industri Raya No.45, Surabaya',
+          contactPhone: '031-1234567',
+          contactEmail: 'info@makmurjaya.co.id',
+          status: SupplierStatus.pendingVerification,
+          createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        ),
+        SupplierModel(
+          id: 2,
+          name: 'UD Sumber Rejeki',
+          siup: 'SIUP-2024-002',
+          npwp: '02.345.678.9-012.000',
+          address: 'Jl. Pasar Baru No.12, Sidoarjo',
+          contactPhone: '031-7654321',
+          contactEmail: 'cs@sumberrejeki.com',
+          status: SupplierStatus.pendingVerification,
+          createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+        ),
+        SupplierModel(
+          id: 3,
+          name: 'PT Sembako Jaya',
+          siup: 'SIUP-2024-003',
+          npwp: '03.456.789.0-123.000',
+          address: 'Jl. Gatot Subroto No.88, Surabaya',
+          contactPhone: '031-9988776',
+          contactEmail: 'admin@sembakojaya.co.id',
+          status: SupplierStatus.pendingVerification,
+          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+      ];
+
+  static List<SupplierModel> get allSuppliers => [
+        ...pendingSuppliers,
+        SupplierModel(
+          id: 10,
+          name: 'PT Grosir Nusantara',
+          siup: 'SIUP-2023-050',
+          npwp: '10.234.567.8-901.000',
+          address: 'Jl. Raya Grosir No.1, Jakarta',
+          contactPhone: '021-5551234',
+          contactEmail: 'info@grosirnusantara.co.id',
+          status: SupplierStatus.verified,
+          createdAt: DateTime.now().subtract(const Duration(days: 60)),
+          verifiedAt: DateTime.now().subtract(const Duration(days: 55)),
+        ),
+      ];
+
+  // ─── Disputes ───
+
+  static List<DisputeModel> get disputes => [
+        DisputeModel(
+          id: 1,
+          purchaseOrderId: 1003,
+          purchaseOrderCode: 'PO-1003',
+          initiatorId: 2,
+          initiatorName: 'Pak Agus Setiawan',
+          supplierId: 2,
+          supplierName: 'UD Sumber Rejeki',
+          disputeType: 'quantity_mismatch',
+          description: 'Barang yang diterima hanya 280 Kg dari 300 Kg yang dipesan. 20 Kg kurang dari surat jalan.',
+          evidenceUrls: const [
+            'https://storage.grosirun.id/disputes/evidence_001.jpg',
+            'https://storage.grosirun.id/disputes/evidence_002.jpg',
+          ],
+          status: DisputeStatus.open,
+          createdAt: DateTime.now().subtract(const Duration(hours: 6)),
+        ),
+        DisputeModel(
+          id: 2,
+          purchaseOrderId: 1002,
+          purchaseOrderCode: 'PO-1002',
+          initiatorId: 2,
+          initiatorName: 'Pak Agus Setiawan',
+          supplierId: 1,
+          supplierName: 'CV Makmur Jaya',
+          disputeType: 'quality_issue',
+          description: 'Minyak goreng yang diterima mendekati expired date (1 bulan lagi).',
+          evidenceUrls: const [
+            'https://storage.grosirun.id/disputes/evidence_003.jpg',
+          ],
+          status: DisputeStatus.inReview,
+          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+        DisputeModel(
+          id: 3,
+          purchaseOrderId: 1001,
+          purchaseOrderCode: 'PO-1001',
+          initiatorId: 2,
+          initiatorName: 'Pak Agus Setiawan',
+          supplierId: 1,
+          supplierName: 'CV Makmur Jaya',
+          disputeType: 'late_delivery',
+          description: 'Pengiriman terlambat 3 hari dari jadwal.',
+          evidenceUrls: const [],
+          status: DisputeStatus.resolved,
+          resolution: DisputeResolution.refund,
+          resolutionNotes: 'Seller setuju refund 10% dari total PO sebagai kompensasi.',
+          refundAmount: 545000,
+          createdAt: DateTime.now().subtract(const Duration(days: 5)),
+          resolvedAt: DateTime.now().subtract(const Duration(days: 3)),
+        ),
+      ];
+
+  // ─── Audit Logs ───
+
+  static List<AuditLogModel> get auditLogs => [
+        AuditLogModel(
+          id: 1,
+          action: 'supplier_verified',
+          targetType: 'supplier',
+          targetId: 10,
+          userId: 4,
+          userName: 'Admin Grosirun',
+          description: 'PT Grosir Nusantara diverifikasi dan diaktifkan.',
+          createdAt: DateTime.now().subtract(const Duration(days: 55)),
+        ),
+        AuditLogModel(
+          id: 2,
+          action: 'offer_approved',
+          targetType: 'offer',
+          targetId: 1,
+          userId: 4,
+          userName: 'Admin Grosirun',
+          description: 'Offer Beras Premium Pulen oleh CV Makmur Jaya disetujui.',
+          createdAt: DateTime.now().subtract(const Duration(days: 4)),
+        ),
+        AuditLogModel(
+          id: 3,
+          action: 'dispute_resolved',
+          targetType: 'dispute',
+          targetId: 3,
+          userId: 4,
+          userName: 'Admin Grosirun',
+          description: 'Dispute PO-1001 diselesaikan dengan refund 10%.',
+          ticketId: 'TKT-2026-0042',
+          createdAt: DateTime.now().subtract(const Duration(days: 3)),
+        ),
+        AuditLogModel(
+          id: 4,
+          action: 'user_suspended',
+          targetType: 'user',
+          targetId: 15,
+          userId: 4,
+          userName: 'Admin Grosirun',
+          description: 'User ditangguhkan karena pelanggaran kebijakan.',
+          ticketId: 'TKT-2026-0043',
+          createdAt: DateTime.now().subtract(const Duration(days: 2)),
+        ),
+        AuditLogModel(
+          id: 5,
+          action: 'role_granted',
+          targetType: 'user',
+          targetId: 2,
+          userId: 4,
+          userName: 'Admin Grosirun',
+          description: 'Role initiator diberikan kepada Pak Agus Setiawan.',
+          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+      ];
+
+  // ─── Users with Roles (Admin role management) ───
+
+  static List<UserModel> get usersWithRoles => [
+        const UserModel(
+          id: 1,
+          name: 'Bu Siti Rahayu',
+          phoneNumber: '081234567890',
+          clusterId: 1,
+          clusterName: 'Permata Hijau RT03',
+          roles: [UserRole.buyer],
+          activeRole: UserRole.buyer,
+          consentGiven: true,
+          tosAccepted: true,
+        ),
+        const UserModel(
+          id: 2,
+          name: 'Pak Agus Setiawan',
+          phoneNumber: '081987654321',
+          clusterId: 1,
+          clusterName: 'Permata Hijau RT03',
+          roles: [UserRole.buyer, UserRole.initiator],
+          activeRole: UserRole.initiator,
+          consentGiven: true,
+          tosAccepted: true,
+        ),
+        const UserModel(
+          id: 3,
+          name: 'Andi dari Makmur Jaya',
+          phoneNumber: '08111222333',
+          roles: [UserRole.seller],
+          activeRole: UserRole.seller,
+          consentGiven: true,
+          tosAccepted: true,
+        ),
+        const UserModel(
+          id: 5,
+          name: 'Bu Dewi Lestari',
+          phoneNumber: '081555666777',
+          clusterId: 1,
+          clusterName: 'Permata Hijau RT03',
+          roles: [UserRole.buyer],
+          activeRole: UserRole.buyer,
+          consentGiven: true,
+          tosAccepted: true,
+        ),
+        const UserModel(
+          id: 6,
+          name: 'Pak Budi Santoso',
+          phoneNumber: '081777888999',
+          clusterId: 1,
+          clusterName: 'Permata Hijau RT03',
+          roles: [UserRole.buyer, UserRole.initiator],
+          activeRole: UserRole.buyer,
+          consentGiven: true,
+          tosAccepted: true,
+        ),
       ];
 }

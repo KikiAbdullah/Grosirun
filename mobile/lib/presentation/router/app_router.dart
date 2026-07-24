@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 
 import '../../core/constants/app_constants.dart';
+import '../../core/theme/app_theme.dart';
 import '../../logic/cubits/auth/auth_cubit.dart';
+import '../../presentation/screens/admin/admin_screens.dart';
 import '../../presentation/screens/auth/consent_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/otp_screen.dart';
@@ -15,6 +17,8 @@ import '../../presentation/screens/campaign/campaign_detail_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
 import '../../presentation/screens/profile/profile_screen.dart';
 import '../../presentation/screens/role_selection/role_selection_screen.dart';
+import '../../presentation/screens/seller/seller_dashboard_screen.dart';
+import '../../presentation/screens/seller/seller_detail_screens.dart';
 import '../../presentation/screens/workspaces/buyer_order_detail_screen.dart';
 import '../../presentation/screens/workspaces/role_workspaces_screens.dart';
 import '../../presentation/screens/splash/splash_screen.dart';
@@ -90,6 +94,7 @@ GoRouter createAppRouter(AuthCubit authCubit) {
       return null;
     },
     routes: [
+      // ─── Auth Flow ───
       GoRoute(
         path: '/',
         builder: (context, state) => const SplashScreen(),
@@ -120,10 +125,14 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         path: '/roles',
         builder: (context, state) => const RoleSelectionScreen(),
       ),
+
+      // ─── Home (role-based) ───
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(initialIndex: 0),
       ),
+
+      // ─── Buyer ───
       GoRoute(
         path: '/my-orders',
         builder: (context, state) => const MyOrdersScreen(),
@@ -139,6 +148,15 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen(),
       ),
+      GoRoute(
+        path: '/campaign/:id',
+        builder: (context, state) {
+          final campaignId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return CampaignDetailScreen(campaignId: campaignId);
+        },
+      ),
+
+      // ─── Initiator ───
       GoRoute(
         path: '/initiator/dashboard',
         builder: (context, state) => const HomeScreen(initialIndex: 1),
@@ -162,8 +180,14 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         },
       ),
       GoRoute(
+        path: '/initiator/validation',
+        builder: (context, state) => const InitiatorValidationScreen(),
+      ),
+
+      // ─── Seller ───
+      GoRoute(
         path: '/seller/dashboard',
-        builder: (context, state) => const HomeScreen(initialIndex: 0),
+        builder: (context, state) => const SellerDashboardScreen(),
       ),
       GoRoute(
         path: '/seller/offers',
@@ -174,8 +198,29 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         builder: (context, state) => const SellerPurchaseOrdersScreen(),
       ),
       GoRoute(
+        path: '/seller/purchase-orders/:id',
+        builder: (context, state) {
+          final poId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          return SellerPurchaseOrderDetailScreen(poId: poId);
+        },
+      ),
+      GoRoute(
+        path: '/seller/products',
+        builder: (context, state) => const SellerProductsScreen(),
+      ),
+      GoRoute(
+        path: '/seller/create-product',
+        builder: (context, state) => const SellerCreateProductScreen(),
+      ),
+      GoRoute(
+        path: '/seller/create-offer',
+        builder: (context, state) => const SellerCreateOfferScreen(),
+      ),
+
+      // ─── Admin ───
+      GoRoute(
         path: '/admin/dashboard',
-        builder: (context, state) => const HomeScreen(initialIndex: 0),
+        builder: (context, state) => const AdminDashboardScreen(),
       ),
       GoRoute(
         path: '/admin/suppliers/verification',
@@ -194,22 +239,33 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         builder: (context, state) => const AdminAuditScreen(),
       ),
       GoRoute(
+        path: '/admin/roles',
+        builder: (context, state) => const AdminRolesScreen(),
+      ),
+
+      // ─── Profile ───
+      GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
-        path: '/campaign/:id',
-        builder: (context, state) {
-          final campaignId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-          return CampaignDetailScreen(campaignId: campaignId);
-        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(
-        child: Text(
-          'Page not found: ${state.uri.path}',
-          style: const TextStyle(fontSize: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: AppTheme.textDisabled),
+            const SizedBox(height: 16),
+            Text(
+              'Halaman tidak ditemukan: ${state.uri.path}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.go('/home'),
+              child: const Text('Ke Beranda'),
+            ),
+          ],
         ),
       ),
     ),

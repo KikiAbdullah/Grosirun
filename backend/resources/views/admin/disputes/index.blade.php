@@ -1,0 +1,1 @@
+@extends('layouts.app')@section('title','Dispute')@section('content')<x-ui-page-header title="Mediasi Dispute" subtitle="Tinjau sengketa fulfillment." /><x-ui-card padding="none" class="p-4">{{ $dataTable->table(['id'=>'disputes-table','class'=>'w-full']) }}</x-ui-card>@push('scripts'){{ $dataTable->scripts(attributes:['type'=>'module']) }}@endpush@endsection
