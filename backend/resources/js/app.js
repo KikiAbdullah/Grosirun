@@ -44,6 +44,10 @@ import 'datatables.net-bs5';
 import 'datatables.net-buttons-bs5';
 import 'datatables.net-select-bs5';
 
+// ─── Chart.js ───
+import Chart from 'chart.js/auto';
+window.Chart = Chart;
+
 // ─── Grid.js ───
 import { Grid, html } from 'gridjs';
 import 'gridjs/dist/theme/mermaid.css';
