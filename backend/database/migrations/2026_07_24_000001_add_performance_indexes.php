@@ -3,100 +3,148 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
         // Users table indexes
-        Schema::table('users', function (Blueprint $table) {
-            $table->index('phone_number');
-            $table->index('active_role');
-            $table->index('cluster_id');
-        });
+        if (!Schema::hasIndex('users', 'users_phone_number_index')) {
+            Schema::table('users', fn(Blueprint $table) => $table->index('phone_number'));
+        }
+        if (!Schema::hasIndex('users', 'users_active_role_index')) {
+            Schema::table('users', fn(Blueprint $table) => $table->index('active_role'));
+        }
+        if (!Schema::hasIndex('users', 'users_cluster_id_index')) {
+            Schema::table('users', fn(Blueprint $table) => $table->index('cluster_id'));
+        }
 
         // Campaigns table indexes
-        Schema::table('campaigns', function (Blueprint $table) {
-            $table->index('status');
-            $table->index('initiator_id');
-            $table->index('cluster_id');
-            $table->index('deadline');
-            $table->index(['status', 'cluster_id']);
-        });
+        if (!Schema::hasIndex('campaigns', 'campaigns_status_index')) {
+            Schema::table('campaigns', fn(Blueprint $table) => $table->index('status'));
+        }
+        if (!Schema::hasIndex('campaigns', 'campaigns_initiator_id_index')) {
+            Schema::table('campaigns', fn(Blueprint $table) => $table->index('initiator_id'));
+        }
+        if (!Schema::hasIndex('campaigns', 'campaigns_cluster_id_index')) {
+            Schema::table('campaigns', fn(Blueprint $table) => $table->index('cluster_id'));
+        }
+        if (!Schema::hasIndex('campaigns', 'campaigns_deadline_index')) {
+            Schema::table('campaigns', fn(Blueprint $table) => $table->index('deadline'));
+        }
 
         // Campaign variants indexes
-        Schema::table('campaign_variants', function (Blueprint $table) {
-            $table->index('campaign_id');
-        });
+        if (!Schema::hasIndex('campaign_variants', 'campaign_variants_campaign_id_index')) {
+            Schema::table('campaign_variants', fn(Blueprint $table) => $table->index('campaign_id'));
+        }
 
         // Orders table indexes
-        Schema::table('orders', function (Blueprint $table) {
-            $table->index('user_id');
-            $table->index('campaign_id');
-            $table->index('payment_status');
-            $table->index('payment_method');
-            $table->index('is_taken');
-            $table->index(['user_id', 'payment_status']);
-            $table->index(['campaign_id', 'payment_status']);
-            $table->index('created_at');
-        });
+        if (!Schema::hasIndex('orders', 'orders_user_id_index')) {
+            Schema::table('orders', fn(Blueprint $table) => $table->index('user_id'));
+        }
+        if (!Schema::hasIndex('orders', 'orders_campaign_id_index')) {
+            Schema::table('orders', fn(Blueprint $table) => $table->index('campaign_id'));
+        }
+        if (!Schema::hasIndex('orders', 'orders_payment_status_index')) {
+            Schema::table('orders', fn(Blueprint $table) => $table->index('payment_status'));
+        }
+        if (!Schema::hasIndex('orders', 'orders_payment_method_index')) {
+            Schema::table('orders', fn(Blueprint $table) => $table->index('payment_method'));
+        }
+        if (!Schema::hasIndex('orders', 'orders_is_taken_index')) {
+            Schema::table('orders', fn(Blueprint $table) => $table->index('is_taken'));
+        }
+        if (!Schema::hasIndex('orders', 'orders_created_at_index')) {
+            Schema::table('orders', fn(Blueprint $table) => $table->index('created_at'));
+        }
 
         // Purchase orders indexes
-        Schema::table('purchase_orders', function (Blueprint $table) {
-            $table->index('initiator_id');
-            $table->index('supplier_id');
-            $table->index('campaign_id');
-            $table->index('status');
-            $table->index(['initiator_id', 'status']);
-            $table->index(['supplier_id', 'status']);
-        });
+        if (!Schema::hasIndex('purchase_orders', 'purchase_orders_initiator_id_index')) {
+            Schema::table('purchase_orders', fn(Blueprint $table) => $table->index('initiator_id'));
+        }
+        if (!Schema::hasIndex('purchase_orders', 'purchase_orders_supplier_id_index')) {
+            Schema::table('purchase_orders', fn(Blueprint $table) => $table->index('supplier_id'));
+        }
+        if (!Schema::hasIndex('purchase_orders', 'purchase_orders_campaign_id_index')) {
+            Schema::table('purchase_orders', fn(Blueprint $table) => $table->index('campaign_id'));
+        }
+        if (!Schema::hasIndex('purchase_orders', 'purchase_orders_status_index')) {
+            Schema::table('purchase_orders', fn(Blueprint $table) => $table->index('status'));
+        }
 
         // Suppliers indexes
-        Schema::table('suppliers', function (Blueprint $table) {
-            $table->index('status');
-        });
+        if (!Schema::hasIndex('suppliers', 'suppliers_status_index')) {
+            Schema::table('suppliers', fn(Blueprint $table) => $table->index('status'));
+        }
 
         // Supplier offers indexes
-        Schema::table('supplier_offers', function (Blueprint $table) {
-            $table->index('supplier_id');
-            $table->index('product_id');
-            $table->index('status');
-            $table->index(['supplier_id', 'status']);
-        });
+        if (!Schema::hasIndex('supplier_offers', 'supplier_offers_supplier_id_index')) {
+            Schema::table('supplier_offers', fn(Blueprint $table) => $table->index('supplier_id'));
+        }
+        if (!Schema::hasIndex('supplier_offers', 'supplier_offers_product_id_index')) {
+            Schema::table('supplier_offers', fn(Blueprint $table) => $table->index('product_id'));
+        }
+        if (!Schema::hasIndex('supplier_offers', 'supplier_offers_status_index')) {
+            Schema::table('supplier_offers', fn(Blueprint $table) => $table->index('status'));
+        }
 
         // Supplier products indexes
-        Schema::table('supplier_products', function (Blueprint $table) {
-            $table->index('supplier_id');
-        });
+        if (!Schema::hasIndex('supplier_products', 'supplier_products_supplier_id_index')) {
+            Schema::table('supplier_products', fn(Blueprint $table) => $table->index('supplier_id'));
+        }
 
         // Notifications indexes
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->index('user_id');
-            $table->index('read_at');
-            $table->index(['user_id', 'read_at']);
-        });
+        if (!Schema::hasIndex('notifications', 'notifications_user_id_index')) {
+            Schema::table('notifications', fn(Blueprint $table) => $table->index('user_id'));
+        }
+        if (!Schema::hasIndex('notifications', 'notifications_read_at_index')) {
+            Schema::table('notifications', fn(Blueprint $table) => $table->index('read_at'));
+        }
 
-        // Transaction logs indexes
-        Schema::table('transaction_logs', function (Blueprint $table) {
-            $table->index('user_id');
-            $table->index('action');
-            $table->index('target_type');
-            $table->index('target_id');
-            $table->index('created_at');
-        });
+        // Transaction logs indexes (skip if already exists)
+        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_user_id_index')) {
+            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('user_id'));
+        }
+        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_action_index')) {
+            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('action'));
+        }
+        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_target_type_index')) {
+            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('target_type'));
+        }
+        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_target_id_index')) {
+            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('target_id'));
+        }
+        if (!Schema::hasIndex('transaction_logs', 'transaction_logs_created_at_index')) {
+            Schema::table('transaction_logs', fn(Blueprint $table) => $table->index('created_at'));
+        }
     }
 
     public function down(): void
     {
-        Schema::table('users', fn(Blueprint $table) => $table->dropIndex(['phone_number', 'active_role', 'cluster_id']));
-        Schema::table('campaigns', fn(Blueprint $table) => $table->dropIndex(['status', 'initiator_id', 'cluster_id', 'deadline', 'status_cluster_id']));
-        Schema::table('campaign_variants', fn(Blueprint $table) => $table->dropIndex(['campaign_id']));
-        Schema::table('orders', fn(Blueprint $table) => $table->dropIndex(['user_id', 'campaign_id', 'payment_status', 'payment_method', 'is_taken', 'user_id_payment_status', 'campaign_id_payment_status', 'created_at']));
-        Schema::table('purchase_orders', fn(Blueprint $table) => $table->dropIndex(['initiator_id', 'supplier_id', 'campaign_id', 'status', 'initiator_id_status', 'supplier_id_status']));
-        Schema::table('suppliers', fn(Blueprint $table) => $table->dropIndex(['status']));
-        Schema::table('supplier_offers', fn(Blueprint $table) => $table->dropIndex(['supplier_id', 'product_id', 'status', 'supplier_id_status']));
-        Schema::table('supplier_products', fn(Blueprint $table) => $table->dropIndex(['supplier_id']));
-        Schema::table('notifications', fn(Blueprint $table) => $table->dropIndex(['user_id', 'read_at', 'user_id_read_at']));
-        Schema::table('transaction_logs', fn(Blueprint $table) => $table->dropIndex(['user_id', 'action', 'target_type', 'target_id', 'created_at']));
+        // Safe rollback - only drop if exists
+        $tables = [
+            'users' => ['phone_number', 'active_role', 'cluster_id'],
+            'campaigns' => ['status', 'initiator_id', 'cluster_id', 'deadline'],
+            'campaign_variants' => ['campaign_id'],
+            'orders' => ['user_id', 'campaign_id', 'payment_status', 'payment_method', 'is_taken', 'created_at'],
+            'purchase_orders' => ['initiator_id', 'supplier_id', 'campaign_id', 'status'],
+            'suppliers' => ['status'],
+            'supplier_offers' => ['supplier_id', 'product_id', 'status'],
+            'supplier_products' => ['supplier_id'],
+            'notifications' => ['user_id', 'read_at'],
+            'transaction_logs' => ['user_id', 'action', 'target_type', 'target_id', 'created_at'],
+        ];
+
+        foreach ($tables as $table => $indexes) {
+            foreach ($indexes as $column) {
+                $indexName = "{$table}_{$column}_index";
+                try {
+                    Schema::table($table, fn(Blueprint $table) => $table->dropIndex($indexName));
+                } catch (\Exception $e) {
+                    // Index doesn't exist, skip
+                }
+            }
+        }
     }
 };
