@@ -1,0 +1,29 @@
+# ═══════════════════════════════════════════════════
+# Grosirun — Root .gitignore
+# ═══════════════════════════════════════════════════
+
+# ─── Duplicate / Nested Repo ───
+Grosirun/
+Grosirun.zip
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ─── IDE ───
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ─── Docker ───
+docker-compose.override.yml
+
+# ─── Deploy ───
+*.pem
+*.key
+
+# ─── Misc ───
+*.log
+.env.local
